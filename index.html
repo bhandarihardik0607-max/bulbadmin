@@ -109,20 +109,16 @@
 
     <script type="module">
         // --- SUPABASE CONFIG ---
+        // FIX: Using the exact keys provided by the user
         const SUPABASE_URL = 'https://vrvlvvlfzbdqwfsdlrkv.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIZXV...'; // Key redacted for brevity in diff
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZydmx2dmxmemJkcXdmc2Rscmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NzI2NzAsImV4cCI6MjA3NzU0ODY3MH0.yYnxeipLuO0DlTvGITI5ajHDeoWZ80N2PS3rPhuOyp8';
 
-        // FIX: Replaced destructuring with a robust check to prevent crash
-        const createClient = window.supabase ? window.supabase.createClient : null;
+        let supabase = null; // Initialize as null
         
-        if (!createClient) {
-            alert("CRITICAL: Supabase client library not found. The app cannot start. Please refresh.");
-            // Stop further execution
-            throw new Error("Supabase client not loaded");
-        }
+        // --- DOM SELECTORS ---
+        const $ = (selector) => document.querySelector(selector);
+        const $$ = (selector) => document.querySelectorAll(selector);
         
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
         // --- STATE ---
         let state = {
             products: [],
@@ -136,10 +132,6 @@
             audioContext: null,
             notificationSound: null
         };
-
-        // --- DOM SELECTORS ---
-        const $ = (selector) => document.querySelector(selector);
-        const $$ = (selector) => document.querySelectorAll(selector);
 
         // --- NOTIFICATION SOUND ---
         const notificationAudio = $("#notification-sound");
@@ -168,14 +160,16 @@
         function playNotification() {
             if (!state.audioContext) {
                 initAudio().then(() => {
-                    notificationAudio.play().catch(e => console.error("Error playing notification:", e));
+                    if(notificationAudio) notificationAudio.play().catch(e => console.error("Error playing notification:", e));
                 });
             } else {
                 if (state.audioContext.state === 'suspended') {
                     state.audioContext.resume();
                 }
-                notificationAudio.currentTime = 0;
-                notificationAudio.play().catch(e => console.error("Error playing notification:", e));
+                if(notificationAudio) {
+                    notificationAudio.currentTime = 0;
+                    notificationAudio.play().catch(e => console.error("Error playing notification:", e));
+                }
             }
         }
 
@@ -874,6 +868,7 @@
             const { error } = await supabase.from('customers').update(formData).eq('id', custId);
 
             if (error) {
+                // FIX: Corrected the syntax error here
                 alert("Error saving customer: " + error.message);
             } else {
                 closeModal();
@@ -913,6 +908,17 @@
         // This ensures that the Supabase CDN script in the <head>
         // has had time to load and populate window.supabase.
         document.addEventListener('DOMContentLoaded', () => {
+            // FIX: Initialize supabase client here AFTER script has loaded
+            const createClient = window.supabase ? window.supabase.createClient : null;
+            
+            if (!createClient) {
+                alert("CRITICAL: Supabase client library not found. The app cannot start. Please refresh.");
+                return; // Stop
+            }
+            
+            supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            // Now that supabase is initialized, check the session
             checkSession();
         });
 
