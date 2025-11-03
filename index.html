@@ -3,925 +3,1055 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Bulb Cafe</title>
+    <title>Bulb Cafe Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- QR Code Library -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.js"></script>
-    <!-- Supabase Client -->
-    <!-- FIX: Moved Supabase script to head to load first -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <style>
         :root {
-            --brand-color: #F59E0B; /* Bulb Yellow */
-            --brand-dark: #92400E;
+            --bg-light: #f3f4f6;
+            --bg-white: #ffffff;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --border-light: #e5e7eb;
+            --brand-yellow: #f59e0b;
+            --brand-pink: #db2777;
+            --brand-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --accent-green: #22c55e;
         }
         body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
             font-family: 'Poppins', sans-serif;
-            background-color: #1a1a2e; /* Dark blue background */
         }
-        .brand-text { color: var(--brand-color); }
-        .brand-bg { background-color: var(--brand-color); }
-        .brand-border { border-color: var(--brand-color); }
-        .hover-brand-bg:hover { background-color: var(--brand-dark); }
-        .sidebar-icon {
-            transition: all 0.3s ease;
+        .card {
+            background-color: var(--bg-white);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-light);
         }
-        .sidebar-icon:hover {
-            background-color: var(--brand-color);
-            color: #1a1a2e;
+        .nav-link {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            transition: all 0.2s ease;
+        }
+        .nav-link.active {
+            background-color: var(--brand-yellow);
+            color: var(--bg-white);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav-link:not(.active):hover {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
+            background-color: var(--brand-blue);
+            color: var(--bg-white);
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .btn-secondary {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            border: 1px solid var(--border-light);
+        }
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+        .btn-danger {
+            background-color: var(--accent-red);
+            color: var(--bg-white);
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        .btn-success {
+            background-color: var(--accent-green);
+            color: var(--bg-white);
+        }
+        .btn-success:hover {
+            background-color: #16a34a;
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
         }
         .modal-content {
-            animation: slideUp 0.3s ease-out;
+            background-color: var(--bg-white);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
         }
-        @keyframes slideUp {
-            from { transform: translateY(30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-light);
+            border-radius: 0.5rem;
+            background-color: var(--bg-light);
         }
-        .spinner {
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid var(--brand-color);
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 1s linear infinite;
+        .form-input:focus {
+            outline: 2px solid var(--brand-blue);
+            background-color: var(--bg-white);
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .order-card-new {
+            animation: pulse-new 2s infinite;
+        }
+        @keyframes pulse-new {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 159, 11, 0.7); }
+            50% { box-shadow: 0 0 0 6px rgba(245, 159, 11, 0); }
+        }
+        .call-card-new {
+            animation: pulse-call 2s infinite;
+        }
+        @keyframes pulse-call {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-[#1a1a2e] text-gray-100 flex h-screen overflow-hidden">
+<body class="min-h-screen">
 
-    <!-- Notification Audio -->
-    <audio id="notification-sound" src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/new-notification-022-370046.mp3" preload="auto"></audio>
+    <!-- Global Error Toast -->
+    <div id="error-toast" class="hidden fixed top-4 right-4 z-[100] bg-red-600 text-white p-4 rounded-lg shadow-lg">
+        <p id="error-message"></p>
+    </div>
 
     <!-- Login Screen -->
-    <div id="login-screen" class="w-full h-full flex items-center justify-center">
-        <div class="bg-[#1e1e3f] p-8 rounded-lg shadow-xl w-full max-w-sm">
-            <h1 class="text-3xl font-bold text-center brand-text mb-6">Admin Panel</h1>
-            <div id="login-error" class="text-red-400 text-sm mb-4 hidden"></div>
-            <div class="space-y-4">
-                <input id="email-input" type="email" placeholder="Email" class="w-full p-3 bg-[#2a2a4e] rounded border border-gray-700 focus:outline-none focus:border-amber-500">
-                <input id="password-input" type="password" placeholder="Password" class="w-full p-3 bg-[#2a2a4e] rounded border border-gray-700 focus:outline-none focus:border-amber-500">
-                <button id="login-button" class="w-full p-3 brand-bg text-gray-900 font-bold rounded hover-brand-bg transition-colors">Login</button>
-            </div>
+    <div id="login-screen" class="flex items-center justify-center min-h-screen">
+        <div class="card w-full max-w-sm p-8">
+            <h1 class="text-3xl font-bold text-center mb-2" style="color: var(--brand-yellow);">BULB ADMIN</h1>
+            <p class="text-center text-gray-600 mb-6">Please sign in to continue</p>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" class="form-input" required>
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" class="form-input" required>
+                </div>
+                <button type="submit" id="login-button" class="btn btn-primary w-full py-3">
+                    Sign In
+                </button>
+            </form>
         </div>
     </div>
 
-    <!-- Main App (Hidden by default) -->
-    <div id="admin-app" class="hidden flex w-full h-full">
-        <!-- Sidebar -->
-        <nav class="w-20 bg-[#1e1e3f] flex flex-col items-center py-4 space-y-4 shadow-lg">
-            <div class="text-2xl font-bold brand-text">💡</div>
-            <button class="sidebar-icon p-3 rounded-lg" data-page="dashboard" title="Dashboard">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" /></svg>
-            </button>
-            <button class="sidebar-icon p-3 rounded-lg" data-page="menu" title="Menu">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-            </button>
-            <button class="sidebar-icon p-3 rounded-lg" data-page="tables" title="Tables">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v2a2 2 0 01-2 2h-4m-12 0h4m-4 0a2 2 0 00-2 2v2a2 2 0 002 2h12a2 2 0 002-2v-2a2 2 0 00-2-2h-4m-6-6V4a2 2 0 012-2h4a2 2 0 012 2v4" /></svg>
-            </button>
-            <button class="sidebar-icon p-3 rounded-lg" data-page="customers" title="Customers">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 016-6h6v6z" /></svg>
-            </button>
-            <button class="sidebar-icon p-3 rounded-lg" data-page="qr" title="QR Generator">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 6v1m-6-4h.01M5 12H3m18 0h-2M5 12h.01M12 5h.01M12 3v1m0 16v1m-6-3h.01M19 12h-2M19 12h.01M12 19h.01" /></svg>
-            </button>
-            <button id="logout-button" class="sidebar-icon p-3 rounded-lg mt-auto" title="Logout">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-            </button>
-        </nav>
+    <!-- Main App Interface -->
+    <div id="app" class="hidden">
+        <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold" style="color: var(--brand-yellow);">💡 BULB ADMIN</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span id="admin-email" class="text-gray-700 font-medium mr-4"></span>
+                        <button id="logout-button" class="btn btn-secondary">Logout</button>
+                    </div>
+                </div>
+            </div>
+            <nav class="bg-gray-50 border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-4" id="nav-links">
+                    <button class="nav-link active" data-tab="dashboard">Dashboard</button>
+                    <button class="nav-link" data-tab="menu">Menu</button>
+                    <button class="nav-link" data-tab="customers">Customers</button>
+                    <button class="nav-link" data-tab="tables">Tables</button>
+                    <button class="nav-link" data-tab="qr">QR Generator</button>
+                </div>
+            </nav>
+        </header>
 
-        <!-- Main Content -->
-        <main class="flex-1 h-full overflow-y-auto">
-            <div id="page-content" class="p-6">
-                <!-- Content will be injected here -->
+        <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+            <!-- Dashboard -->
+            <div id="dashboard-tab" class="tab-content active">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Live Orders -->
+                    <div class="lg:col-span-2 space-y-4">
+                        <h2 class="text-2xl font-bold text-gray-800">Live Orders</h2>
+                        <div id="live-orders-container" class="space-y-4">
+                            <!-- Orders will be injected here -->
+                            <p id="no-orders-msg" class="text-gray-500">No active orders.</p>
+                        </div>
+                    </div>
+                    <!-- Staff Calls -->
+                    <div class="lg:col-span-1 space-y-4">
+                        <h2 class="text-2xl font-bold text-gray-800">Live Staff Calls</h2>
+                        <div id="staff-calls-container" class="space-y-4">
+                            <!-- Staff calls will be injected here -->
+                            <p id="no-calls-msg" class="text-gray-500">No pending staff calls.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu Management -->
+            <div id="menu-tab" class="tab-content space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-800">Menu Management</h2>
+                    <button id="add-item-btn" class="btn btn-primary">Add New Item</button>
+                </div>
+                <div class="card p-4">
+                    <table class="w-full">
+                        <thead class="border-b border-gray-200">
+                            <tr>
+                                <th class="p-2 text-left font-semibold text-gray-600">Name</th>
+                                <th class="p-2 text-left font-semibold text-gray-600">Price</th>
+                                <th class="p-2 text-left font-semibold text-gray-600">Category</th>
+                                <th class="p-2 text-left font-semibold text-gray-600">Brand</th>
+                                <th class="p-2 text-left font-semibold text-gray-600">Available</th>
+                                <th class="p-2 text-right font-semibold text-gray-600">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="menu-table-body">
+                            <!-- Menu items will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Customer Management -->
+            <div id="customers-tab" class="tab-content space-y-6">
+                <h2 class="text-2xl font-bold text-gray-800">Customer Management</h2>
+                <div class="card p-4">
+                    <table class="w-full">
+                        <thead class="border-b border-gray-200">
+                            <tr>
+                                <th class="p-2 text-left font-semibold text-gray-600">Name</th>
+                                <th class="p-2 text-left font-semibold text-gray-600">Phone</th>
+                                <th class="p-2 text-left font-semibold text-gray-600">Loyalty Points</th>
+                                <th class="p-2 text-right font-semibold text-gray-600">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-table-body">
+                            <!-- Customers will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Table Management -->
+            <div id="tables-tab" class="tab-content space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-800">Table Management</h2>
+                    <button id="add-table-btn" class="btn btn-primary">Add New Table</button>
+                </div>
+                <div class="card p-4">
+                    <table class="w-full">
+                        <thead class="border-b border-gray-200">
+                            <tr>
+                                <th class="p-2 text-left font-semibold text-gray-600">Table #</th>
+                                <th class="p-2 text-left font-semibold text-gray-600">Description</th>
+                                <th class="p-2 text-right font-semibold text-gray-600">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tables-table-body">
+                            <!-- Tables will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- QR Generator -->
+            <div id="qr-tab" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Table QR Codes (1-10)</h2>
+                    <button onclick="window.print()" class="btn btn-primary">Print All</button>
+                </div>
+                <div id="qr-code-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                    <!-- QR codes will be injected here -->
+                </div>
             </div>
         </main>
     </div>
 
     <!-- Modal Container -->
-    <div id="modal-container" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-        <!-- Modal content will be injected here -->
-    </div>
+    <div id="modal-container" class="hidden"></div>
 
     <script type="module">
         // --- SUPABASE CONFIG ---
-        // FIX: Using the exact keys provided by the user
         const SUPABASE_URL = 'https://vrvlvvlfzbdqwfsdlrkv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZydmx2dmxmemJkcXdmc2Rscmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NzI2NzAsImV4cCI6MjA3NzU0ODY3MH0.yYnxeipLuO0DlTvGITI5ajHDeoWZ80N2PS3rPhuOyp8';
-
-        let supabase = null; // Initialize as null
-        
-        // --- DOM SELECTORS ---
-        const $ = (selector) => document.querySelector(selector);
-        const $$ = (selector) => document.querySelectorAll(selector);
-        
-        // --- STATE ---
-        let state = {
-            products: [],
-            orders: [],
-            tables: [],
-            customers: [],
-            staffCalls: [],
-            orderSubscription: null,
-            callSubscription: null,
-            user: null,
-            audioContext: null,
-            notificationSound: null
-        };
+        let supabase = null;
 
         // --- NOTIFICATION SOUND ---
-        const notificationAudio = $("#notification-sound");
+        const NOTIFICATION_URL = 'https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/new-notification-022-370046.mp3';
+        let audioContext;
+        let audioBuffer;
+        let hasInteracted = false;
 
         async function initAudio() {
-            if (state.audioContext) return;
+            if (audioContext) return;
             try {
-                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                // Resume context on user gesture
-                const resumeAudio = () => {
-                    if (state.audioContext.state === 'suspended') {
-                        state.audioContext.resume();
-                    }
-                    document.removeEventListener('click', resumeAudio);
-                };
-                document.addEventListener('click', resumeAudio);
-
-                // Load the sound
-                notificationAudio.play().catch(e => console.warn("Audio autoplay blocked. Waiting for user interaction."));
-                notificationAudio.pause(); // Stop it immediately, we just want it loaded
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const response = await fetch(NOTIFICATION_URL);
+                const arrayBuffer = await response.arrayBuffer();
+                audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                console.log("Audio initialized");
             } catch (e) {
-                console.error("Failed to initialize Web Audio API:", e);
+                console.error("Error initializing audio:", e);
             }
         }
 
         function playNotification() {
-            if (!state.audioContext) {
-                initAudio().then(() => {
-                    if(notificationAudio) notificationAudio.play().catch(e => console.error("Error playing notification:", e));
-                });
-            } else {
-                if (state.audioContext.state === 'suspended') {
-                    state.audioContext.resume();
-                }
-                if(notificationAudio) {
-                    notificationAudio.currentTime = 0;
-                    notificationAudio.play().catch(e => console.error("Error playing notification:", e));
-                }
+            if (!audioContext || !audioBuffer) {
+                console.warn("Audio not ready.");
+                return;
             }
-        }
-
-        // --- AUTH ---
-        $("#login-button").addEventListener("click", handleLogin);
-        $("#logout-button").addEventListener("click", handleLogout);
-
-        async function handleLogin() {
-            const email = $("#email-input").value;
-            const password = $("#password-input").value;
-            const errorDiv = $("#login-error");
-
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-                
-                state.user = data.user;
-                $("#login-screen").classList.add("hidden");
-                $("#admin-app").classList.remove("hidden");
-                initializeApp();
-            } catch (error) {
-                console.error("Login failed:", error);
-                errorDiv.textContent = error.message;
-                errorDiv.classList.remove("hidden");
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
             }
-        }
-
-        async function handleLogout() {
-            await supabase.auth.signOut();
-            state = { ...state, user: null, products: [], orders: [], tables: [], customers: [], staffCalls: [] }; // Reset state
-            if (state.orderSubscription) state.orderSubscription.unsubscribe();
-            if (state.callSubscription) state.callSubscription.unsubscribe();
-            
-            $("#login-screen").classList.remove("hidden");
-            $("#admin-app").classList.add("hidden");
-        }
-
-        async function checkSession() {
-            const { data } = await supabase.auth.getSession();
-            if (data.session) {
-                state.user = data.session.user;
-                $("#login-screen").classList.add("hidden");
-                $("#admin-app").classList.remove("hidden");
-                initializeApp();
-            }
-        }
-
-        // --- APP INITIALIZATION ---
-        async function initializeApp() {
-            // Add click listener for audio
-            document.addEventListener('click', initAudio, { once: true });
-
-            navigateTo("dashboard");
-            setupEventListeners();
-            fetchAllData();
-            setupRealtimeSubscriptions();
-        }
-
-        function setupEventListeners() {
-            $$(".sidebar-icon").forEach(button => {
-                button.addEventListener("click", () => {
-                    navigateTo(button.dataset.page);
-                });
-            });
-        }
-
-        async function fetchAllData() {
-            try {
-                const [
-                    productsRes,
-                    ordersRes,
-                    tablesRes,
-                    customersRes,
-                    staffCallsRes
-                ] = await Promise.all([
-                    supabase.from('products').select('*').order('id'),
-                    supabase.from('orders').select('*, order_items(*, products(name)), tables(table_number), customers(name)').order('created_at', { ascending: false }),
-                    supabase.from('tables').select('*').order('table_number'),
-                    supabase.from('customers').select('*').order('name'),
-                    supabase.from('staff_calls').select('*').eq('status', 'pending').order('created_at', { ascending: false })
-                ]);
-
-                if (productsRes.error) throw new Error(`Products: ${productsRes.error.message}`);
-                if (ordersRes.error) throw new Error(`Orders: ${ordersRes.error.message}`);
-                if (tablesRes.error) throw new Error(`Tables: ${tablesRes.error.message}`);
-                if (customersRes.error) throw new Error(`Customers: ${customersRes.error.message}`);
-                if (staffCallsRes.error) throw new Error(`Staff Calls: ${staffCallsRes.error.message}`);
-
-                state.products = productsRes.data;
-                state.orders = ordersRes.data;
-                state.tables = tablesRes.data;
-                state.customers = customersRes.data;
-                state.staffCalls = staffCallsRes.data;
-
-                // We are already on a page, so re-render it with the new data
-                const currentPage = $("#page-content").dataset.page;
-                if (currentPage) {
-                    renderPage(currentPage);
-                }
-
-            } catch (error) {
-                console.error("Error Loading Data:", error);
-                renderError("Error Loading Data", `Message: ${error.message} \nThis is likely an RLS (Row Level Security) issue. \nYour RLS policies are probably blocking this admin account from viewing all data. You must update your policies in the Supabase dashboard to grant full access to this logged-in user.`);
-            }
-        }
-
-        function setupRealtimeSubscriptions() {
-            // --- ORDERS SUBSCRIPTION ---
-            if (state.orderSubscription) state.orderSubscription.unsubscribe();
-            state.orderSubscription = supabase
-                .channel('public:orders')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async (payload) => {
-                    console.log('Order change detected:', payload);
-                    // This is a simple but effective way to ensure data consistency
-                    // For a high-traffic app, you'd merge the payload (payload.new)
-                    await fetchAllData();
-                    renderPage('dashboard');
-                })
-                .subscribe();
-
-            // --- STAFF CALLS SUBSCRIPTION ---
-            if (state.callSubscription) state.callSubscription.unsubscribe();
-            state.callSubscription = supabase
-                .channel('public:staff_calls')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'staff_calls' }, (payload) => {
-                    console.log('New staff call:', payload);
-                    const newCall = payload.new;
-                    if (newCall.status === 'pending') {
-                        playNotification();
-                        state.staffCalls = [newCall, ...state.staffCalls];
-                        renderDashboard(); // Re-render the dashboard
-                    }
-                })
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'staff_calls' }, (payload) => {
-                    // Remove the call from the list if it's no longer pending
-                    state.staffCalls = state.staffCalls.filter(call => call.id !== payload.new.id || payload.new.status === 'pending');
-                    renderDashboard(); // Re-render the dashboard
-                })
-                .subscribe();
-        }
-
-        // --- NAVIGATION ---
-        function navigateTo(page) {
-            renderPage(page);
-            // Update active sidebar icon
-            $$(".sidebar-icon").forEach(btn => {
-                btn.classList.toggle("bg-gray-700", btn.dataset.page === page);
-                btn.classList.toggle("brand-text", btn.dataset.page === page);
-            });
-        }
-
-        // --- PAGE RENDERING ---
-        function renderPage(page) {
-            $("#page-content").dataset.page = page;
-            switch (page) {
-                case 'dashboard':
-                    renderDashboard();
-                    break;
-                case 'menu':
-                    renderMenu();
-                    break;
-                case 'tables':
-                    renderTables();
-                    break;
-                case 'customers':
-                    renderCustomers();
-                    break;
-                case 'qr':
-                    renderQrGenerator();
-                    break;
-            }
-        }
-
-        function renderError(title, message) {
-            $("#page-content").innerHTML = `
-                <div class="bg-red-900/50 border border-red-700 p-6 rounded-lg">
-                    <h1 class="text-2xl font-bold text-red-300 mb-4">${title}</h1>
-                    <pre class="text-sm text-red-200 whitespace-pre-wrap">${message}</pre>
-                </div>`;
-        }
-
-        // --- DASHBOARD PAGE ---
-        function renderDashboard() {
-            const liveOrders = state.orders.filter(o => ['received', 'preparing'].includes(o.status));
-            
-            $("#page-content").innerHTML = `
-                <h1 class="text-3xl font-bold brand-text mb-6">Dashboard</h1>
-                
-                <!-- Staff Calls -->
-                <h2 class="text-2xl font-semibold text-yellow-300 mb-4">Live Staff Calls</h2>
-                <div id="staff-calls-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                    ${state.staffCalls.length === 0 ? '<p class="text-gray-400">No pending staff calls.</p>' : ''}
-                    ${state.staffCalls.map(call => renderStaffCall(call)).join('')}
-                </div>
-
-                <!-- Live Orders -->
-                <h2 class="text-2xl font-semibold brand-text mb-4">Live Orders (${liveOrders.length})</h2>
-                <div id="live-orders-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    ${liveOrders.length === 0 ? '<p class="text-gray-400">No live orders.</p>' : ''}
-                    ${liveOrders.map(order => renderOrderCard(order)).join('')}
-                </div>
-            `;
-
-            // Add event listeners for new buttons
-            $$('.resolve-call-btn').forEach(btn => btn.addEventListener('click', handleResolveCall));
-        }
-
-        function renderStaffCall(call) {
-            const callType = call.call_type === 'payment' ? 'Payment Help' : 'General Assistance';
-            const icon = call.call_type === 'payment' ? '💵' : '🛎';
-            return `
-                <div class="bg-red-800/70 p-4 rounded-lg shadow-lg border border-red-600 animate-pulse">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-xl font-bold text-white">Table ${call.table_number}</h3>
-                        <span class="text-2xl">${icon}</span>
-                    </div>
-                    <p class="text-lg text-yellow-200 mb-3">${callType}</p>
-                    <p class="text-xs text-gray-300 mb-4">Time: ${new Date(call.created_at).toLocaleTimeString()}</p>
-                    <button class="resolve-call-btn w-full p-2 bg-yellow-500 text-black font-bold rounded" data-id="${call.id}">Resolve Call</button>
-                </div>
-            `;
-        }
-
-        async function handleResolveCall(e) {
-            const callId = e.target.dataset.id;
-            e.target.disabled = true;
-            e.target.innerHTML = `<span class="flex items-center justify-center"><div class="spinner mr-2"></div> Resolving...</span>`;
-
-            const { error } = await supabase
-                .from('staff_calls')
-                .update({ status: 'resolved' })
-                .eq('id', callId);
-
-            if (error) {
-                console.error("Error resolving call:", error);
-                e.target.disabled = false;
-                e.target.textContent = 'Resolve Call';
-            } else {
-                // Remove from local state and re-render (this is optimistic)
-                state.staffCalls = state.staffCalls.filter(call => call.id != callId);
-                renderDashboard();
-            }
-        }
-
-        function renderOrderCard(order) {
-            const statusColor = order.status === 'received' ? 'bg-blue-600' : 'bg-yellow-600';
-            const items = order.order_items.map(item => `
-                <li class="flex justify-between">
-                    <span class="text-gray-300">${item.products ? item.products.name : (item.product_name || 'Item')}</span>
-                    <span class="font-medium text-gray-200">x ${item.quantity}</span>
-                </li>
-            `).join('');
-
-            return `
-                <div class="bg-[#1e1e3f] p-4 rounded-lg shadow-lg border border-gray-700">
-                    <div class="flex justify-between items-center mb-3">
-                        <div>
-                            <h3 class="text-xl font-bold brand-text">Table ${order.tables.table_number}</h3>
-                            <p class="text-sm text-gray-400">${order.customers.name}</p>
-                        </div>
-                        <span class="px-3 py-1 text-sm font-semibold ${statusColor} text-white rounded-full">${order.status}</span>
-                    </div>
-                    <ul class="space-y-1 mb-4">${items}</ul>
-                    ${order.special_instructions ? `<p class="text-sm text-yellow-300 bg-yellow-900/50 p-2 rounded mb-4">"${order.special_instructions}"</p>` : ''}
-                    <div class="flex space-x-2">
-                        ${order.status === 'received' ? `<button onclick="updateOrderStatus(${order.id}, 'preparing')" class="w-full p-2 bg-yellow-600 text-white font-semibold rounded">Mark as Preparing</button>` : ''}
-                        ${order.status === 'preparing' ? `<button onclick="updateOrderStatus(${order.id}, 'delivered')" class="w-full p-2 bg-green-600 text-white font-semibold rounded">Mark as Delivered</button>` : ''}
-                        <button onclick="updateOrderStatus(${order.id}, 'cancelled')" class="w-1/3 p-2 bg-red-700 text-white font-semibold rounded">Cancel</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // --- MENU PAGE ---
-        function renderMenu() {
-            $("#page-content").innerHTML = `
-                <div class="flex justify-between items-center mb-6">
-                    <h1 class="text-3xl font-bold brand-text">Menu Items (${state.products.length})</h1>
-                    <button id="add-item-btn" class="p-3 brand-bg text-gray-900 font-bold rounded hover-brand-bg transition-colors">Add New Item</button>
-                </div>
-                <div class="bg-[#1e1e3f] rounded-lg shadow-lg border border-gray-700">
-                    <table class="w-full">
-                        <thead class="border-b border-gray-700">
-                            <tr>
-                                <th class="p-4 text-left">Name</th>
-                                <th class="p-4 text-left">Price</th>
-                                <th class="p-4 text-left">Category</th>
-                                <th class="p-4 text-left">Brand</th>
-                                <th class="p-4 text-left">Available</th>
-                                <th class="p-4 text-left">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${state.products.map(item => `
-                                <tr class="border-b border-gray-800 hover:bg-[#2a2a4e]">
-                                    <td class="p-4 font-semibold">${item.name}</td>
-                                    <td class="p-4">₹${item.price}</td>
-                                    <td class="p-4 text-gray-400">${item.category}</td>
-                                    <td class="p-4 text-gray-400">${item.brand}</td>
-                                    <td class="p-4">
-                                        <label class="inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" class="sr-only peer" ${item.is_available ? 'checked' : ''} onchange="toggleItemAvailability(${item.id}, this.checked)">
-                                            <div class="relative w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-4 peer-focus:ring-yellow-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-600"></div>
-                                        </label>
-                                    </td>
-                                    <td class="p-4">
-                                        <button class="edit-item-btn" data-id="${item.id}">✏️</button>
-                                        <button class="delete-item-btn" data-id="${item.id}">❌</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            
-            // Add event listeners
-            $("#add-item-btn").addEventListener("click", () => showItemModal(null));
-            $$(".edit-item-btn").forEach(btn => btn.addEventListener("click", (e) => {
-                const item = state.products.find(p => p.id == e.currentTarget.dataset.id);
-                showItemModal(item);
-            }));
-            $$(".delete-item-btn").forEach(btn => btn.addEventListener("click", (e) => {
-                if (confirm("Are you sure you want to delete this item?")) {
-                    deleteItem(e.currentTarget.dataset.id);
-                }
-            }));
-        }
-
-        // --- TABLES PAGE ---
-        function renderTables() {
-            $("#page-content").innerHTML = `
-                <div class="flex justify-between items-center mb-6">
-                    <h1 class="text-3xl font-bold brand-text">Tables (${state.tables.length})</h1>
-                    <button id="add-table-btn" class="p-3 brand-bg text-gray-900 font-bold rounded hover-brand-bg transition-colors">Add New Table</button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    ${state.tables.map(table => `
-                        <div class="bg-[#1e1e3f] p-4 rounded-lg shadow-lg border border-gray-700">
-                            <h3 class="text-xl font-bold brand-text mb-2">Table ${table.table_number}</h3>
-                            <p class="text-gray-400 mb-4">${table.description || 'No description'}</p>
-                            <button class="edit-table-btn w-full p-2 bg-gray-700 rounded" data-id="${table.id}">Edit</button>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-
-            // Add event listeners
-            $("#add-table-btn").addEventListener("click", () => showTableModal(null));
-            $$(".edit-table-btn").forEach(btn => btn.addEventListener("click", (e) => {
-                const table = state.tables.find(t => t.id == e.currentTarget.dataset.id);
-                showTableModal(table);
-            }));
-        }
-
-        // --- CUSTOMERS PAGE ---
-        function renderCustomers() {
-            $("#page-content").innerHTML = `
-                <h1 class="text-3xl font-bold brand-text mb-6">Customers (${state.customers.length})</h1>
-                <div class="bg-[#1e1e3f] rounded-lg shadow-lg border border-gray-700">
-                    <table class="w-full">
-                        <thead class="border-b border-gray-700">
-                            <tr>
-                                <th class="p-4 text-left">Name</th>
-                                <th class="p-4 text-left">Phone</th>
-                                <th class="p-4 text-left">Loyalty Points</th>
-                                <th class="p-4 text-left">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${state.customers.map(cust => `
-                                <tr class="border-b border-gray-800 hover:bg-[#2a2a4e]">
-                                    <td class="p-4 font-semibold">${cust.name}</td>
-                                    <td class="p-4 text-gray-400">${cust.whatsapp_number || 'N/A'}</td>
-                                    <td class="p-4">${cust.loyalty_points || 0}</td>
-                                    <td class="p-4 space-x-2">
-                                        <button class="edit-cust-btn p-2 bg-gray-700 rounded" data-id="${cust.id}">Edit</button>
-                                        <button class="adjust-points-btn p-2 bg-yellow-700 rounded" data-id="${cust.id}">Adjust Points</button>
-                                        <button class="view-history-btn p-2 bg-blue-700 rounded" data-id="${cust.id}">View History</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            // Add event listeners
-            $$(".edit-cust-btn").forEach(btn => btn.addEventListener("click", (e) => {
-                const cust = state.customers.find(c => c.id == e.currentTarget.dataset.id);
-                showCustomerModal(cust);
-            }));
-            $$(".view-history-btn").forEach(btn => btn.addEventListener("click", (e) => {
-                showCustomerHistoryModal(e.currentTarget.dataset.id);
-            }));
-            $$(".adjust-points-btn").forEach(btn => btn.addEventListener("click", (e) => {
-                const cust = state.customers.find(c => c.id == e.currentTarget.dataset.id);
-                showLoyaltyModal(cust);
-            }));
-        }
-
-        // --- QR GENERATOR PAGE ---
-        function renderQrGenerator() {
-             $("#page-content").innerHTML = `
-                <h1 class="text-3xl font-bold brand-text mb-6">QR Code Generator</h1>
-                <p class="text-gray-400 mb-6">QR codes for tables 1-10. Right-click to save.</p>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                    ${Array.from({ length: 10 }, (_, i) => i + 1).map(tableNum => `
-                        <div class="bg-[#1e1e3f] p-4 rounded-lg shadow-lg border border-gray-700 text-center">
-                            <h3 class="text-xl font-bold brand-text mb-3">Table ${tableNum}</h3>
-                            <div id="qr-table-${tableNum}" class="flex justify-center items-center p-2 bg-white rounded"></div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-
-            // Generate QR codes
-            setTimeout(() => {
-                const customerAppUrl = 'https://bulb-77jm.onrender.com/?table=';
-                for (let i = 1; i <= 10; i++) {
-                    const qr = qrcode(0, 'L');
-                    qr.addData(customerAppUrl + i);
-                    qr.make();
-                    $(`#qr-table-${i}`).innerHTML = qr.createImgTag(5, 5); // (cellSize, margin)
-                }
-            }, 0);
-        }
-
-        // --- MODALS ---
-        function showModal(content) {
-            $("#modal-container").innerHTML = `<div class="modal-content bg-[#1e1e3f] p-6 rounded-lg shadow-xl w-full max-w-md">${content}</div>`;
-            $("#modal-container").classList.remove("hidden");
-        }
-
-        function closeModal() {
-            $("#modal-container").classList.add("hidden");
-            $("#modal-container").innerHTML = "";
-        }
-
-        function showItemModal(item) {
-            const isNew = item === null;
-            const title = isNew ? "Add New Item" : "Edit Item";
-            showModal(`
-                <h2 class="text-2xl font-bold brand-text mb-4">${title}</h2>
-                <form id="item-form" class="space-y-4">
-                    <input type="hidden" id="item-id" value="${item?.id || ''}">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Name</label>
-                        <input type="text" id="item-name" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${item?.name || ''}" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Price (₹)</label>
-                        <input type="number" id="item-price" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${item?.price || 0}" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Category</label>
-                        <input type="text" id="item-category" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${item?.category || ''}" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Brand</label>
-                        <select id="item-brand" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" required>
-                            <option value="Bulb Cafe" ${item?.brand === 'Bulb Cafe' ? 'selected' : ''}>Bulb Cafe</option>
-                            <option value="Gulabi Thali" ${item?.brand === 'Gulabi Thali' ? 'selected' : ''}>Gulabi Thali</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Description</label>
-                        <textarea id="item-desc" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" rows="3">${item?.description || ''}</textarea>
-                    </div>
-                    <div class="flex items-center">
-                        <input type="checkbox" id="item-available" class="h-4 w-4 rounded brand-bg border-gray-700" ${isNew || item?.is_available ? 'checked' : ''}>
-                        <label for="item-available" class="ml-2 text-gray-300">Is Available</label>
-                    </div>
-                    <div class="flex justify-end space-x-2 pt-4">
-                        <button type="button" id="cancel-btn" class="p-2 bg-gray-600 rounded">Cancel</button>
-                        <button type="submit" class="p-2 brand-bg text-gray-900 font-bold rounded">${isNew ? "Create" : "Save Changes"}</button>
-                    </div>
-                </form>
-            `);
-
-            $("#cancel-btn").addEventListener("click", closeModal);
-            $("#item-form").addEventListener("submit", saveItem);
-        }
-
-        function showTableModal(table) {
-            const isNew = table === null;
-            const title = isNew ? "Add New Table" : "Edit Table";
-            showModal(`
-                <h2 class="text-2xl font-bold brand-text mb-4">${title}</h2>
-                <form id="table-form" class="space-y-4">
-                    <input type="hidden" id="table-id" value="${table?.id || ''}">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Table Number</label>
-                        <input type="number" id="table-number" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${table?.table_number || ''}" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Description</label>
-                        <textarea id="table-desc" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" rows="3">${table?.description || ''}</textarea>
-                    </div>
-                    <div class="flex justify-end space-x-2 pt-4">
-                        <button type="button" id="cancel-btn" class="p-2 bg-gray-600 rounded">Cancel</button>
-                        <button type="submit" class="p-2 brand-bg text-gray-900 font-bold rounded">${isNew ? "Create" : "Save Changes"}</button>
-                    </div>
-                </form>
-            `);
-            
-            $("#cancel-btn").addEventListener("click", closeModal);
-            $("#table-form").addEventListener("submit", saveTable);
-        }
-
-        function showCustomerModal(cust) {
-            showModal(`
-                <h2 class="text-2xl font-bold brand-text mb-4">Edit Customer</h2>
-                <form id="cust-form" class="space-y-4">
-                    <input type="hidden" id="cust-id" value="${cust.id}">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Name</label>
-                        <input type="text" id="cust-name" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${cust.name}" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Phone</label>
-                        <input type="text" id="cust-phone" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${cust.whatsapp_number || ''}" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Loyalty Points</label>
-                        <input type="number" id="cust-points" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${cust.loyalty_points || 0}" required>
-                    </div>
-                    <div class="flex justify-end space-x-2 pt-4">
-                        <button type="button" id="cancel-btn" class="p-2 bg-gray-600 rounded">Cancel</button>
-                        <button type="submit" class="p-2 brand-bg text-gray-900 font-bold rounded">Save Changes</button>
-                    </div>
-                </form>
-            `);
-            
-            $("#cancel-btn").addEventListener("click", closeModal);
-            $("#cust-form").addEventListener("submit", saveCustomer);
-        }
-
-        function showLoyaltyModal(cust) {
-            showModal(`
-                <h2 class="text-2xl font-bold brand-text mb-4">Adjust Points</h2>
-                <p class="text-lg mb-2">${cust.name}</p>
-                <p class="text-gray-400 mb-4">Current Points: <span class="font-bold">${cust.loyalty_points || 0}</span></p>
-                <form id="loyalty-form" class="space-y-4">
-                    <input type="hidden" id="loyalty-cust-id" value="${cust.id}">
-                    <input type="hidden" id="loyalty-current" value="${cust.loyalty_points || 0}">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-400">Points to Add/Redeem</label>
-                        <input type="number" id="loyalty-adjust" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" placeholder="e.g., 50 to add, -20 to redeem" required>
-                    </div>
-                    <div class="flex justify-end space-x-2 pt-4">
-                        <button type="button" id="cancel-btn" class="p-2 bg-gray-600 rounded">Cancel</button>
-                        <button type="submit" class="p-2 brand-bg text-gray-900 font-bold rounded">Adjust Points</button>
-                    </div>
-                </form>
-            `);
-            
-            $("#cancel-btn").addEventListener("click", closeModal);
-            $("#loyalty-form").addEventListener("submit", saveLoyaltyAdjustment);
-        }
-
-        async function showCustomerHistoryModal(customerId) {
-            const { data, error } = await supabase
-                .from('orders')
-                .select(`*, order_items ( product_name, quantity )`)
-                .eq('customer_id', customerId)
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                return showModal(`<p class="text-red-400">Error loading history: ${error.message}</p><button id="cancel-btn" class="p-2 bg-gray-600 rounded mt-4">Close</button>`);
-            }
-            
-            const historyHTML = data.length > 0 ? data.map(o => {
-                const items = o.order_items.map(i => `${i.product_name || 'Item'} (x${i.quantity})`).join(', ');
-                return `
-                    <div class="bg-[#2a2a4e] p-3 rounded-lg mb-3">
-                        <div class="flex justify-between">
-                            <span class="font-bold">Order #${o.id.slice(0,6)}</span>
-                            <span class="brand-text">₹${o.final_amount.toFixed(2)}</span>
-                        </div>
-                        <p class="text-xs text-gray-400">${new Date(o.created_at).toLocaleString()}</p>
-                        <p class="text-sm mt-2">${items}</p>
-                    </div>
-                `;
-            }).join('') : '<p class="text-gray-400">No order history found.</p>';
-
-            showModal(`
-                <h2 class="text-2xl font-bold brand-text mb-4">Order History</h2>
-                <div class="max-h-60 overflow-y-auto">${historyHTML}</div>
-                <button type="button" id="cancel-btn" class="w-full mt-6 p-2 bg-gray-600 rounded">Close</button>
-            `);
-            $("#cancel-btn").addEventListener("click", closeModal);
-        }
-
-
-        // --- DATABASE ACTIONS ---
-        async function updateOrderStatus(orderId, newStatus) {
-            const { error } = await supabase
-                .from('orders')
-                .update({ status: newStatus })
-                .eq('id', orderId);
-            
-            if (error) {
-                console.error("Error updating status:", error);
-            } else {
-                console.log("Order status updated");
-                // The realtime subscription will handle the UI update
-            }
-        }
-
-        async function toggleItemAvailability(itemId, isAvailable) {
-            const { error } = await supabase
-                .from('products')
-                .update({ is_available: isAvailable })
-                .eq('id', itemId);
-            
-            if (error) {
-                console.error("Error updating availability:", error);
-                fetchAllData(); // Revert on error
-            }
-        }
-
-        async function saveItem(e) {
-            e.preventDefault();
-            const formData = {
-                name: $("#item-name").value,
-                price: parseFloat($("#item-price").value),
-                category: $("#item-category").value,
-                brand: $("#item-brand").value,
-                description: $("#item-desc").value,
-                is_available: $("#item-available").checked,
-            };
-            const itemId = $("#item-id").value;
-            
-            let query;
-            if (itemId) {
-                // Update
-                query = supabase.from('products').update(formData).eq('id', itemId);
-            } else {
-                // Insert
-                query = supabase.from('products').insert(formData);
-            }
-
-            const { error } = await query;
-            if (error) {
-                alert("Error saving item: " + error.message);
-            } else {
-                closeModal();
-                fetchAllData(); // Refresh data
-            }
-        }
-
-        async function deleteItem(itemId) {
-            const { error } = await supabase.from('products').delete().eq('id', itemId);
-            if (error) {
-                alert("Error deleting item: " + error.message);
-            } else {
-                fetchAllData(); // Refresh data
-            }
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioContext.destination);
+            source.start(0);
         }
         
-        async function saveTable(e) {
-            e.preventDefault();
-            const formData = {
-                table_number: parseInt($("#table-number").value),
-                description: $("#table-desc").value,
-            };
-            const tableId = $("#table-id").value;
-            
-            let query;
-            if (tableId) {
-                // Update
-                query = supabase.from('tables').update(formData).eq('id', tableId);
-            } else {
-                // Insert
-                query = supabase.from('tables').insert(formData);
-            }
+        // --- APP STATE ---
+        const state = {
+            user: null,
+            liveOrders: [],
+            staffCalls: [],
+            menu: [],
+            customers: [],
+            tables: [],
+            orderSubscription: null,
+            callSubscription: null,
+        };
 
-            const { error } = await query;
-            if (error) {
-                alert("Error saving table: " + error.message);
-            } else {
-                closeModal();
-                fetchAllData(); // Refresh data
-            }
-        }
-        
-        async function saveCustomer(e) {
-            e.preventDefault();
-            const formData = {
-                name: $("#cust-name").value,
-                whatsapp_number: $("#cust-phone").value,
-                loyalty_points: parseInt($("#cust-points").value),
-            };
-            const custId = $("#cust-id").value;
-            
-            const { error } = await supabase.from('customers').update(formData).eq('id', custId);
+        // --- DOM SELECTORS ---
+        const $ = (id) => document.getElementById(id);
+        const $$ = (sel) => document.querySelectorAll(sel);
 
-            if (error) {
-                // FIX: Corrected the syntax error here
-                alert("Error saving customer: " + error.message);
-            } else {
-                closeModal();
-                fetchAllData(); // Refresh data
-            }
-        }
-        
-        async function saveLoyaltyAdjustment(e) {
-            e.preventDefault();
-            const custId = $("#loyalty-cust-id").value;
-            const currentPoints = parseInt($("#loyalty-current").value);
-            const adjustment = parseInt($("#loyalty-adjust").value);
-            
-            if (isNaN(adjustment)) return alert("Invalid point value");
-            if (currentPoints + adjustment < 0) {
-                return alert("Cannot redeem more points than customer has.");
-            }
+        // --- ERROR HANDLING ---
+        function renderError(message, autoHide = true) {
+            console.error(message);
+            const toast = $('error-toast');
+            const msgEl = $('error-message');
+            msgEl.textContent = message;
+            toast.classList.remove('hidden');
 
-            const newPoints = currentPoints + adjustment;
-
-            const { error } = await supabase.from('customers').update({ loyalty_points: newPoints }).eq('id', custId);
-
-            if (error) {
-                alert("Error adjusting points: " + error.message);
-            } else {
-                closeModal();
-                fetchAllData(); // Refresh data
+            if (autoHide) {
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 5000);
             }
         }
 
-        // --- GLOBAL FUNCTIONS for inline JS ---
-        window.updateOrderStatus = updateOrderStatus;
-        window.toggleItemAvailability = toggleItemAvailability;
-        
-        // --- STARTUP ---
-        // FIX: Wait for the DOM content to be fully loaded.
-        // This ensures that the Supabase CDN script in the <head>
-        // has had time to load and populate window.supabase.
+        // --- INITIALIZATION ---
+        // FIX: Corrected the syntax error here. Was ()_ =>, now () =>
         document.addEventListener('DOMContentLoaded', () => {
-            // FIX: Initialize supabase client here AFTER script has loaded
-            const createClient = window.supabase ? window.supabase.createClient : null;
-            
-            if (!createClient) {
-                alert("CRITICAL: Supabase client library not found. The app cannot start. Please refresh.");
-                return; // Stop
+            try {
+                const { createClient } = window.supabase;
+                if (!createClient) {
+                    throw new Error("Supabase client library not found on window.supabase.");
+                }
+                supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log("Supabase client initialized.");
+                
+                // Now that supabase is initialized, check auth state
+                auth.checkSession();
+            } catch (e) {
+                console.error("CRITICAL: SupABASE initialization failed.", e);
+                renderError(`CRITICAL: App failed to start. ${e.message}`, false);
             }
-            
-            supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            
-            // Now that supabase is initialized, check the session
-            checkSession();
         });
 
+
+        // --- AUTHENTICATION ---
+        const auth = {
+            async checkSession() {
+                try {
+                    const { data, error } = await supabase.auth.getSession();
+                    if (error) throw error;
+                    
+                    if (data.session) {
+                        state.user = data.session.user;
+                        this.showApp();
+                        // Initialize audio context on first interaction
+                        document.body.addEventListener('click', () => {
+                            if (!hasInteracted) {
+                                initAudio();
+                                hasInteracted = true;
+                            }
+                        }, { once: true });
+                    } else {
+                        this.showLogin();
+                    }
+                } catch (e) {
+                    renderError(`Auth Error: ${e.message}`);
+                    this.showLogin();
+                }
+            },
+            async login(email, password) {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                    renderError(error.message);
+                } else {
+                    state.user = data.user;
+                    this.showApp();
+                    // Initialize audio context on first interaction
+                    document.body.addEventListener('click', initAudio, { once: true });
+                }
+            },
+            async logout() {
+                await supabase.auth.signOut();
+                state.user = null;
+                this.showLogin();
+            },
+            showLogin() {
+                $('login-screen').classList.remove('hidden');
+                $('app').classList.add('hidden');
+            },
+            async showApp() {
+                $('login-screen').classList.add('hidden');
+                $('app').classList.remove('hidden');
+                $('admin-email').textContent = state.user.email;
+                
+                // Initial data load
+                await loadInitialData();
+                
+                // Start real-time listeners
+                listeners.startOrderListener();
+                listeners.startCallListener();
+            }
+        };
+
+        // --- DATA LOADING ---
+        async function loadInitialData() {
+            try {
+                const [ordersRes, callsRes, menuRes, customersRes, tablesRes] = await Promise.all([
+                    supabase.from('orders').select('*, tables(table_number), customers(name), order_items(product_name, quantity)').in('status', ['received', 'preparing']).order('created_at', { ascending: true }),
+                    supabase.from('staff_calls').select('*').eq('status', 'pending').order('created_at', { ascending: true }),
+                    supabase.from('products').select('*').order('name', { ascending: true }),
+                    supabase.from('customers').select('*').order('name', { ascending: true }),
+                    supabase.from('tables').select('*').order('table_number', { ascending: true })
+                ]);
+
+                if (ordersRes.error) throw ordersRes.error;
+                if (callsRes.error) throw callsRes.error;
+                if (menuRes.error) throw menuRes.error;
+                if (customersRes.error) throw customersRes.error;
+                if (tablesRes.error) throw tablesRes.error;
+
+                state.liveOrders = ordersRes.data;
+                state.staffCalls = callsRes.data;
+                state.menu = menuRes.data;
+                state.customers = customersRes.data;
+                state.tables = tablesRes.data;
+
+                render.all();
+
+            } catch (error) {
+                renderError(`Error Loading Data: ${error.message}\nThis is likely an RLS (Row Level Security) issue.\nYour RLS policies are probably blocking this admin account from viewing all data. You must update your policies in the Supabase dashboard to grant full access to this logged-in user.`);
+                console.error("Detailed Load Error:", error);
+            }
+        }
+
+        // --- REAL-TIME LISTENERS ---
+        const listeners = {
+            startOrderListener() {
+                if (state.orderSubscription) return;
+                state.orderSubscription = supabase.channel('public:orders')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+                        console.log('Order change received:', payload);
+                        
+                        // New order
+                        if (payload.eventType === 'INSERT' && (payload.new.status === 'received' || payload.new.status === 'preparing')) {
+                            // Fetch full order details to include relations
+                            fetchOrderDetails(payload.new.id);
+                            playNotification();
+                        }
+                        // Updated order
+                        else if (payload.eventType === 'UPDATE') {
+                            const updatedOrder = payload.new;
+                            const index = state.liveOrders.findIndex(o => o.id === updatedOrder.id);
+                            
+                            // If it's a live order
+                            if (index > -1) {
+                                // If order is no longer 'received' or 'preparing', remove it
+                                if (updatedOrder.status !== 'received' && updatedOrder.status !== 'preparing') {
+                                    state.liveOrders.splice(index, 1);
+                                } else {
+                                    // Update the existing order in the list (fetch details if needed)
+                                    fetchOrderDetails(updatedOrder.id, index);
+                                }
+                            }
+                            // If a non-live order was updated TO be live
+                            else if (updatedOrder.status === 'received' || updatedOrder.status === 'preparing') {
+                                fetchOrderDetails(updatedOrder.id);
+                            }
+                        }
+                        render.dashboard();
+                    })
+                    .subscribe();
+            },
+
+            startCallListener() {
+                if (state.callSubscription) return;
+                state.callSubscription = supabase.channel('public:staff_calls')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'staff_calls' }, (payload) => {
+                        console.log('Staff call change received:', payload);
+                        
+                        if (payload.eventType === 'INSERT' && payload.new.status === 'pending') {
+                            state.staffCalls.push(payload.new);
+                            playNotification();
+                        }
+                        else if (payload.eventType === 'UPDATE') {
+                            const index = state.staffCalls.findIndex(c => c.id === payload.new.id);
+                            if (payload.new.status !== 'pending' && index > -1) {
+                                state.staffCalls.splice(index, 1);
+                            } else if (payload.new.status === 'pending' && index === -1) {
+                                state.staffCalls.push(payload.new);
+                            }
+                        }
+                        render.dashboard();
+                    })
+                    .subscribe();
+            },
+        };
+
+        // Helper to fetch full order details
+        async function fetchOrderDetails(orderId, updateIndex = -1) {
+            try {
+                const { data, error } = await supabase.from('orders')
+                    .select('*, tables(table_number), customers(name), order_items(product_name, quantity)')
+                    .eq('id', orderId)
+                    .single();
+                
+                if (error) throw error;
+
+                if (updateIndex > -1) {
+                    state.liveOrders[updateIndex] = data; // Replace existing
+                } else {
+                    state.liveOrders.push(data); // Add new
+                }
+                render.dashboard();
+            } catch (e) {
+                console.error("Failed to fetch order details:", e);
+            }
+        }
+
+
+        // --- RENDERING ---
+        const render = {
+            all() {
+                this.dashboard();
+                this.menu();
+                this.customers();
+                this.tables();
+                this.qr();
+            },
+
+            dashboard() {
+                // Render Live Orders
+                const ordersContainer = $('live-orders-container');
+                if (state.liveOrders.length === 0) {
+                    $('no-orders-msg').classList.remove('hidden');
+                    ordersContainer.innerHTML = '';
+                } else {
+                    $('no-orders-msg').classList.add('hidden');
+                    // Sort: received (newest first) then preparing (newest first)
+                    state.liveOrders.sort((a, b) => {
+                        if (a.status === 'received' && b.status !== 'received') return -1;
+                        if (a.status !== 'received' && b.status === 'received') return 1;
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+                    
+                    ordersContainer.innerHTML = state.liveOrders.map(order => {
+                        const isNew = order.status === 'received';
+                        const items = order.order_items || [];
+                        const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        
+                        return `
+                            <div class="card p-4 ${isNew ? 'order-card-new' : ''} border-2 ${isNew ? 'border-yellow-500' : 'border-transparent'}">
+                                <div class="flex justify-between items-center mb-3">
+                                    <div>
+                                        <h3 class="text-xl font-bold">Table #${order.tables?.table_number || 'N/A'}</h3>
+                                        <p class="text-gray-600">by ${order.customers?.name || 'Guest'} at ${time}</p>
+                                    </div>
+                                    <span class="text-lg font-bold ${isNew ? 'text-yellow-600' : 'text-blue-600'} capitalize">${order.status}</span>
+                                </div>
+                                <div class="border-t border-gray-100 pt-3 mb-4">
+                                    <ul class="space-y-1">
+                                        ${items.map(item => `
+                                            <li class="flex justify-between">
+                                                <span class="text-gray-800">${item.product_name || 'Item'}</span>
+                                                <span class="font-medium text-gray-600">x${item.quantity}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                    ${order.special_instructions ? `
+                                        <p class="mt-3 text-sm italic text-yellow-800 bg-yellow-100 p-2 rounded-md">
+                                            <strong>Note:</strong> ${order.special_instructions}
+                                        </p>
+                                    ` : ''}
+                                </div>
+                                <div class="flex gap-2">
+                                    ${isNew ? `
+                                        <button class="btn btn-primary flex-1" onclick="actions.updateOrderStatus('${order.id}', 'preparing')">
+                                            Mark as Preparing
+                                        </button>
+                                    ` : `
+                                        <button class="btn btn-success flex-1" onclick="actions.updateOrderStatus('${order.id}', 'delivered')">
+                                            Mark as Delivered
+                                        </button>
+                                    `}
+                                    <button class="btn btn-secondary" onclick="actions.updateOrderStatus('${order.id}', 'cancelled')">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // Render Staff Calls
+                const callsContainer = $('staff-calls-container');
+                if (state.staffCalls.length === 0) {
+                    $('no-calls-msg').classList.remove('hidden');
+                    callsContainer.innerHTML = '';
+                } else {
+                    $('no-calls-msg').classList.add('hidden');
+                    state.staffCalls.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    
+                    callsContainer.innerHTML = state.staffCalls.map(call => {
+                        const time = new Date(call.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        return `
+                            <div class="card p-4 call-card-new border-2 border-red-500">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-xl font-bold">Table #${call.table_number}</h3>
+                                    <span class="text-sm text-gray-500">${time}</span>
+                                </div>
+                                <p class="text-lg text-red-700 font-semibold capitalize mb-3">${call.call_type === 'payment' ? 'Needs Payment' : 'Needs Assistance'}</p>
+                                <button class="btn btn-danger w-full" onclick="actions.resolveStaffCall('${call.id}')">
+                                    Resolve
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            },
+
+            menu() {
+                const menuBody = $('menu-table-body');
+                menuBody.innerHTML = state.menu.map(item => `
+                    <tr class="border-b border-gray-100">
+                        <td class="p-2">${item.name}</td>
+                        <td class="p-2">₹${item.price}</td>
+                        <td class="p-2">${item.category}</td>
+                        <td class="p-2">${item.brand}</td>
+                        <td class="p-2">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" ${item.is_available ? 'checked' : ''} class="sr-only peer" onchange="actions.toggleItemAvailability('${item.id}', this.checked)">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                        </td>
+                        <td class="p-2 text-right">
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showMenuModal('${item.id}')">Edit</button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            customers() {
+                const customersBody = $('customers-table-body');
+                customersBody.innerHTML = state.customers.map(cust => `
+                    <tr class="border-b border-gray-100">
+                        <td class="p-2">${cust.name}</td>
+                        <td class="p-2">${cust.whatsapp_number || 'N/A'}</td>
+                        <td class="p-2">${cust.loyalty_points || 0}</td>
+                        <td class="p-2 text-right space-x-2">
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showLoyaltyModal('${cust.id}', '${cust.name}', ${cust.loyalty_points || 0})">Adjust Points</button>
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showCustomerModal('${cust.id}')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="actions.deleteCustomer('${cust.id}', '${cust.name}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            tables() {
+                const tablesBody = $('tables-table-body');
+                tablesBody.innerHTML = state.tables.map(table => `
+                    <tr class="border-b border-gray-100">
+                        <td class="p-2 font-bold">${table.table_number}</td>
+                        <td class="p-2">${table.description || 'N/A'}</td>
+                        <td class="p-2 text-right">
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showTableModal('${table.id}')">Edit</button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            qr() {
+                const container = $('qr-code-container');
+                const customerAppUrl = 'https://bulb-77jm.onrender.com/';
+                container.innerHTML = ''; // Clear
+                for (let i = 1; i <= 10; i++) {
+                    const url = `${customerAppUrl}?table=${i}`;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'card p-4 flex flex-col items-center';
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `qr-canvas-${i}`;
+                    
+                    const label = document.createElement('h3');
+                    label.className = 'text-lg font-bold mt-3';
+                    label.textContent = `Table ${i}`;
+                    
+                    wrapper.appendChild(canvas);
+                    wrapper.appendChild(label);
+                    container.appendChild(wrapper);
+                    
+                    new QRious({
+                        element: canvas,
+                        value: url,
+                        size: 200,
+                        padding: 10,
+                        level: 'H'
+                    });
+                }
+            }
+        };
+
+        // --- ACTIONS & EVENT HANDLERS ---
+        const actions = {
+            async updateOrderStatus(orderId, status) {
+                try {
+                    const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
+                    if (error) throw error;
+                    // Real-time listener will handle the UI update
+                } catch (e) {
+                    renderError(`Error updating order: ${e.message}`);
+                }
+            },
+
+            async resolveStaffCall(callId) {
+                try {
+                    const { error } = await supabase.from('staff_calls').update({ status: 'resolved' }).eq('id', callId);
+                    if (error) throw error;
+                    // Real-time listener will handle the UI update
+                } catch (e) {
+                    renderError(`Error resolving call: ${e.message}`);
+                }
+            },
+
+            async toggleItemAvailability(itemId, isAvailable) {
+                try {
+                    const { error } = await supabase.from('products').update({ is_available: isAvailable }).eq('id', itemId);
+                    if (error) throw error;
+                    const item = state.menu.find(i => i.id === itemId);
+                    if (item) item.is_available = isAvailable;
+                } catch (e) {
+                    renderError(`Error updating item: ${e.message}`);
+                    // Revert checkbox on failure
+                    render.menu();
+                }
+            },
+
+            // --- MODAL: MENU ITEM ---
+            showMenuModal(itemId = null) {
+                const item = itemId ? state.menu.find(i => i.id === itemId) : {};
+                const isNew = !itemId;
+                const modalHTML = `
+                    <h2 class="text-2xl font-bold mb-6">${isNew ? 'Add New Item' : 'Edit Menu Item'}</h2>
+                    <form id="menu-form" class="space-y-4">
+                        <input type="hidden" name="id" value="${item?.id || ''}">
+                        <div>
+                            <label class="form-label">Name</label>
+                            <input type="text" name="name" class="form-input" value="${item?.name || ''}" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Price (₹)</label>
+                            <input type="number" name="price" class="form-input" value="${item?.price || 0}" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Category</label>
+                            <input type="text" name="category" class="form-input" value="${item?.category || ''}" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Brand</label>
+                            <select name="brand" class="form-input">
+                                <option value="Bulb Cafe" ${item?.brand === 'Bulb Cafe' ? 'selected' : ''}>Bulb Cafe</option>
+                                <option value="Gulabi Thali" ${item?.brand === 'Gulabi Thali' ? 'selected' : ''}>Gulabi Thali</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-input">${item?.description || ''}</textarea>
+                        </div>
+                        <div class="flex justify-end gap-4 pt-4">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">${isNew ? 'Create Item' : 'Save Changes'}</button>
+                        </div>
+                    </form>
+                `;
+                showModal(modalHTML);
+                $('menu-form').onsubmit = this.saveMenuItem;
+            },
+
+            async saveMenuItem(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const itemData = Object.fromEntries(formData.entries());
+                itemData.price = parseFloat(itemData.price);
+                
+                try {
+                    let error;
+                    if (itemData.id) { // Update
+                        const { error: updateError } = await supabase.from('products').update(itemData).eq('id', itemData.id);
+                        error = updateError;
+                    } else { // Insert
+                        delete itemData.id;
+                        const { error: insertError } = await supabase.from('products').insert(itemData);
+                        error = insertError;
+                    }
+                    if (error) throw error;
+                    
+                    await loadInitialData(); // Reload all data
+                    closeModal();
+                } catch (e) {
+                    renderError(`Error saving item: ${e.message}`);
+                }
+            },
+            
+            // --- MODAL: CUSTOMER ---
+            showCustomerModal(customerId) {
+                const cust = state.customers.find(c => c.id === customerId);
+                const modalHTML = `
+                    <h2 class="text-2xl font-bold mb-6">Edit Customer</h2>
+                    <form id="customer-form" class="space-y-4">
+                        <input type="hidden" name="id" value="${cust.id}">
+                        <div>
+                            <label class="form-label">Name</label>
+                            <input type="text" name="name" class="form-input" value="${cust.name || ''}" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Phone (10 digits)</label>
+                            <input type="tel" name="whatsapp_number" class="form-input" value="${cust.whatsapp_number || ''}" pattern="[0-9]{10}">
+                        </div>
+                        <div class="flex justify-end gap-4 pt-4">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                `;
+                showModal(modalHTML);
+                $('customer-form').onsubmit = this.saveCustomer;
+            },
+
+            async saveCustomer(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const customerId = formData.get('id');
+                const updateData = {
+                    name: formData.get('name'),
+                    whatsapp_number: formData.get('whatsapp_number')
+                };
+
+                try {
+                    const { data, error } = await supabase.from('customers').update(updateData).eq('id', customerId).select().single();
+                    if (error) throw error;
+                    
+                    const index = state.customers.findIndex(c => c.id === customerId);
+                    state.customers[index] = data;
+                    render.customers();
+                    closeModal();
+                } catch (e) {
+                    renderError(`Error updating customer: ${e.message}`);
+                }
+            },
+
+            // --- MODAL: TABLE ---
+            showTableModal(tableId = null) {
+                const table = tableId ? state.tables.find(t => t.id === tableId) : {};
+                const isNew = !tableId;
+                const modalHTML = `
+                    <h2 class="text-2xl font-bold mb-6">${isNew ? 'Add New Table' : 'Edit Table'}</h2>
+                    <form id="table-form" class="space-y-4">
+                        <input type="hidden" name="id" value="${table?.id || ''}">
+                        <div>
+                            <label class="form-label">Table Number</label>
+                            <input type="number" name="table_number" class="form-input" value="${table?.table_number || ''}" required ${!isNew ? 'readonly' : ''} ${!isNew ? 'bg-gray-300' : ''}>
+                        </div>
+                        <div>
+                            <label class="form-label">Description</label>
+                            <input type="text" name="description" class="form-input" value="${table?.description || ''}">
+                        </div>
+                        <div class="flex justify-end gap-4 pt-4">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">${isNew ? 'Create Table' : 'Save Changes'}</button>
+                        </div>
+                    </form>
+                `;
+                showModal(modalHTML);
+                $('table-form').onsubmit = this.saveTable;
+            },
+
+            async saveTable(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const tableId = formData.get('id');
+                const tableData = {
+                    table_number: parseInt(formData.get('table_number')),
+                    description: formData.get('description')
+                };
+
+                try {
+                    let error;
+                    if (tableId) { // Update
+                        const { error: updateError } = await supabase.from('tables').update({ description: tableData.description }).eq('id', tableId);
+                        error = updateError;
+                    } else { // Insert
+                        const { error: insertError } = await supabase.from('tables').insert(tableData);
+                        error = insertError;
+                    }
+                    if (error) throw error;
+                    
+                    await loadInitialData(); // Reload all data
+                    closeModal();
+                } catch (e) {
+                    renderError(`Error saving table: ${e.message}`);
+                }
+            },
+
+            // --- MODAL: LOYALTY ---
+            showLoyaltyModal(customerId, customerName, currentPoints) {
+                const modalHTML = `
+                    <h2 class="text-2xl font-bold mb-2">Adjust Points</h2>
+                    <p class="text-gray-600 mb-6">For: <span class="font-semibold">${customerName}</span> (Current: ${currentPoints})</p>
+                    <form id="loyalty-form" class="space-y-4">
+                        <input type="hidden" name="id" value="${customerId}">
+                        <input type="hidden" name="current_points" value="${currentPoints}">
+                        <div>
+                            <label class="form-label">Points to Add / Redeem</label>
+                            <input type="number" name="adjustment" class="form-input" placeholder="e.g., 50 to add, -20 to redeem" required>
+                        </div>
+                        <div class="flex justify-end gap-4 pt-4">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Adjust Points</button>
+                        </div>
+                    </form>
+                `;
+                showModal(modalHTML);
+                $('loyalty-form').onsubmit = this.saveLoyaltyAdjustment;
+            },
+
+            async saveLoyaltyAdjustment(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const customerId = formData.get('id');
+                const adjustment = parseInt(formData.get('adjustment'));
+
+                if (isNaN(adjustment)) {
+                    return renderError("Invalid number for points.");
+                }
+
+                try {
+                    const { data, error } = await supabase.rpc('adjust_loyalty_points', { customer_id_input: customerId, points_change: adjustment });
+                    
+                    if (error) throw error;
+                    
+                    // Update local state
+                    const index = state.customers.findIndex(c => c.id === customerId);
+                    if (index > -1) {
+                        state.customers[index].loyalty_points = data; // RPC returns the new total
+                    }
+                    
+                    render.customers();
+                    closeModal();
+                } catch (e) {
+                    renderError(`Error: ${e.message}`);
+                }
+            },
+
+            // --- DELETE CUSTOMER ---
+            async deleteCustomer(customerId, customerName) {
+                if (confirm(`Are you sure you want to delete ${customerName} (ID: ${customerId})?\nTHIS ACTION CANNOT BE UNDONE.`)) {
+                    try {
+                        const { error } = await supabase.from('customers').delete().eq('id', customerId);
+                        if (error) throw error;
+                        
+                        state.customers = state.customers.filter(c => c.id !== customerId);
+                        render.customers();
+                    } catch (e) {
+                        renderError(`Error deleting customer: ${e.message}. (Note: Cannot delete customers with existing orders)`);
+                    }
+                }
+            }
+        };
+
+        // --- GLOBAL MODAL CONTROLS ---
+        function showModal(html) {
+            const container = $('modal-container');
+            container.innerHTML = `<div class="modal-overlay" onclick="closeModal()"><div class="modal-content" onclick="event.stopPropagation();">${html}</div></div>`;
+            container.classList.remove('hidden');
+        }
+        function closeModal() {
+            const container = $('modal-container');
+            container.classList.add('hidden');
+            container.innerHTML = '';
+        }
+
+        // --- GLOBAL EVENT BINDINGS ---
+        $('login-form').onsubmit = (e) => {
+            e.preventDefault();
+            const email = $('email').value;
+            const password = $('password').value;
+            auth.login(email, password);
+        };
+
+        $('logout-button').onclick = () => auth.logout();
+
+        $('nav-links').onclick = (e) => {
+            if (e.target.classList.contains('nav-link')) {
+                const tab = e.target.dataset.tab;
+                
+                $$('.nav-link').forEach(link => link.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                $$('.tab-content').forEach(content => content.classList.remove('active'));
+                $(`${tab}-tab`).classList.add('active');
+            }
+        };
+
+        $('add-item-btn').onclick = () => actions.showMenuModal();
+        $('add-table-btn').onclick = () => actions.showTableModal();
+
+        // Make actions globally accessible for inline onclicks
+        window.actions = actions;
+        window.closeModal = closeModal;
     </script>
 </body>
 </html>
