@@ -3,1134 +3,920 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulb Cafe - Admin Panel</title>
+    <title>Admin Panel - Bulb Cafe</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- QR Code Library -->
-    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/qrious.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.js"></script>
+    <!-- Supabase Client -->
+    <!-- FIX: Moved Supabase script to head to load first -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-primary: #111827;
-            --bg-secondary: #1F2937;
-            --bg-tertiary: #374151;
-            --text-primary: #F9FAFB;
-            --text-secondary: #D1D5DB;
-            --brand-primary: #F59E0B;
-            --brand-secondary: #FBBF24;
-            --red: #EF4444;
-            --green: #22C55E;
-            --blue: #3B82F6;
+            --brand-color: #F59E0B; /* Bulb Yellow */
+            --brand-dark: #92400E;
         }
-        body { background-color: var(--bg-primary); color: var(--text-primary); font-family: 'Poppins', sans-serif; }
-        .card { background-color: var(--bg-secondary); border: 1px solid var(--bg-tertiary); }
-        .btn { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; transition: all 0.2s ease; }
-        .btn-brand { background-color: var(--brand-primary); color: var(--bg-primary); }
-        .btn-brand:hover { background-color: var(--brand-secondary); }
-        .btn-secondary { background-color: var(--bg-tertiary); color: var(--text-primary); }
-        .btn-secondary:hover { background-color: #4B5563; }
-        .btn-red { background-color: var(--red); color: var(--text-primary); }
-        .btn-red:hover { background-color: #F87171; }
-        .btn-green { background-color: var(--green); color: var(--text-primary); }
-        .btn-green:hover { background-color: #4ADE80; }
-        .btn-blue { background-color: var(--blue); color: var(--text-primary); }
-        .btn-blue:hover { background-color: #60A5FA; }
-        
-        input, select, textarea { background-color: var(--bg-tertiary); border: 1px solid #4B5563; color: var(--text-primary); border-radius: 0.375rem; padding: 0.5rem; }
-        input:focus, select:focus, textarea:focus { border-color: var(--brand-primary); outline: none; box-shadow: 0 0 0 2px var(--brand-primary); }
-        
-        .modal-content { background-color: var(--bg-secondary); max-height: 90vh; }
-        .spinner { border-top-color: var(--brand-primary); }
-        
-        .tab-item { color: var(--text-secondary); padding: 0.75rem 1rem; border-bottom: 4px solid transparent; }
-        .tab-item:hover { color: var(--text-primary); }
-        .tab-item.active { color: var(--brand-primary); border-bottom-color: var(--brand-primary); }
-
-        .page { display: none; }
-        .page.active { display: block; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #1a1a2e; /* Dark blue background */
+        }
+        .brand-text { color: var(--brand-color); }
+        .brand-bg { background-color: var(--brand-color); }
+        .brand-border { border-color: var(--brand-color); }
+        .hover-brand-bg:hover { background-color: var(--brand-dark); }
+        .sidebar-icon {
+            transition: all 0.3s ease;
+        }
+        .sidebar-icon:hover {
+            background-color: var(--brand-color);
+            color: #1a1a2e;
+        }
+        .modal-content {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .spinner {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid var(--brand-color);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
-<body class="h-screen flex flex-col">
+<body class="bg-[#1a1a2e] text-gray-100 flex h-screen overflow-hidden">
 
-    <!-- Notification Sound Player -->
+    <!-- Notification Audio -->
     <audio id="notification-sound" src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/new-notification-022-370046.mp3" preload="auto"></audio>
 
     <!-- Login Screen -->
-    <div id="login-screen" class="flex items-center justify-center h-screen w-full absolute inset-0 z-50 bg-primary">
-        <div class="card w-full max-w-sm p-8 space-y-6 rounded-lg shadow-lg">
-            <h2 class="text-3xl font-bold text-center text-brand-primary">💡 Bulb Admin Login</h2>
-            <div id="login-error" class="text-red-500 text-sm hidden"></div>
+    <div id="login-screen" class="w-full h-full flex items-center justify-center">
+        <div class="bg-[#1e1e3f] p-8 rounded-lg shadow-xl w-full max-w-sm">
+            <h1 class="text-3xl font-bold text-center brand-text mb-6">Admin Panel</h1>
+            <div id="login-error" class="text-red-400 text-sm mb-4 hidden"></div>
             <div class="space-y-4">
-                <input type="email" id="login-email" placeholder="Email" class="w-full">
-                <input type="password" id="login-password" placeholder="Password" class="w-full">
+                <input id="email-input" type="email" placeholder="Email" class="w-full p-3 bg-[#2a2a4e] rounded border border-gray-700 focus:outline-none focus:border-amber-500">
+                <input id="password-input" type="password" placeholder="Password" class="w-full p-3 bg-[#2a2a4e] rounded border border-gray-700 focus:outline-none focus:border-amber-500">
+                <button id="login-button" class="w-full p-3 brand-bg text-gray-900 font-bold rounded hover-brand-bg transition-colors">Login</button>
             </div>
-            <button id="login-button" onclick="admin.login()" class="btn btn-brand w-full py-2">Login</button>
         </div>
     </div>
 
-    <!-- App Content (Hidden by default) -->
-    <div id="app-content" class="hidden h-screen flex-col">
-        <!-- Header -->
-        <header class="bg-secondary shadow-md z-10 p-4 flex justify-between items-center flex-shrink-0">
-            <h1 class="text-2xl font-bold text-brand-primary">💡 Bulb Admin</h1>
-            <div class="flex items-center space-x-4">
-                <span id="user-info" class="text-sm text-text-secondary hidden md:block"></span>
-                <button onclick="admin.logout()" class="btn btn-secondary">Logout</button>
-            </div>
-        </header>
-
-        <!-- Tab Navigation -->
-        <nav class="bg-secondary border-b border-tertiary flex-shrink-0">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex space-x-4">
-                    <button class="tab-item" data-page="dashboard" onclick="admin.navigateTo('dashboard', this)">Dashboard</button>
-                    <button class="tab-item" data-page="orders" onclick="admin.navigateTo('orders', this)">Orders</button>
-                    <button class="tab-item" data-page="menu" onclick="admin.navigateTo('menu', this)">Menu</button>
-                    <button class="tab-item" data-page="customers" onclick="admin.navigateTo('customers', this)">Customers</button>
-                    <button class="tab-item" data-page="tables" onclick="admin.navigateTo('tables', this)">Tables</button>
-                    <button class="tab-item" data-page="qr" onclick="admin.navigateTo('qr', this)">QR Generator</button>
-                </div>
-            </div>
+    <!-- Main App (Hidden by default) -->
+    <div id="admin-app" class="hidden flex w-full h-full">
+        <!-- Sidebar -->
+        <nav class="w-20 bg-[#1e1e3f] flex flex-col items-center py-4 space-y-4 shadow-lg">
+            <div class="text-2xl font-bold brand-text">💡</div>
+            <button class="sidebar-icon p-3 rounded-lg" data-page="dashboard" title="Dashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" /></svg>
+            </button>
+            <button class="sidebar-icon p-3 rounded-lg" data-page="menu" title="Menu">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+            </button>
+            <button class="sidebar-icon p-3 rounded-lg" data-page="tables" title="Tables">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v2a2 2 0 01-2 2h-4m-12 0h4m-4 0a2 2 0 00-2 2v2a2 2 0 002 2h12a2 2 0 002-2v-2a2 2 0 00-2-2h-4m-6-6V4a2 2 0 012-2h4a2 2 0 012 2v4" /></svg>
+            </button>
+            <button class="sidebar-icon p-3 rounded-lg" data-page="customers" title="Customers">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 016-6h6v6z" /></svg>
+            </button>
+            <button class="sidebar-icon p-3 rounded-lg" data-page="qr" title="QR Generator">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 6v1m-6-4h.01M5 12H3m18 0h-2M5 12h.01M12 5h.01M12 3v1m0 16v1m-6-3h.01M19 12h-2M19 12h.01M12 19h.01" /></svg>
+            </button>
+            <button id="logout-button" class="sidebar-icon p-3 rounded-lg mt-auto" title="Logout">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            </button>
         </nav>
-        
-        <!-- Page Content Area -->
-        <main id="main-content" class="flex-1 overflow-y-auto p-4 md:p-8">
-            <div id="page-dashboard" class="page"></div>
-            <div id="page-orders" class="page"></div>
-            <div id="page-menu" class="page"></div>
-            <div id="page-customers" class="page"></div>
-            <div id="page-tables" class="page"></div>
-            <div id="page-qr" class="page"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 h-full overflow-y-auto">
+            <div id="page-content" class="p-6">
+                <!-- Content will be injected here -->
+            </div>
         </main>
     </div>
 
     <!-- Modal Container -->
-    <div id="modal-container"></div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed top-5 right-5 p-4 rounded-md shadow-lg text-white z-50 transition-all opacity-0" style="transform: translateX(100%);">
-        <p id="toast-message"></p>
+    <div id="modal-container" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+        <!-- Modal content will be injected here -->
     </div>
 
-<script type="module">
-    // --- SUPABASE CONFIG ---
-    const SUPABASE_URL = 'https://vrvlvvlfzbdqwfsdlrkv.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZydmx2dmxmemJkcXdmc2Rscmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NzI2NzAsImV4cCI6MjA3NzU0ODY3MH0.yYnxeipLuO0DlTvGITI5ajHDeoWZ80N2PS3rPhuOyp8';
-    
-    const { createClient } = window.supabase;
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <script type="module">
+        // --- SUPABASE CONFIG ---
+        const SUPABASE_URL = 'https://vrvlvvlfzbdqwfsdlrkv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIZXV...'; // Key redacted for brevity in diff
 
-    // --- STATE ---
-    const state = {
-        user: null,
-        currentPage: 'dashboard',
-        allOrders: [], // For the new 'Orders' page
-        liveOrders: [], // For the dashboard
-        products: [],
-        tables: [],
-        customers: [],
-        staffCalls: [],
-        orderSubscription: null,
-        callSubscription: null,
-    };
-
-    // --- UI ---
-    const ui = {
-        showPage(page) {
-            if (!state.user) {
-                $('#login-screen').classList.remove('hidden');
-                $('#app-content').classList.add('hidden');
-                return;
-            }
-            $('#login-screen').classList.add('hidden');
-            $('#app-content').classList.add('flex'); // Changed to flex
-            $('#user-info').textContent = state.user.email;
-
-            // Update active tab
-            $$('.tab-item').forEach(el => {
-                el.classList.toggle('active', el.dataset.page === page);
-            });
-            
-            // Show active page
-            $$('.page').forEach(el => {
-                el.classList.toggle('active', el.id === `page-${page}`);
-            });
-            
-            const renderer = `render${page.charAt(0).toUpperCase() + page.slice(1)}Page`;
-            if (this[renderer]) {
-                this[renderer]();
-            } else {
-                $(`#page-${page}`).innerHTML = `<p>Page not found: ${page}</p>`;
-            }
-        },
-
-        renderDashboardPage() {
-            const page = $('#page-dashboard');
-            page.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <div class="card p-4 rounded-lg">
-                        <h3 class="text-sm font-medium text-text-secondary">Pending Orders</h3>
-                        <p class="text-3xl font-bold">${state.liveOrders.length}</p>
-                    </div>
-                    <div class="card p-4 rounded-lg">
-                        <h3 class="text-sm font-medium text-text-secondary">Live Staff Calls</h3>
-                        <p class="text-3xl font-bold text-red-500">${state.staffCalls.length}</p>
-                    </div>
-                    <div class="card p-4 rounded-lg">
-                        <h3 class="text-sm font-medium text-text-secondary">Menu Items</h3>
-                        <p class="text-3xl font-bold">${state.products.length}</p>
-                    </div>
-                    <div class="card p-4 rounded-lg">
-                        <h3 class="text-sm font-medium text-text-secondary">Total Customers</h3>
-                        <p class="text-3xl font-bold">${state.customers.length}</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Live Staff Calls -->
-                    <div class="card rounded-lg">
-                        <h2 class="text-xl font-semibold p-4 border-b border-tertiary">Live Staff Calls</h2>
-                        <div id="staff-calls-list" class="p-4 space-y-3 max-h-96 overflow-y-auto">
-                            <!-- Calls injected here -->
-                        </div>
-                    </div>
-                    
-                    <!-- Live Orders -->
-                    <div class="card rounded-lg">
-                        <h2 class="text-xl font-semibold p-4 border-b border-tertiary">Live Pending Orders</h2>
-                        <div id="live-orders-list" class="p-4 space-y-3 max-h-96 overflow-y-auto">
-                            <!-- Orders injected here -->
-                        </div>
-                    </div>
-                </div>
-            `;
-            this.renderLiveOrdersList();
-            this.renderStaffCallsList();
-        },
+        // FIX: Replaced destructuring with a robust check to prevent crash
+        const createClient = window.supabase ? window.supabase.createClient : null;
         
-        renderOrdersPage() {
-            const page = $('#page-orders');
-            page.innerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-semibold">Order History</h2>
-                    <div class="flex space-x-2">
-                        <label>Filter:</label>
-                        <select id="order-filter" class="text-sm" onchange="ui.renderAllOrdersList()">
-                            <option value="all">All Orders</option>
-                            <option value="pending">Pending (Received, Preparing)</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="all-orders-list" class="space-y-4">
-                    <!-- All orders injected here -->
-                </div>
-            `;
-            this.renderAllOrdersList();
-        },
-
-        renderAllOrdersList() {
-            const container = $('#all-orders-list');
-            if (!container) return;
-            
-            const filter = $('#order-filter')?.value || 'all';
-            let filteredOrders = state.allOrders;
-            
-            if (filter === 'pending') {
-                filteredOrders = state.allOrders.filter(o => o.status === 'received' || o.status === 'preparing');
-            } else if (filter !== 'all') {
-                filteredOrders = state.allOrders.filter(o => o.status === filter);
-            }
-
-            if (filteredOrders.length === 0) {
-                container.innerHTML = `<p class="text-text-secondary text-center p-8 card rounded-lg">No orders found for this filter.</p>`;
-                return;
-            }
-            container.innerHTML = filteredOrders.map(order => this.getOrderCardHTML(order, true)).join('');
-        },
-
-        renderLiveOrdersList() {
-            const container = $('#live-orders-list');
-            if (!container) return;
-
-            if (state.liveOrders.length === 0) {
-                container.innerHTML = `<p class="text-text-secondary text-center p-4">No active orders.</p>`;
-                return;
-            }
-            container.innerHTML = state.liveOrders.map(order => this.getOrderCardHTML(order)).join('');
-        },
+        if (!createClient) {
+            alert("CRITICAL: Supabase client library not found. The app cannot start. Please refresh.");
+            // Stop further execution
+            throw new Error("Supabase client not loaded");
+        }
         
-        renderStaffCallsList() {
-            const container = $('#staff-calls-list');
-            if (!container) return;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            if (state.staffCalls.length === 0) {
-                container.innerHTML = `<p class="text-text-secondary text-center p-4">No active staff calls.</p>`;
-                return;
-            }
-            
-            container.innerHTML = state.staffCalls.map(call => `
-                <div class="card p-3 border-l-4 border-red-500 animate-pulse rounded-md">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-lg font-bold">Table #${call.table_number}</p>
-                            <p class="text-sm text-text-secondary capitalize">${call.call_type} Request</p>
-                            <p class="text-xs text-text-secondary">${new Date(call.created_at).toLocaleTimeString()}</p>
-                        </div>
-                        <button class="btn btn-green px-3 py-1 text-sm" onclick="admin.resolveStaffCall('${call.id}')">Resolve</button>
-                    </div>
-                </div>
-            `).join('');
-        },
+        // --- STATE ---
+        let state = {
+            products: [],
+            orders: [],
+            tables: [],
+            customers: [],
+            staffCalls: [],
+            orderSubscription: null,
+            callSubscription: null,
+            user: null,
+            audioContext: null,
+            notificationSound: null
+        };
 
-        getOrderCardHTML(order, showStatusColor = false) {
-            const items = order.order_items.map(item => `<li>${item.quantity}x ${item.product_name || 'Item'}</li>`).join('');
-            const statusOptions = ['received', 'preparing', 'delivered', 'cancelled']
-                .map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`)
-                .join('');
-            
-            const customerName = order.customers?.name || 'Unknown';
-            const customerPhone = order.customers?.whatsapp_number || 'N/A';
-            const tableName = order.tables?.table_number || 'N/A';
-            
-            let borderColor = 'border-brand-primary'; // Default for pending
-            if (showStatusColor) {
-                if (order.status === 'delivered') borderColor = 'border-green-500';
-                else if (order.status === 'cancelled') borderColor = 'border-red-500';
-                else if (order.status === 'preparing') borderColor = 'border-blue-500';
-                else borderColor = 'border-gray-500'; // Received
-            }
+        // --- DOM SELECTORS ---
+        const $ = (selector) => document.querySelector(selector);
+        const $$ = (selector) => document.querySelectorAll(selector);
 
-            return `
-                <div class="card p-4 border-l-4 ${borderColor} rounded-md" data-order-id="${order.id}">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-bold">Order #${order.id.slice(0, 6)}... (Table ${tableName})</h3>
-                        <span class="font-semibold">₹${order.final_amount.toFixed(2)}</span>
-                    </div>
-                    <p class="text-sm text-text-secondary">${customerName} (${customerPhone})</p>
-                    <p class="text-xs text-text-secondary">${new Date(order.created_at).toLocaleString()}</p>
-                    <div class="my-2">
-                        <label class="text-xs">Status:</label>
-                        <select class="w-full p-1 rounded-md text-sm" onchange="admin.updateOrderStatus('${order.id}', this.value)">
-                            ${statusOptions}
-                        </select>
-                    </div>
-                    <details class="text-sm">
-                        <summary class="cursor-pointer text-text-secondary">View Items (${order.order_items.length})</summary>
-                        <ul class="list-disc pl-5 mt-2 text-text-secondary">${items}</ul>
-                        ${order.special_instructions ? `<p class="mt-2 text-yellow-400"><strong>Notes:</strong> ${order.special_instructions}</p>` : ''}
-                    </details>
-                </div>`;
-        },
+        // --- NOTIFICATION SOUND ---
+        const notificationAudio = $("#notification-sound");
 
-        renderMenuPage() {
-            const page = $('#page-menu');
-            page.innerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-semibold">Menu Items (${state.products.length})</h2>
-                    <button class="btn btn-brand" onclick="admin.showProductModal()">Add New Item</button>
-                </div>
-                <div class="card p-4 rounded-lg overflow-x-auto">
-                    <table class="w-full min-w-max">
-                        <thead class="border-b border-tertiary">
-                            <tr>
-                                <th class="p-2 text-left">Name</th>
-                                <th class="p-2 text-left">Brand</th>
-                                <th class="p-2 text-left">Category</th>
-                                <th class="p-2 text-left">Price</th>
-                                <th class="p-2 text-left">Available</th>
-                                <th class="p-2 text-left">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="menu-items-list">
-                            <!-- Items injected here -->
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            this.renderMenuItemsList();
-        },
+        async function initAudio() {
+            if (state.audioContext) return;
+            try {
+                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                // Resume context on user gesture
+                const resumeAudio = () => {
+                    if (state.audioContext.state === 'suspended') {
+                        state.audioContext.resume();
+                    }
+                    document.removeEventListener('click', resumeAudio);
+                };
+                document.addEventListener('click', resumeAudio);
 
-        renderMenuItemsList() {
-            const container = $('#menu-items-list');
-            if (!container) return;
-            container.innerHTML = state.products
-                .sort((a, b) => a.id - b.id)
-                .map(item => `
-                <tr class="border-b border-tertiary hover:bg-tertiary">
-                    <td class="p-2">${item.name}</td>
-                    <td class="p-2">${item.brand}</td>
-                    <td class="p-2">${item.category}</td>
-                    <td class="p-2">₹${item.price.toFixed(2)}</td>
-                    <td class="p-2">
-                        <input type="checkbox" ${item.is_available ? 'checked' : ''} onchange="admin.toggleProductAvailability(${item.id}, this.checked)">
-                    </td>
-                    <td class="p-2">
-                        <button class="btn btn-secondary text-xs px-2 py-1" onclick="admin.showProductModal(${item.id})">Edit</button>
-                    </td>
-                </tr>
-            `).join('');
-        },
-
-        renderTablesPage() {
-            const page = $('#page-tables');
-             page.innerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-semibold">Tables (${state.tables.length})</h2>
-                    <button class="btn btn-brand" onclick="admin.showTableModal()">Add New Table</button>
-                </div>
-                <div class="card p-4 rounded-lg overflow-x-auto">
-                    <table class="w-full min-w-max">
-                        <thead class="border-b border-tertiary">
-                            <tr>
-                                <th class="p-2 text-left">Table Number</th>
-                                <th class="p-2 text-left">Description</th>
-                                <th class="p-2 text-left">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tables-list">
-                            <!-- Tables injected here -->
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            this.renderTablesList();
-        },
-
-        renderTablesList() {
-            const container = $('#tables-list');
-            if (!container) return;
-            container.innerHTML = state.tables
-                .sort((a, b) => a.table_number - b.table_number)
-                .map(table => `
-                <tr class="border-b border-tertiary hover:bg-tertiary">
-                    <td class="p-2">${table.table_number}</td>
-                    <td class="p-2">${table.description || 'N/A'}</td>
-                    <td class="p-2">
-                        <button class="btn btn-secondary text-xs px-2 py-1" onclick="admin.showTableModal(${table.id})">Edit</button>
-                    </td>
-                </tr>
-            `).join('');
-        },
-        
-        renderCustomersPage() {
-            const page = $('#page-customers');
-             page.innerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-semibold">Customers (${state.customers.length})</h2>
-                </div>
-                <div class="card p-4 rounded-lg overflow-x-auto">
-                    <table class="w-full min-w-max">
-                        <thead class="border-b border-tertiary">
-                            <tr>
-                                <th class="p-2 text-left">Name</th>
-                                <th class="p-2 text-left">Phone</th>
-                                <th class="p-2 text-left">Loyalty Points</th>
-                                <th class="p-2 text-left">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customers-list">
-                            <!-- Customers injected here -->
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            this.renderCustomersList();
-        },
-        
-        renderCustomersList() {
-            const container = $('#customers-list');
-            if (!container) return;
-            container.innerHTML = state.customers
-                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                .map(customer => `
-                <tr class="border-b border-tertiary hover:bg-tertiary">
-                    <td class="p-2">${customer.name}</td>
-                    <td class="p-2">${customer.whatsapp_number || 'N/A'}</td>
-                    <td class="p-2">${customer.loyalty_points || 0}</td>
-                    <td class="p-2 space-x-2">
-                        <button class="btn btn-secondary text-xs px-2 py-1" onclick="admin.showCustomerModal('${customer.id}')">Edit</button>
-                        <button class="btn btn-blue text-xs px-2 py-1" onclick="admin.showCustomerHistoryModal('${customer.id}')">History</button>
-                        <button class="btn btn-brand text-xs px-2 py-1" onclick="admin.showLoyaltyModal('${customer.id}')">Points</button>
-                        <button class="btn btn-red text-xs px-2 py-1" onclick="admin.confirmDeleteCustomer('${customer.id}', '${customer.name}')">Delete</button>
-                    </td>
-                </tr>
-            `).join('');
-        },
-
-        renderQrPage() {
-            const page = $('#page-qr');
-            page.innerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-semibold">Table QR Codes (1-10)</h2>
-                    <button class="btn btn-brand" onclick="window.print()">Print This Page</button>
-                </div>
-                <p class="text-text-secondary mb-4">These QRs link to <code class="text-brand-secondary">https://bulb-77jm.onrender.com/?table=...</code></p>
-                <div id="qr-code-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                    <!-- QR Codes injected here -->
-                </div>
-            `;
-            this.renderQRCodes();
-        },
-        
-        renderQRCodes() {
-            const container = $('#qr-code-grid');
-            if (!container) return;
-            
-            const baseUrl = "https://bulb-77jm.onrender.com/";
-            let qrHTML = "";
-
-            for (let i = 1; i <= 10; i++) {
-                const tableUrl = `${baseUrl}?table=${i}`;
-                qrHTML += `
-                    <div class="card p-4 flex flex-col items-center text-center rounded-lg">
-                        <canvas id="qr-table-${i}" class="rounded-md"></canvas>
-                        <h3 class="text-lg font-bold mt-2">Table ${i}</h3>
-                    </div>
-                `;
-            }
-            container.innerHTML = qrHTML;
-
-            // Now render the canvases
-            for (let i = 1; i <= 10; i++) {
-                const tableUrl = `${baseUrl}?table=${i}`;
-                new QRious({
-                    element: $(`#qr-table-${i}`),
-                    value: tableUrl,
-                    size: 200,
-                    padding: 10,
-                    background: 'white',
-                    foreground: '#111827',
-                });
-            }
-        },
-
-        showModal(id, content, showCloseButton = true) {
-            const closeButtonHTML = showCloseButton ? `<button onclick="ui.closeModal('${id}')" class="btn btn-secondary w-full mt-6">Close</button>` : '';
-            const modalHTML = `
-                <div id="${id}" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-                    <div class="modal-content card w-full max-w-lg p-6 rounded-lg overflow-y-auto">
-                        ${content}
-                        ${closeButtonHTML}
-                    </div>
-                </div>`;
-            $('#modal-container').innerHTML = modalHTML;
-        },
-
-        closeModal(id) {
-            const modal = $(`#${id}`);
-            if (modal) modal.remove();
-        },
-
-        showToast(message, type = 'success', duration = 3000) {
-            const toast = $('#toast');
-            $('#toast-message').textContent = message;
-
-            const colorClasses = {
-                success: 'bg-green-600',
-                error: 'bg-red-600',
-                info: 'bg-blue-600'
-            };
-            
-            toast.classList.remove('bg-green-600', 'bg-red-600', 'bg-blue-600', 'translate-x-full', 'opacity-0');
-            toast.classList.add(colorClasses[type] || 'bg-green-600');
-            
-            toast.style.transform = 'translateX(0)';
-            toast.style.opacity = '1';
-
-            setTimeout(() => {
-                toast.style.transform = 'translateX(100%)';
-                toast.style.opacity = '0';
-            }, duration);
-        },
-
-        renderError(error, context) {
-            console.error(context, error);
-            const message = error.message;
-            const targetPage = $(`#page-${state.currentPage}`);
-            if(targetPage) {
-                targetPage.innerHTML = `
-                    <div class="card p-6 border-l-4 border-red-500 rounded-lg">
-                        <h2 class="text-2xl font-bold text-red-400">Error Loading Data</h2>
-                        <p class="text-text-secondary mt-2"><strong>Context:</strong> ${context}</p>
-                        <p class="text-text-secondary mt-2"><strong>Message:</strong> ${error.message}</p>
-                        <pre class="bg-gray-800 text-red-300 p-3 rounded-md mt-4 text-sm">${message}</pre>
-                    </div>
-                `;
+                // Load the sound
+                notificationAudio.play().catch(e => console.warn("Audio autoplay blocked. Waiting for user interaction."));
+                notificationAudio.pause(); // Stop it immediately, we just want it loaded
+            } catch (e) {
+                console.error("Failed to initialize Web Audio API:", e);
             }
         }
-    };
 
-    // --- ADMIN LOGIC ---
-    const admin = {
-        async init() {
-            // Helper query selector
-            window.$ = document.querySelector.bind(document);
-            window.$$ = document.querySelectorAll.bind(document);
-
-            // Handle browser auth state changes
-            supabase.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-                    state.user = session.user;
-                    this.initializeApp();
-                } else if (event === 'SIGNED_OUT') {
-                    state.user = null;
-                    this.stopApp();
-                }
-            });
-
-            // Check initial session
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                state.user = session.user;
-                this.initializeApp();
+        function playNotification() {
+            if (!state.audioContext) {
+                initAudio().then(() => {
+                    notificationAudio.play().catch(e => console.error("Error playing notification:", e));
+                });
             } else {
-                ui.showPage('login');
-            }
-            
-            // Prime notification sound on first click
-            document.body.addEventListener('click', () => {
-                const sound = document.getElementById('notification-sound');
-                if (sound && sound.paused) {
-                    sound.play().catch(e => {}); // Play and ignore error
-                    sound.pause();
+                if (state.audioContext.state === 'suspended') {
+                    state.audioContext.resume();
                 }
-            }, { once: true });
-        },
-
-        async initializeApp() {
-            ui.showPage(state.currentPage);
-            await this.loadAllData();
-            this.listenForChanges();
-        },
-
-        stopApp() {
-            if (state.orderSubscription) supabase.removeChannel(state.orderSubscription);
-            if (state.callSubscription) supabase.removeChannel(state.callSubscription);
-            state.orderSubscription = null;
-            state.callSubscription = null;
-            ui.showPage('login');
-        },
-
-        async login() {
-            const email = $('#login-email').value;
-            const password = $('#login-password').value;
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                $('#login-error').textContent = error.message;
-                $('#login-error').classList.remove('hidden');
-            } else {
-                $('#login-error').classList.add('hidden');
+                notificationAudio.currentTime = 0;
+                notificationAudio.play().catch(e => console.error("Error playing notification:", e));
             }
-        },
+        }
 
-        async logout() {
-            await supabase.auth.signOut();
-        },
+        // --- AUTH ---
+        $("#login-button").addEventListener("click", handleLogin);
+        $("#logout-button").addEventListener("click", handleLogout);
 
-        navigateTo(page, el) {
-            state.currentPage = page;
-            ui.showPage(page);
-        },
+        async function handleLogin() {
+            const email = $("#email-input").value;
+            const password = $("#password-input").value;
+            const errorDiv = $("#login-error");
 
-        async loadAllData() {
             try {
-                const [orders, products, tables, customers, staffCalls] = await Promise.all([
-                    supabase.from('orders').select('*, customers(name, whatsapp_number), tables(table_number), order_items(product_name, quantity)'),
-                    supabase.from('products').select('*'),
-                    supabase.from('tables').select('*'),
-                    supabase.from('customers').select('*'),
-                    supabase.from('staff_calls').select('*').eq('status', 'pending')
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                
+                state.user = data.user;
+                $("#login-screen").classList.add("hidden");
+                $("#admin-app").classList.remove("hidden");
+                initializeApp();
+            } catch (error) {
+                console.error("Login failed:", error);
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove("hidden");
+            }
+        }
+
+        async function handleLogout() {
+            await supabase.auth.signOut();
+            state = { ...state, user: null, products: [], orders: [], tables: [], customers: [], staffCalls: [] }; // Reset state
+            if (state.orderSubscription) state.orderSubscription.unsubscribe();
+            if (state.callSubscription) state.callSubscription.unsubscribe();
+            
+            $("#login-screen").classList.remove("hidden");
+            $("#admin-app").classList.add("hidden");
+        }
+
+        async function checkSession() {
+            const { data } = await supabase.auth.getSession();
+            if (data.session) {
+                state.user = data.session.user;
+                $("#login-screen").classList.add("hidden");
+                $("#admin-app").classList.remove("hidden");
+                initializeApp();
+            }
+        }
+
+        // --- APP INITIALIZATION ---
+        async function initializeApp() {
+            // Add click listener for audio
+            document.addEventListener('click', initAudio, { once: true });
+
+            navigateTo("dashboard");
+            setupEventListeners();
+            fetchAllData();
+            setupRealtimeSubscriptions();
+        }
+
+        function setupEventListeners() {
+            $$(".sidebar-icon").forEach(button => {
+                button.addEventListener("click", () => {
+                    navigateTo(button.dataset.page);
+                });
+            });
+        }
+
+        async function fetchAllData() {
+            try {
+                const [
+                    productsRes,
+                    ordersRes,
+                    tablesRes,
+                    customersRes,
+                    staffCallsRes
+                ] = await Promise.all([
+                    supabase.from('products').select('*').order('id'),
+                    supabase.from('orders').select('*, order_items(*, products(name)), tables(table_number), customers(name)').order('created_at', { ascending: false }),
+                    supabase.from('tables').select('*').order('table_number'),
+                    supabase.from('customers').select('*').order('name'),
+                    supabase.from('staff_calls').select('*').eq('status', 'pending').order('created_at', { ascending: false })
                 ]);
 
-                if (orders.error) throw new Error(`Orders: ${orders.error.message}`);
-                if (products.error) throw new Error(`Products: ${products.error.message}`);
-                if (tables.error) throw new Error(`Tables: ${tables.error.message}`);
-                if (customers.error) throw new Error(`Customers: ${customers.error.message}`);
-                if (staffCalls.error) throw new Error(`StaffCalls: ${staffCalls.error.message}`);
+                if (productsRes.error) throw new Error(`Products: ${productsRes.error.message}`);
+                if (ordersRes.error) throw new Error(`Orders: ${ordersRes.error.message}`);
+                if (tablesRes.error) throw new Error(`Tables: ${tablesRes.error.message}`);
+                if (customersRes.error) throw new Error(`Customers: ${customersRes.error.message}`);
+                if (staffCallsRes.error) throw new Error(`Staff Calls: ${staffCallsRes.error.message}`);
 
-                state.allOrders = orders.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) || [];
-                state.liveOrders = state.allOrders.filter(o => o.status === 'received' || o.status === 'preparing');
-                state.products = products.data || [];
-                state.tables = tables.data || [];
-                state.customers = customers.data || [];
-                state.staffCalls = staffCalls.data || [];
+                state.products = productsRes.data;
+                state.orders = ordersRes.data;
+                state.tables = tablesRes.data;
+                state.customers = customersRes.data;
+                state.staffCalls = staffCallsRes.data;
 
-                ui.showPage(state.currentPage);
+                // We are already on a page, so re-render it with the new data
+                const currentPage = $("#page-content").dataset.page;
+                if (currentPage) {
+                    renderPage(currentPage);
+                }
 
             } catch (error) {
-                ui.renderError(error, 'Loading all data');
+                console.error("Error Loading Data:", error);
+                renderError("Error Loading Data", `Message: ${error.message} \nThis is likely an RLS (Row Level Security) issue. \nYour RLS policies are probably blocking this admin account from viewing all data. You must update your policies in the Supabase dashboard to grant full access to this logged-in user.`);
             }
-        },
+        }
 
-        listenForChanges() {
-            // --- Listen for Orders ---
-            if (state.orderSubscription) supabase.removeChannel(state.orderSubscription);
-            state.orderSubscription = supabase.channel('public:orders')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' },
-                    async (payload) => {
-                        console.log('Order change received:', payload);
-                        
-                        // Refetch the specific order with joins
-                        const { data: updatedOrder, error } = await supabase
-                            .from('orders')
-                            .select('*, customers(name, whatsapp_number), tables(table_number), order_items(product_name, quantity)')
-                            .eq('id', payload.new.id)
-                            .single();
-
-                        if (error || !updatedOrder) return;
-                        
-                        // Update/Add in allOrders
-                        const allIndex = state.allOrders.findIndex(o => o.id === updatedOrder.id);
-                        if (allIndex > -1) state.allOrders[allIndex] = updatedOrder;
-                        else state.allOrders.unshift(updatedOrder); // Add new to top
-                        
-                        // Update/Remove from liveOrders
-                        const liveIndex = state.liveOrders.findIndex(o => o.id === updatedOrder.id);
-                        if (updatedOrder.status === 'received' || updatedOrder.status === 'preparing') {
-                            if (liveIndex > -1) state.liveOrders[liveIndex] = updatedOrder;
-                            else state.liveOrders.unshift(updatedOrder);
-                        } else if (liveIndex > -1) {
-                            state.liveOrders.splice(liveIndex, 1); // Remove from live
-                        }
-                        
-                        // Re-render relevant UI
-                        if (state.currentPage === 'dashboard') ui.renderLiveOrdersList();
-                        if (state.currentPage === 'orders') ui.renderAllOrdersList();
-                    }
-                )
+        function setupRealtimeSubscriptions() {
+            // --- ORDERS SUBSCRIPTION ---
+            if (state.orderSubscription) state.orderSubscription.unsubscribe();
+            state.orderSubscription = supabase
+                .channel('public:orders')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async (payload) => {
+                    console.log('Order change detected:', payload);
+                    // This is a simple but effective way to ensure data consistency
+                    // For a high-traffic app, you'd merge the payload (payload.new)
+                    await fetchAllData();
+                    renderPage('dashboard');
+                })
                 .subscribe();
-                
-            // --- Listen for Staff Calls ---
-            if (state.callSubscription) supabase.removeChannel(state.callSubscription);
-            state.callSubscription = supabase.channel('public:staff_calls')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'staff_calls' },
-                    (payload) => {
-                        console.log('Staff call change received:', payload);
-                        const call = payload.new;
-                        let playNotification = false;
-                        
-                        if (payload.eventType === 'INSERT' && call.status === 'pending') {
-                            state.staffCalls.push(call);
-                            playNotification = true;
-                        } else if (payload.eventType === 'UPDATE') {
-                            const index = state.staffCalls.findIndex(c => c.id === call.id);
-                            if (call.status === 'resolved' && index > -1) {
-                                state.staffCalls.splice(index, 1); // Remove resolved call
-                            } else if (call.status === 'pending' && index === -1) {
-                                state.staffCalls.push(call);
-                                playNotification = true;
-                            }
-                        } else if (payload.eventType === 'DELETE') {
-                            const index = state.staffCalls.findIndex(c => c.id === payload.old.id);
-                            if(index > -1) state.staffCalls.splice(index, 1);
-                        }
-                        
-                        state.staffCalls.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
-                        if (state.currentPage === 'dashboard') {
-                            ui.renderStaffCallsList();
-                            const callCount = $('#page-dashboard .card:nth-child(2) p');
-                            if(callCount) callCount.textContent = state.staffCalls.length;
-                        }
-                        
-                        if (playNotification) {
-                            this.playNotificationSound();
-                            ui.showToast(`New ${call.call_type} call from Table ${call.table_number}!`, 'info', 5000);
-                        }
+            // --- STAFF CALLS SUBSCRIPTION ---
+            if (state.callSubscription) state.callSubscription.unsubscribe();
+            state.callSubscription = supabase
+                .channel('public:staff_calls')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'staff_calls' }, (payload) => {
+                    console.log('New staff call:', payload);
+                    const newCall = payload.new;
+                    if (newCall.status === 'pending') {
+                        playNotification();
+                        state.staffCalls = [newCall, ...state.staffCalls];
+                        renderDashboard(); // Re-render the dashboard
                     }
-                )
+                })
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'staff_calls' }, (payload) => {
+                    // Remove the call from the list if it's no longer pending
+                    state.staffCalls = state.staffCalls.filter(call => call.id !== payload.new.id || payload.new.status === 'pending');
+                    renderDashboard(); // Re-render the dashboard
+                })
                 .subscribe();
-        },
+        }
 
-        playNotificationSound() {
-            const sound = document.getElementById('notification-sound');
-            if (sound) {
-                sound.currentTime = 0;
-                sound.play().catch(error => {
-                    console.warn("Audio play failed.", error);
-                    ui.showToast("New call! (Click page to enable sound)", "error", 5000);
-                });
+        // --- NAVIGATION ---
+        function navigateTo(page) {
+            renderPage(page);
+            // Update active sidebar icon
+            $$(".sidebar-icon").forEach(btn => {
+                btn.classList.toggle("bg-gray-700", btn.dataset.page === page);
+                btn.classList.toggle("brand-text", btn.dataset.page === page);
+            });
+        }
+
+        // --- PAGE RENDERING ---
+        function renderPage(page) {
+            $("#page-content").dataset.page = page;
+            switch (page) {
+                case 'dashboard':
+                    renderDashboard();
+                    break;
+                case 'menu':
+                    renderMenu();
+                    break;
+                case 'tables':
+                    renderTables();
+                    break;
+                case 'customers':
+                    renderCustomers();
+                    break;
+                case 'qr':
+                    renderQrGenerator();
+                    break;
             }
-        },
+        }
 
-        async updateOrderStatus(orderId, status) {
-            try {
-                const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
-                if (error) throw error;
-                
-                // The realtime listener will handle all UI updates.
-                ui.showToast(`Order ${orderId.slice(0,6)} updated to ${status}`);
-                
-            } catch (error) {
-                ui.showToast(`Failed to update order: ${error.message}`, 'error');
-            }
-        },
-        
-        async resolveStaffCall(callId) {
-            try {
-                const { error } = await supabase.from('staff_calls').update({ status: 'resolved' }).eq('id', callId);
-                if (error) throw error;
-                ui.showToast(`Call resolved`);
-            } catch (error) {
-                 ui.showToast(`Failed to resolve call: ${error.message}`, 'error');
-            }
-        },
+        function renderError(title, message) {
+            $("#page-content").innerHTML = `
+                <div class="bg-red-900/50 border border-red-700 p-6 rounded-lg">
+                    <h1 class="text-2xl font-bold text-red-300 mb-4">${title}</h1>
+                    <pre class="text-sm text-red-200 whitespace-pre-wrap">${message}</pre>
+                </div>`;
+        }
 
-        async toggleProductAvailability(productId, is_available) {
-             try {
-                const { data, error } = await supabase.from('products').update({ is_available }).eq('id', productId).select().single();
-                if (error) throw error;
-                
-                const index = state.products.findIndex(p => p.id === productId);
-                if (index > -1) state.products[index].is_available = data.is_available;
-
-                ui.showToast(`Product ${data.name} availability updated`);
-            } catch (error) {
-                ui.showToast(`Failed to update product: ${error.message}`, 'error');
-            }
-        },
-
-        showProductModal(productId) {
-            const item = state.products.find(p => p.id === productId);
-            const title = item ? 'Edit Menu Item' : 'Add New Item';
-            const brands = ['Bulb Cafe', 'Gulabi Thali'];
-            const categories = [...new Set(state.products.map(p => p.category).filter(Boolean))];
+        // --- DASHBOARD PAGE ---
+        function renderDashboard() {
+            const liveOrders = state.orders.filter(o => ['received', 'preparing'].includes(o.status));
             
-            const brandOptions = brands.map(b => `<option value="${b}" ${item?.brand === b ? 'selected' : ''}>${b}</option>`).join('');
-            const categoryOptions = categories.map(c => `<option value="${c}" ${item?.category === c ? 'selected' : ''}>${c}</option>`).join('');
+            $("#page-content").innerHTML = `
+                <h1 class="text-3xl font-bold brand-text mb-6">Dashboard</h1>
+                
+                <!-- Staff Calls -->
+                <h2 class="text-2xl font-semibold text-yellow-300 mb-4">Live Staff Calls</h2>
+                <div id="staff-calls-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                    ${state.staffCalls.length === 0 ? '<p class="text-gray-400">No pending staff calls.</p>' : ''}
+                    ${state.staffCalls.map(call => renderStaffCall(call)).join('')}
+                </div>
 
-            const content = `
-                <h2 class="text-2xl font-bold mb-4">${title}</h2>
-                <form id="product-form" class="space-y-4">
-                    <input type="hidden" name="id" value="${item?.id || ''}">
-                    <div>
-                        <label class="block text-sm font-medium text-text-secondary">Name</label>
-                        <input type="text" name="name" class="w-full" value="${item?.name || ''}" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-text-secondary">Description</label>
-                        <textarea name="description" class="w-full" rows="3">${item?.description || ''}</textarea>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-text-secondary">Price (₹)</label>
-                            <input type="number" name="price" class="w-full" value="${item?.price || 0}" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-text-secondary">Brand</label>
-                            <select name="brand" class="w-full">${brandOptions}</select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-text-secondary">Category (or enter new)</label>
-                        <input list="category-list" name="category" class="w-full" value="${item?.category || ''}">
-                        <datalist id="category-list">${categoryOptions}</datalist>
-                    </div>
-                    <div>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" name="is_available" class="h-5 w-5 rounded" ${item?.is_available ?? true ? 'checked' : ''}>
-                            <span class="text-text-secondary">Is Available</span>
-                        </label>
-                    </div>
-                    <button type="submit" class="btn btn-brand w-full">Save Item</button>
-                </form>
+                <!-- Live Orders -->
+                <h2 class="text-2xl font-semibold brand-text mb-4">Live Orders (${liveOrders.length})</h2>
+                <div id="live-orders-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${liveOrders.length === 0 ? '<p class="text-gray-400">No live orders.</p>' : ''}
+                    ${liveOrders.map(order => renderOrderCard(order)).join('')}
+                </div>
             `;
-            ui.showModal('product-modal', content);
-            $('#product-form').addEventListener('submit', this.handleProductFormSubmit);
-        },
 
-        handleProductFormSubmit: async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const id = formData.get('id');
-            const itemData = {
-                name: formData.get('name'),
-                description: formData.get('description'),
-                price: parseFloat(formData.get('price')),
-                brand: formData.get('brand'),
-                category: formData.get('category'),
-                is_available: formData.get('is_available') === 'on',
-            };
+            // Add event listeners for new buttons
+            $$('.resolve-call-btn').forEach(btn => btn.addEventListener('click', handleResolveCall));
+        }
 
-            try {
-                let error, data;
-                if (id) {
-                    const { error: updateError, data: updateData } = await supabase.from('products').update(itemData).eq('id', id).select().single();
-                    error = updateError; data = updateData;
-                } else {
-                    const { error: insertError, data: insertData } = await supabase.from('products').insert(itemData).select().single();
-                    error = insertError; data = insertData;
-                }
-                
-                if (error) throw error;
-                
-                if (id) {
-                    const index = state.products.findIndex(p => p.id === data.id);
-                    if (index > -1) state.products[index] = data;
-                } else {
-                    state.products.push(data);
-                }
-                ui.renderMenuItemsList();
-                ui.closeModal('product-modal');
-                ui.showToast(`Product ${data.name} saved!`);
+        function renderStaffCall(call) {
+            const callType = call.call_type === 'payment' ? 'Payment Help' : 'General Assistance';
+            const icon = call.call_type === 'payment' ? '💵' : '🛎';
+            return `
+                <div class="bg-red-800/70 p-4 rounded-lg shadow-lg border border-red-600 animate-pulse">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xl font-bold text-white">Table ${call.table_number}</h3>
+                        <span class="text-2xl">${icon}</span>
+                    </div>
+                    <p class="text-lg text-yellow-200 mb-3">${callType}</p>
+                    <p class="text-xs text-gray-300 mb-4">Time: ${new Date(call.created_at).toLocaleTimeString()}</p>
+                    <button class="resolve-call-btn w-full p-2 bg-yellow-500 text-black font-bold rounded" data-id="${call.id}">Resolve Call</button>
+                </div>
+            `;
+        }
 
-            } catch (error) {
-                console.error('Error saving product:', error);
-                ui.showToast(`Error: ${error.message}`, 'error');
+        async function handleResolveCall(e) {
+            const callId = e.target.dataset.id;
+            e.target.disabled = true;
+            e.target.innerHTML = `<span class="flex items-center justify-center"><div class="spinner mr-2"></div> Resolving...</span>`;
+
+            const { error } = await supabase
+                .from('staff_calls')
+                .update({ status: 'resolved' })
+                .eq('id', callId);
+
+            if (error) {
+                console.error("Error resolving call:", error);
+                e.target.disabled = false;
+                e.target.textContent = 'Resolve Call';
+            } else {
+                // Remove from local state and re-render (this is optimistic)
+                state.staffCalls = state.staffCalls.filter(call => call.id != callId);
+                renderDashboard();
             }
-        },
+        }
 
-        async showTableModal(tableId) {
-            const table = state.tables.find(t => t.id === tableId);
-            const title = table ? 'Edit Table' : 'Add New Table';
+        function renderOrderCard(order) {
+            const statusColor = order.status === 'received' ? 'bg-blue-600' : 'bg-yellow-600';
+            const items = order.order_items.map(item => `
+                <li class="flex justify-between">
+                    <span class="text-gray-300">${item.products ? item.products.name : (item.product_name || 'Item')}</span>
+                    <span class="font-medium text-gray-200">x ${item.quantity}</span>
+                </li>
+            `).join('');
+
+            return `
+                <div class="bg-[#1e1e3f] p-4 rounded-lg shadow-lg border border-gray-700">
+                    <div class="flex justify-between items-center mb-3">
+                        <div>
+                            <h3 class="text-xl font-bold brand-text">Table ${order.tables.table_number}</h3>
+                            <p class="text-sm text-gray-400">${order.customers.name}</p>
+                        </div>
+                        <span class="px-3 py-1 text-sm font-semibold ${statusColor} text-white rounded-full">${order.status}</span>
+                    </div>
+                    <ul class="space-y-1 mb-4">${items}</ul>
+                    ${order.special_instructions ? `<p class="text-sm text-yellow-300 bg-yellow-900/50 p-2 rounded mb-4">"${order.special_instructions}"</p>` : ''}
+                    <div class="flex space-x-2">
+                        ${order.status === 'received' ? `<button onclick="updateOrderStatus(${order.id}, 'preparing')" class="w-full p-2 bg-yellow-600 text-white font-semibold rounded">Mark as Preparing</button>` : ''}
+                        ${order.status === 'preparing' ? `<button onclick="updateOrderStatus(${order.id}, 'delivered')" class="w-full p-2 bg-green-600 text-white font-semibold rounded">Mark as Delivered</button>` : ''}
+                        <button onclick="updateOrderStatus(${order.id}, 'cancelled')" class="w-1/3 p-2 bg-red-700 text-white font-semibold rounded">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- MENU PAGE ---
+        function renderMenu() {
+            $("#page-content").innerHTML = `
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold brand-text">Menu Items (${state.products.length})</h1>
+                    <button id="add-item-btn" class="p-3 brand-bg text-gray-900 font-bold rounded hover-brand-bg transition-colors">Add New Item</button>
+                </div>
+                <div class="bg-[#1e1e3f] rounded-lg shadow-lg border border-gray-700">
+                    <table class="w-full">
+                        <thead class="border-b border-gray-700">
+                            <tr>
+                                <th class="p-4 text-left">Name</th>
+                                <th class="p-4 text-left">Price</th>
+                                <th class="p-4 text-left">Category</th>
+                                <th class="p-4 text-left">Brand</th>
+                                <th class="p-4 text-left">Available</th>
+                                <th class="p-4 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${state.products.map(item => `
+                                <tr class="border-b border-gray-800 hover:bg-[#2a2a4e]">
+                                    <td class="p-4 font-semibold">${item.name}</td>
+                                    <td class="p-4">₹${item.price}</td>
+                                    <td class="p-4 text-gray-400">${item.category}</td>
+                                    <td class="p-4 text-gray-400">${item.brand}</td>
+                                    <td class="p-4">
+                                        <label class="inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" ${item.is_available ? 'checked' : ''} onchange="toggleItemAvailability(${item.id}, this.checked)">
+                                            <div class="relative w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-4 peer-focus:ring-yellow-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-600"></div>
+                                        </label>
+                                    </td>
+                                    <td class="p-4">
+                                        <button class="edit-item-btn" data-id="${item.id}">✏️</button>
+                                        <button class="delete-item-btn" data-id="${item.id}">❌</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
             
-            const content = `
-                <h2 class="text-2xl font-bold mb-4">${title}</h2>
+            // Add event listeners
+            $("#add-item-btn").addEventListener("click", () => showItemModal(null));
+            $$(".edit-item-btn").forEach(btn => btn.addEventListener("click", (e) => {
+                const item = state.products.find(p => p.id == e.currentTarget.dataset.id);
+                showItemModal(item);
+            }));
+            $$(".delete-item-btn").forEach(btn => btn.addEventListener("click", (e) => {
+                if (confirm("Are you sure you want to delete this item?")) {
+                    deleteItem(e.currentTarget.dataset.id);
+                }
+            }));
+        }
+
+        // --- TABLES PAGE ---
+        function renderTables() {
+            $("#page-content").innerHTML = `
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold brand-text">Tables (${state.tables.length})</h1>
+                    <button id="add-table-btn" class="p-3 brand-bg text-gray-900 font-bold rounded hover-brand-bg transition-colors">Add New Table</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    ${state.tables.map(table => `
+                        <div class="bg-[#1e1e3f] p-4 rounded-lg shadow-lg border border-gray-700">
+                            <h3 class="text-xl font-bold brand-text mb-2">Table ${table.table_number}</h3>
+                            <p class="text-gray-400 mb-4">${table.description || 'No description'}</p>
+                            <button class="edit-table-btn w-full p-2 bg-gray-700 rounded" data-id="${table.id}">Edit</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            // Add event listeners
+            $("#add-table-btn").addEventListener("click", () => showTableModal(null));
+            $$(".edit-table-btn").forEach(btn => btn.addEventListener("click", (e) => {
+                const table = state.tables.find(t => t.id == e.currentTarget.dataset.id);
+                showTableModal(table);
+            }));
+        }
+
+        // --- CUSTOMERS PAGE ---
+        function renderCustomers() {
+            $("#page-content").innerHTML = `
+                <h1 class="text-3xl font-bold brand-text mb-6">Customers (${state.customers.length})</h1>
+                <div class="bg-[#1e1e3f] rounded-lg shadow-lg border border-gray-700">
+                    <table class="w-full">
+                        <thead class="border-b border-gray-700">
+                            <tr>
+                                <th class="p-4 text-left">Name</th>
+                                <th class="p-4 text-left">Phone</th>
+                                <th class="p-4 text-left">Loyalty Points</th>
+                                <th class="p-4 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${state.customers.map(cust => `
+                                <tr class="border-b border-gray-800 hover:bg-[#2a2a4e]">
+                                    <td class="p-4 font-semibold">${cust.name}</td>
+                                    <td class="p-4 text-gray-400">${cust.whatsapp_number || 'N/A'}</td>
+                                    <td class="p-4">${cust.loyalty_points || 0}</td>
+                                    <td class="p-4 space-x-2">
+                                        <button class="edit-cust-btn p-2 bg-gray-700 rounded" data-id="${cust.id}">Edit</button>
+                                        <button class="adjust-points-btn p-2 bg-yellow-700 rounded" data-id="${cust.id}">Adjust Points</button>
+                                        <button class="view-history-btn p-2 bg-blue-700 rounded" data-id="${cust.id}">View History</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            // Add event listeners
+            $$(".edit-cust-btn").forEach(btn => btn.addEventListener("click", (e) => {
+                const cust = state.customers.find(c => c.id == e.currentTarget.dataset.id);
+                showCustomerModal(cust);
+            }));
+            $$(".view-history-btn").forEach(btn => btn.addEventListener("click", (e) => {
+                showCustomerHistoryModal(e.currentTarget.dataset.id);
+            }));
+            $$(".adjust-points-btn").forEach(btn => btn.addEventListener("click", (e) => {
+                const cust = state.customers.find(c => c.id == e.currentTarget.dataset.id);
+                showLoyaltyModal(cust);
+            }));
+        }
+
+        // --- QR GENERATOR PAGE ---
+        function renderQrGenerator() {
+             $("#page-content").innerHTML = `
+                <h1 class="text-3xl font-bold brand-text mb-6">QR Code Generator</h1>
+                <p class="text-gray-400 mb-6">QR codes for tables 1-10. Right-click to save.</p>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    ${Array.from({ length: 10 }, (_, i) => i + 1).map(tableNum => `
+                        <div class="bg-[#1e1e3f] p-4 rounded-lg shadow-lg border border-gray-700 text-center">
+                            <h3 class="text-xl font-bold brand-text mb-3">Table ${tableNum}</h3>
+                            <div id="qr-table-${tableNum}" class="flex justify-center items-center p-2 bg-white rounded"></div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            // Generate QR codes
+            setTimeout(() => {
+                const customerAppUrl = 'https://bulb-77jm.onrender.com/?table=';
+                for (let i = 1; i <= 10; i++) {
+                    const qr = qrcode(0, 'L');
+                    qr.addData(customerAppUrl + i);
+                    qr.make();
+                    $(`#qr-table-${i}`).innerHTML = qr.createImgTag(5, 5); // (cellSize, margin)
+                }
+            }, 0);
+        }
+
+        // --- MODALS ---
+        function showModal(content) {
+            $("#modal-container").innerHTML = `<div class="modal-content bg-[#1e1e3f] p-6 rounded-lg shadow-xl w-full max-w-md">${content}</div>`;
+            $("#modal-container").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            $("#modal-container").classList.add("hidden");
+            $("#modal-container").innerHTML = "";
+        }
+
+        function showItemModal(item) {
+            const isNew = item === null;
+            const title = isNew ? "Add New Item" : "Edit Item";
+            showModal(`
+                <h2 class="text-2xl font-bold brand-text mb-4">${title}</h2>
+                <form id="item-form" class="space-y-4">
+                    <input type="hidden" id="item-id" value="${item?.id || ''}">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Name</label>
+                        <input type="text" id="item-name" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${item?.name || ''}" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Price (₹)</label>
+                        <input type="number" id="item-price" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${item?.price || 0}" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Category</label>
+                        <input type="text" id="item-category" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${item?.category || ''}" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Brand</label>
+                        <select id="item-brand" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" required>
+                            <option value="Bulb Cafe" ${item?.brand === 'Bulb Cafe' ? 'selected' : ''}>Bulb Cafe</option>
+                            <option value="Gulabi Thali" ${item?.brand === 'Gulabi Thali' ? 'selected' : ''}>Gulabi Thali</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Description</label>
+                        <textarea id="item-desc" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" rows="3">${item?.description || ''}</textarea>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="item-available" class="h-4 w-4 rounded brand-bg border-gray-700" ${isNew || item?.is_available ? 'checked' : ''}>
+                        <label for="item-available" class="ml-2 text-gray-300">Is Available</label>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-4">
+                        <button type="button" id="cancel-btn" class="p-2 bg-gray-600 rounded">Cancel</button>
+                        <button type="submit" class="p-2 brand-bg text-gray-900 font-bold rounded">${isNew ? "Create" : "Save Changes"}</button>
+                    </div>
+                </form>
+            `);
+
+            $("#cancel-btn").addEventListener("click", closeModal);
+            $("#item-form").addEventListener("submit", saveItem);
+        }
+
+        function showTableModal(table) {
+            const isNew = table === null;
+            const title = isNew ? "Add New Table" : "Edit Table";
+            showModal(`
+                <h2 class="text-2xl font-bold brand-text mb-4">${title}</h2>
                 <form id="table-form" class="space-y-4">
-                    <input type="hidden" name="id" value="${table?.id || ''}">
+                    <input type="hidden" id="table-id" value="${table?.id || ''}">
                     <div>
-                        <label class="block text-sm font-medium text-text-secondary">Table Number</label>
-                        <input type="number" name="table_number" class="w-full" value="${table?.table_number || ''}" required>
+                        <label class="block text-sm font-medium text-gray-400">Table Number</label>
+                        <input type="number" id="table-number" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${table?.table_number || ''}" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-text-secondary">Description</label>
-                        <input type="text" name="description" class="w-full" value="${table?.description || ''}">
+                        <label class="block text-sm font-medium text-gray-400">Description</label>
+                        <textarea id="table-desc" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" rows="3">${table?.description || ''}</textarea>
                     </div>
-                    <button type="submit" class="btn btn-brand w-full">Save Table</button>
+                    <div class="flex justify-end space-x-2 pt-4">
+                        <button type="button" id="cancel-btn" class="p-2 bg-gray-600 rounded">Cancel</button>
+                        <button type="submit" class="p-2 brand-bg text-gray-900 font-bold rounded">${isNew ? "Create" : "Save Changes"}</button>
+                    </div>
                 </form>
-            `;
-            ui.showModal('table-modal', content);
-            $('#table-form').addEventListener('submit', this.handleTableFormSubmit);
-        },
-
-        handleTableFormSubmit: async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const id = formData.get('id');
-            const tableData = {
-                table_number: parseInt(formData.get('table_number')),
-                description: formData.get('description'),
-            };
-
-            try {
-                let error, data;
-                if (id) {
-                    const { error: updateError, data: updateData } = await supabase.from('tables').update(tableData).eq('id', id).select().single();
-                    error = updateError; data = updateData;
-                } else {
-                    const { error: insertError, data: insertData } = await supabase.from('tables').insert(tableData).select().single();
-                    error = insertError; data = insertData;
-                }
-                
-                if (error) throw error;
-                
-                if (id) {
-                    const index = state.tables.findIndex(t => t.id === data.id);
-                    if (index > -1) state.tables[index] = data;
-                } else {
-                    state.tables.push(data);
-                }
-                ui.renderTablesList();
-                ui.closeModal('table-modal');
-                ui.showToast(`Table ${data.table_number} saved!`);
-
-            } catch (error) {
-                console.error('Error saving table:', error);
-                ui.showToast(`Error: ${error.message}`, 'error');
-            }
-        },
-        
-        async showCustomerModal(customerId) {
-            const customer = state.customers.find(c => c.id === customerId);
-            if (!customer) return;
-
-            const content = `
-                <h2 class="text-2xl font-bold mb-4">Edit Customer</h2>
-                <form id="customer-form" class="space-y-4">
-                    <input type="hidden" name="id" value="${customer.id}">
-                    <div>
-                        <label class="block text-sm font-medium text-text-secondary">Name</label>
-                        <input type="text" name="name" class="w-full" value="${customer.name || ''}" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-text-secondary">Phone Number</label>
-                        <input type="tel" name="whatsapp_number" class="w-full" value="${customer.whatsapp_number || ''}">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-text-secondary">Loyalty Points</label>
-                        <input type="number" name="loyalty_points" class="w-full" value="${customer.loyalty_points || 0}">
-                    </div>
-                    <button type="submit" class="btn btn-brand w-full">Save Customer</button>
-                </form>
-            `;
-            ui.showModal('customer-modal', content);
-            $('#customer-form').addEventListener('submit', this.handleCustomerFormSubmit);
-        },
-        
-        handleCustomerFormSubmit: async (e) => {
-             e.preventDefault();
-            const formData = new FormData(e.target);
-            const id = formData.get('id');
-            const customerData = {
-                name: formData.get('name'),
-                whatsapp_number: formData.get('whatsapp_number'),
-                loyalty_points: parseInt(formData.get('loyalty_points')),
-            };
+            `);
             
-            try {
-                const { data, error } = await supabase.from('customers').update(customerData).eq('id', id).select().single();
-                if (error) throw error;
-                
-                const index = state.customers.findIndex(c => c.id === data.id);
-                if (index > -1) state.customers[index] = data;
-                
-                ui.renderCustomersList();
-                ui.closeModal('customer-modal');
-                ui.showToast(`Customer ${data.name} saved!`);
+            $("#cancel-btn").addEventListener("click", closeModal);
+            $("#table-form").addEventListener("submit", saveTable);
+        }
 
-            } catch (error) {
-                console.error('Error saving customer:', error);
-                ui.showToast(`Error: ${error.message}`, 'error');
-            }
-        },
+        function showCustomerModal(cust) {
+            showModal(`
+                <h2 class="text-2xl font-bold brand-text mb-4">Edit Customer</h2>
+                <form id="cust-form" class="space-y-4">
+                    <input type="hidden" id="cust-id" value="${cust.id}">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Name</label>
+                        <input type="text" id="cust-name" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${cust.name}" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Phone</label>
+                        <input type="text" id="cust-phone" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${cust.whatsapp_number || ''}" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Loyalty Points</label>
+                        <input type="number" id="cust-points" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" value="${cust.loyalty_points || 0}" required>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-4">
+                        <button type="button" id="cancel-btn" class="p-2 bg-gray-600 rounded">Cancel</button>
+                        <button type="submit" class="p-2 brand-bg text-gray-900 font-bold rounded">Save Changes</button>
+                    </div>
+                </form>
+            `);
+            
+            $("#cancel-btn").addEventListener("click", closeModal);
+            $("#cust-form").addEventListener("submit", saveCustomer);
+        }
 
-        async showCustomerHistoryModal(customerId) {
-            const customer = state.customers.find(c => c.id === customerId);
-            if (!customer) return;
+        function showLoyaltyModal(cust) {
+            showModal(`
+                <h2 class="text-2xl font-bold brand-text mb-4">Adjust Points</h2>
+                <p class="text-lg mb-2">${cust.name}</p>
+                <p class="text-gray-400 mb-4">Current Points: <span class="font-bold">${cust.loyalty_points || 0}</span></p>
+                <form id="loyalty-form" class="space-y-4">
+                    <input type="hidden" id="loyalty-cust-id" value="${cust.id}">
+                    <input type="hidden" id="loyalty-current" value="${cust.loyalty_points || 0}">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Points to Add/Redeem</label>
+                        <input type="number" id="loyalty-adjust" class="w-full p-2 bg-[#2a2a4e] rounded border border-gray-700" placeholder="e.g., 50 to add, -20 to redeem" required>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-4">
+                        <button type="button" id="cancel-btn" class="p-2 bg-gray-600 rounded">Cancel</button>
+                        <button type="submit" class="p-2 brand-bg text-gray-900 font-bold rounded">Adjust Points</button>
+                    </div>
+                </form>
+            `);
+            
+            $("#cancel-btn").addEventListener("click", closeModal);
+            $("#loyalty-form").addEventListener("submit", saveLoyaltyAdjustment);
+        }
 
-            const { data: history, error } = await supabase
+        async function showCustomerHistoryModal(customerId) {
+            const { data, error } = await supabase
                 .from('orders')
-                .select('*, order_items(product_name, quantity)')
+                .select(`*, order_items ( product_name, quantity )`)
                 .eq('customer_id', customerId)
                 .order('created_at', { ascending: false });
 
-            if (error) return ui.showToast(`Error fetching history: ${error.message}`, 'error');
-
-            const historyHTML = history.length > 0 ? history.map(order => {
-                const items = order.order_items.map(item => `<li>${item.quantity}x ${item.product_name || 'Item'}</li>`).join('');
+            if (error) {
+                return showModal(`<p class="text-red-400">Error loading history: ${error.message}</p><button id="cancel-btn" class="p-2 bg-gray-600 rounded mt-4">Close</button>`);
+            }
+            
+            const historyHTML = data.length > 0 ? data.map(o => {
+                const items = o.order_items.map(i => `${i.product_name || 'Item'} (x${i.quantity})`).join(', ');
                 return `
-                    <div class="card p-3 my-2 rounded-md">
+                    <div class="bg-[#2a2a4e] p-3 rounded-lg mb-3">
                         <div class="flex justify-between">
-                            <h4 class="font-bold">Order #${order.id.slice(0, 6)}</h4>
-                            <span class="font-semibold">₹${order.final_amount.toFixed(2)}</span>
+                            <span class="font-bold">Order #${o.id.slice(0,6)}</span>
+                            <span class="brand-text">₹${o.final_amount.toFixed(2)}</span>
                         </div>
-                        <p class="text-xs text-text-secondary">${new Date(order.created_at).toLocaleString()}</p>
-                        <ul class="text-sm list-disc pl-5 mt-2 text-text-secondary">${items}</ul>
+                        <p class="text-xs text-gray-400">${new Date(o.created_at).toLocaleString()}</p>
+                        <p class="text-sm mt-2">${items}</p>
                     </div>
                 `;
-            }).join('') : '<p class="text-text-secondary text-center">No order history found.</p>';
+            }).join('') : '<p class="text-gray-400">No order history found.</p>';
 
-            const content = `
-                <h2 class="text-2xl font-bold mb-4">Order History for ${customer.name}</h2>
-                <div class="max-h-96 overflow-y-auto">${historyHTML}</div>
-            `;
-            ui.showModal('customer-history-modal', content);
-        },
-        
-        async showLoyaltyModal(customerId) {
-            const customer = state.customers.find(c => c.id === customerId);
-            if (!customer) return;
+            showModal(`
+                <h2 class="text-2xl font-bold brand-text mb-4">Order History</h2>
+                <div class="max-h-60 overflow-y-auto">${historyHTML}</div>
+                <button type="button" id="cancel-btn" class="w-full mt-6 p-2 bg-gray-600 rounded">Close</button>
+            `);
+            $("#cancel-btn").addEventListener("click", closeModal);
+        }
 
-            const content = `
-                <h2 class="text-2xl font-bold mb-4">Adjust Points</h2>
-                <p class="mb-2">Current Points: <strong class="text-brand-primary">${customer.loyalty_points || 0}</strong></p>
-                <form id="loyalty-form" class="space-y-4">
-                    <input type="hidden" name="id" value="${customer.id}">
-                    <input type="hidden" name="current_points" value="${customer.loyalty_points || 0}">
-                    <div>
-                        <label class="block text-sm font-medium text-text-secondary">Points to Add/Redeem</label>
-                        <input type="number" name="points_to_adjust" class="w-full" placeholder="e.g., 50 to add, -50 to redeem" required>
-                    </div>
-                    <button type="submit" class="btn btn-brand w-full">Adjust Points</button>
-                </form>
-            `;
-            ui.showModal('loyalty-modal', content);
-            $('#loyalty-form').addEventListener('submit', this.handleLoyaltyFormSubmit);
-        },
 
-        handleLoyaltyFormSubmit: async (e) => {
+        // --- DATABASE ACTIONS ---
+        async function updateOrderStatus(orderId, newStatus) {
+            const { error } = await supabase
+                .from('orders')
+                .update({ status: newStatus })
+                .eq('id', orderId);
+            
+            if (error) {
+                console.error("Error updating status:", error);
+            } else {
+                console.log("Order status updated");
+                // The realtime subscription will handle the UI update
+            }
+        }
+
+        async function toggleItemAvailability(itemId, isAvailable) {
+            const { error } = await supabase
+                .from('products')
+                .update({ is_available: isAvailable })
+                .eq('id', itemId);
+            
+            if (error) {
+                console.error("Error updating availability:", error);
+                fetchAllData(); // Revert on error
+            }
+        }
+
+        async function saveItem(e) {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const id = formData.get('id');
-            const currentPoints = parseInt(formData.get('current_points'));
-            const pointsToAdjust = parseInt(formData.get('points_to_adjust'));
-
-            if (isNaN(pointsToAdjust)) return ui.showToast("Invalid number", 'error');
+            const formData = {
+                name: $("#item-name").value,
+                price: parseFloat($("#item-price").value),
+                category: $("#item-category").value,
+                brand: $("#item-brand").value,
+                description: $("#item-desc").value,
+                is_available: $("#item-available").checked,
+            };
+            const itemId = $("#item-id").value;
             
-            const newTotal = currentPoints + pointsToAdjust;
+            let query;
+            if (itemId) {
+                // Update
+                query = supabase.from('products').update(formData).eq('id', itemId);
+            } else {
+                // Insert
+                query = supabase.from('products').insert(formData);
+            }
+
+            const { error } = await query;
+            if (error) {
+                alert("Error saving item: " + error.message);
+            } else {
+                closeModal();
+                fetchAllData(); // Refresh data
+            }
+        }
+
+        async function deleteItem(itemId) {
+            const { error } = await supabase.from('products').delete().eq('id', itemId);
+            if (error) {
+                alert("Error deleting item: " + error.message);
+            } else {
+                fetchAllData(); // Refresh data
+            }
+        }
+        
+        async function saveTable(e) {
+            e.preventDefault();
+            const formData = {
+                table_number: parseInt($("#table-number").value),
+                description: $("#table-desc").value,
+            };
+            const tableId = $("#table-id").value;
             
-            if (newTotal < 0) {
-                return ui.showToast("Cannot redeem more points than available.", 'error');
+            let query;
+            if (tableId) {
+                // Update
+                query = supabase.from('tables').update(formData).eq('id', tableId);
+            } else {
+                // Insert
+                query = supabase.from('tables').insert(formData);
             }
 
-            try {
-                let rpcError;
-                if (pointsToAdjust > 0) {
-                     const { error } = await supabase.rpc('increment_loyalty_points', { customer_id_input: id, points_to_add: pointsToAdjust });
-                     rpcError = error;
-                } else if (pointsToAdjust < 0) {
-                     const { error } = await supabase.rpc('redeem_loyalty_points', { customer_id_input: id, points_to_redeem: Math.abs(pointsToAdjust) });
-                     rpcError = error;
-                }
-                
-                if (rpcError) throw rpcError;
-
-                const { data, error: fetchError } = await supabase.from('customers').select('*').eq('id', id).single();
-                if (fetchError) throw fetchError;
-                
-                const index = state.customers.findIndex(c => c.id === data.id);
-                if (index > -1) state.customers[index] = data;
-                
-                ui.renderCustomersList();
-                ui.closeModal('loyalty-modal');
-                ui.showToast(`Points adjusted. New total: ${data.loyalty_points}`);
-
-            } catch (error) {
-                console.error('Error adjusting points:', error);
-                ui.showToast(`Error: ${error.message}`, 'error');
+            const { error } = await query;
+            if (error) {
+                alert("Error saving table: " + error.message);
+            } else {
+                closeModal();
+                fetchAllData(); // Refresh data
             }
-        },
+        }
         
-        confirmDeleteCustomer(customerId, customerName) {
-            const content = `
-                <h2 class="text-2xl font-bold mb-4 text-red-500">Delete Customer?</h2>
-                <p>Are you sure you want to delete <strong class="text-text-primary">${customerName}</strong>?</p>
-                <p class="text-sm text-text-secondary mt-1">All of their associated orders and data will be permanently lost. This action cannot be undone.</p>
-                <div class="flex justify-end space-x-4 mt-6">
-                    <button class="btn btn-secondary" onclick="ui.closeModal('delete-customer-modal')">Cancel</button>
-                    <button class="btn btn-red" onclick="admin.deleteCustomer('${customerId}')">Yes, Delete</button>
-                </div>
-            `;
-            ui.showModal('delete-customer-modal', content, false); // No default close button
-        },
-        
-        async deleteCustomer(customerId) {
-            try {
-                // RLS Policy allows admin (authenticated) to delete.
-                const { error } = await supabase.from('customers').delete().eq('id', customerId);
-                if (error) throw error;
-                
-                // Remove from local state
-                state.customers = state.customers.filter(c => c.id !== customerId);
-                
-                ui.renderCustomersList();
-                ui.closeModal('delete-customer-modal');
-                ui.showToast('Customer deleted successfully.', 'success');
-                
-            } catch (error) {
-                console.error('Error deleting customer:', error);
-                ui.showToast(`Error: ${error.message}`, 'error');
+        async function saveCustomer(e) {
+            e.preventDefault();
+            const formData = {
+                name: $("#cust-name").value,
+                whatsapp_number: $("#cust-phone").value,
+                loyalty_points: parseInt($("#cust-points").value),
+            };
+            const custId = $("#cust-id").value;
+            
+            const { error } = await supabase.from('customers').update(formData).eq('id', custId);
+
+            if (error) {
+                alert("Error saving customer: " + error.message);
+            } else {
+                closeModal();
+                fetchAllData(); // Refresh data
             }
-        },
+        }
+        
+        async function saveLoyaltyAdjustment(e) {
+            e.preventDefault();
+            const custId = $("#loyalty-cust-id").value;
+            const currentPoints = parseInt($("#loyalty-current").value);
+            const adjustment = parseInt($("#loyalty-adjust").value);
+            
+            if (isNaN(adjustment)) return alert("Invalid point value");
+            if (currentPoints + adjustment < 0) {
+                return alert("Cannot redeem more points than customer has.");
+            }
 
-    };
+            const newPoints = currentPoints + adjustment;
 
-    // --- INIT ---
-    window.admin = admin; // Expose to global scope for onclick attributes
-    admin.init();
-</script>
+            const { error } = await supabase.from('customers').update({ loyalty_points: newPoints }).eq('id', custId);
 
+            if (error) {
+                alert("Error adjusting points: " + error.message);
+            } else {
+                closeModal();
+                fetchAllData(); // Refresh data
+            }
+        }
+
+        // --- GLOBAL FUNCTIONS for inline JS ---
+        window.updateOrderStatus = updateOrderStatus;
+        window.toggleItemAvailability = toggleItemAvailability;
+        
+        // --- STARTUP ---
+        // FIX: Wait for the DOM content to be fully loaded.
+        // This ensures that the Supabase CDN script in the <head>
+        // has had time to load and populate window.supabase.
+        document.addEventListener('DOMContentLoaded', () => {
+            checkSession();
+        });
+
+    </script>
 </body>
 </html>
 
