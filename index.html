@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         body { font-family: 'Poppins', sans-serif; }
         .modal-overlay {
@@ -28,6 +30,11 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Style for the QR code canvas */
+        .qr-code-container canvas {
+            margin: 0 auto; /* Center the canvas */
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -69,6 +76,7 @@
                 <button data-page="menu" class="admin-nav-tab py-3 px-4 font-medium text-gray-300 border-b-4 border-transparent hover:border-gray-500">Menu</button>
                 <button data-page="tables" class="admin-nav-tab py-3 px-4 font-medium text-gray-300 border-b-4 border-transparent hover:border-gray-500">Tables</button>
                 <button data-page="customers" class="admin-nav-tab py-3 px-4 font-medium text-gray-300 border-b-4 border-transparent hover:border-gray-500">Customers</button>
+                <button data-page="qr-generator" class="admin-nav-tab py-3 px-4 font-medium text-gray-300 border-b-4 border-transparent hover:border-gray-500">QR Generator</button>
             </div>
         </nav>
 
@@ -173,15 +181,13 @@
             state.liveOrdersSubscription = null;
         }
 
-        const content = $('#admin-content');
-        content.innerHTML = '<div class="flex justify-center items-center h-64"><div class="spinner !w-12 !h-12 !border-4"></div></div>';
-
         // Load content
         switch(pageId) {
             case 'live-orders': fetchLiveOrders(); break;
             case 'menu': fetchMenu(); break;
             case 'tables': fetchTables(); break;
             case 'customers': fetchCustomers(); break;
+            case 'qr-generator': renderQRGenerator(); break;
         }
     }
 
@@ -571,6 +577,7 @@
                                 <td class="py-3 px-4 text-gray-500 text-xs">${c.id}</td>
                                 <td class="py-3 px-4 text-right">
                                     <button onclick='window.admin.showCustomerHistoryModal("${c.id}")' class="text-green-600 hover:underline font-medium">History</button>
+                                    <button onclick='window.admin.showLoyaltyModal(${JSON.stringify(c)})' class="text-purple-600 hover:underline font-medium ml-4">Adjust Points</button>
                                     <button onclick='window.admin.showCustomerModal(${JSON.stringify(c)})' class="text-blue-600 hover:underline font-medium ml-4">Edit</button>
                                 </td>
                             </tr>
@@ -697,6 +704,131 @@
          $('#modal-container').innerHTML = modalHTML;
     }
 
+    // --- New Loyalty Points Modal ---
+    function showLoyaltyModal(customer) {
+        const modalId = 'loyalty-modal';
+        const modalHTML = `
+            <div id="${modalId}" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Adjust Loyalty Points</h2>
+                    <p class="text-lg text-gray-700 mb-1">Customer: <span class="font-semibold">${customer.name}</span></p>
+                    <p class="text-lg text-gray-700 mb-6">Current Points: <span class="font-semibold">${customer.loyalty_points}</span></p>
+                    
+                    <form id="loyalty-form">
+                        <input type="hidden" name="id" value="${customer.id}">
+                        <input type="hidden" name="current_points" value="${customer.loyalty_points}">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Action</label>
+                                <select name="action" class="mt-1 w-full p-2 border border-gray-300 rounded-lg bg-white" required>
+                                    <option value="add">Add Points</option>
+                                    <option value="redeem">Redeem (Subtract) Points</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Points to Adjust</label>
+                                <input type="number" name="points" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" min="1" required>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-4 mt-6">
+                            <button type="button" onclick="window.admin.closeModal('${modalId}')" class="bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
+                            <button type="submit" class="bg-purple-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-purple-700">Adjust</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        $('#modal-container').innerHTML = modalHTML;
+        $('#loyalty-form').addEventListener('submit', saveLoyaltyAdjustment);
+    }
+
+    async function saveLoyaltyAdjustment(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        const customerId = formData.get('id');
+        const action = formData.get('action');
+        const points = parseInt(formData.get('points'));
+        const currentPoints = parseInt(formData.get('current_points'));
+
+        if (isNaN(points) || points <= 0) {
+            showToast("Please enter a valid number of points.", true);
+            return;
+        }
+
+        let newPoints = currentPoints;
+        if (action === 'add') {
+            newPoints = currentPoints + points;
+        } else if (action === 'redeem') {
+            if (points > currentPoints) {
+                showToast("Cannot redeem more points than the customer has.", true);
+                return;
+            }
+            newPoints = currentPoints - points;
+        }
+
+        const { error } = await supabase
+            .from('customers')
+            .update({ loyalty_points: newPoints })
+            .eq('id', customerId);
+
+        if (error) {
+            showToast(`Error: ${error.message}`, true);
+        } else {
+            showToast(`Points adjusted successfully. New total: ${newPoints}.`);
+            closeModal('loyalty-modal');
+            fetchCustomers();
+        }
+    }
+
+
+    // --- New QR Generator ---
+    function renderQRGenerator() {
+        const content = $('#admin-content');
+        const baseUrl = 'https://bulb-77jm.onrender.com'; // Your customer app URL
+        const limit = 10; // As requested
+
+        let qrHTML = '';
+        for (let i = 1; i <= limit; i++) {
+            qrHTML += `
+                <div class="bg-white p-4 rounded-lg shadow-lg text-center border border-gray-200">
+                    <div id="qr-table-${i}" class="qr-code-container w-full max-w-[150px] mx-auto aspect-square"></div>
+                    <p class="mt-3 text-lg font-semibold text-gray-800">Table ${i}</p>
+                </div>
+            `;
+        }
+
+        content.innerHTML = `
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold text-gray-800">Table QR Codes</h2>
+                <button onclick="window.print()" class="bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-700">
+                    Print Page
+                </button>
+            </div>
+            <p class="text-gray-600 mb-6">Showing ${limit} QR codes for tables 1 to ${limit}. Each code links to <strong class="font-medium">${baseUrl}</strong> with the table number.</p>
+            <div id="qr-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                ${qrHTML}
+            </div>
+        `;
+
+        // Now that the elements are in the DOM, generate the QRs
+        for (let i = 1; i <= limit; i++) {
+            const url = `${baseUrl}?table=${i}`;
+            const qrElement = document.getElementById(`qr-table-${i}`);
+            if (qrElement) {
+                new QRCode(qrElement, {
+                    text: url,
+                    width: 150,
+                    height: 150,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            }
+        }
+    }
+
 
     // --- UTILITIES ---
     function renderError(message) {
@@ -704,11 +836,18 @@
             <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-lg" role="alert">
                 <h3 class="font-bold text-lg">Error Loading Data</h3>
                 <p class="mt-2"><strong>Message:</strong> ${message}</p>
+                ${message.includes('RLS') ? `
                 <p class="mt-4 text-sm">
                     <strong>This is likely an RLS (Row Level Security) issue.</strong><br>
                     Your RLS policies are probably blocking this admin account from viewing all data. 
                     You must update your policies in the Supabase dashboard to grant full access to this logged-in user.
                 </p>
+                ` : `
+                <p class="mt-4 text-sm">
+                    <strong>This might be a database schema error.</strong><br>
+                    Check if the columns requested in the code (like 'product_name' in 'order_items') exist in your database tables.
+                </p>
+                `}
             </div>
         `;
     }
@@ -753,11 +892,11 @@
         closeModal,
         showTableModal,
         showCustomerModal,
-        showCustomerHistoryModal
+        showCustomerHistoryModal,
+        showLoyaltyModal // Added this new function
     };
 
 </script>
 </body>
 </html>
-
 
