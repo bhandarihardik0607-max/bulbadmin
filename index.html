@@ -205,9 +205,15 @@
                 <span class="text-2xl font-bold" style="color: var(--brand-yellow);">💡 BULB ADMIN</span>
             </div>
             <nav id="nav-links" class="flex flex-col space-y-2 p-4">
-                <button class="nav-link active" data-tab="dashboard">
-                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                <!-- NEW: Dashboard Tab -->
+                <button class="nav-link" data-tab="dashboard">
+                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m1-3 1 3m0 0-1 3m1-3 1 3m0 0h-3.75m6.75-3h-3.75z" /></svg>
                     Dashboard
+                </button>
+                <!-- NEW: Live Kitchen Tab (was Dashboard) -->
+                <button class="nav-link active" data-tab="live-kitchen">
+                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 21h-5.625A2.25 2.25 0 0113.125 18.75V16.5A2.25 2.25 0 0115.375 14.25H18a2.25 2.25 0 012.25 2.25V18.75A2.25 2.25 0 0118 21H5.25A2.25 2.25 0 013 18.75V16.5A2.25 2.25 0 015.25 14.25H7.5A2.25 2.25 0 019.75 16.5V18.75A2.25 2.25 0 017.5 21H3m0 0h18M12 6.75h.008v.008H12V6.75z" /></svg>
+                    Live Kitchen
                 </button>
                 <button class="nav-link" data-tab="history">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -229,7 +235,6 @@
                     <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.5v15h15V18m-15-3.75h15m-15-3.75h15M3.75 4.5h15v3.75m-15 9V4.5m0 15h3.75m-3.75 0V18m0 0h3.75m0 0v3.75m0-3.75h3.75m0 0v3.75M7.5 18h3.75m0 0v3.75m0-3.75h3.75M11.25 18v3.75m0-3.75h3.75m0 0v3.75m0-3.75h3.75m0 0v3.75M15 18h3.75m0 0v3.75m0-3.75h3.75m0 0V18m0 0h-3.75m0 0V18m0 0h-3.75m0 0V18m0 0h-3.75m0 0V18m0 0h-3.75M15 18h-3.75m0 0v-3.75m0 0h-3.75m0 0V18m0 0H7.5m0 0v-3.75m0 0h3.75M11.25 14.25h3.75m0 0v-3.75m0 0h-3.75m0 0v3.75m0 0H11.25m0 0V10.5M7.5 10.5v3.75m0 0h3.75m0 0V10.5m0 0H7.5m0 0V6.75m0 0h3.75M11.25 6.75h3.75m0 0v3.75m0 0h-3.75m0 0V6.75m0 0H11.25m3.75 3.75h3.75m0 0v3.75m0 0h-3.75m0 0v-3.75m0 0h3.75M15 14.25v-3.75" /></svg>
                     QR Generator
                 </button>
-                <!-- NEW TABS -->
                 <button class="nav-link" data-tab="analytics">
                     <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m1-3 1 3m0 0-1 3m1-3 1 3m0 0h-3.75m6.75-3h-3.75z" /></svg>
                     Analytics
@@ -259,25 +264,52 @@
             </header>
 
             <main class="p-4 sm:p-6 lg:p-8">
-                <!-- Dashboard -->
-                <div id="dashboard-tab" class="tab-content active">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Live Orders -->
-                        <div class="lg:col-span-2 space-y-4">
-                            <h2 class="text-2xl font-bold text-gray-800">Live Orders</h2>
-                            <div id="live-orders-container" class="space-y-4">
-                                <!-- Orders will be injected here -->
-                                <div id="no-orders-msg" class="text-gray-500 card p-4">No active orders.</div>
+                <!-- NEW: Dashboard -->
+                <div id="dashboard-tab" class="tab-content">
+                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="stats-container">
+                        <!-- Stats will be injected here -->
+                        <div class="card p-6">
+                            <h3 class="text-sm font-medium text-gray-500">Today's Gross Revenue</h3>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">₹0.00</p>
+                        </div>
+                        <div class="card p-6">
+                            <h3 class="text-sm font-medium text-gray-500">Today's Net Revenue</h3>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">₹0.00</p>
+                        </div>
+                        <div class="card p-6">
+                            <h3 class="text-sm font-medium text-gray-500">Today's Total Orders</h3>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">0</p>
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <h2 class="text-2xl font-bold text-gray-800">Live Staff Calls</h2>
+                        <div id="staff-calls-container" class="space-y-4 mt-4">
+                            <!-- Staff calls will be injected here -->
+                            <div id="no-calls-msg" class="text-gray-500 card p-4">No pending staff calls.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Live Kitchen (was Dashboard) -->
+                <div id="live-kitchen-tab" class="tab-content active">
+                    <!-- FIX: Changed to 2 columns -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Received -->
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-4 border-yellow-500">Received</h2>
+                            <div id="kitchen-col-received" class="space-y-4 h-[calc(100vh-200px)] overflow-y-auto p-2 bg-gray-100 rounded-lg">
+                                <div id="no-orders-msg" class="text-gray-500 text-center p-4">No new orders.</div>
+                                <!-- Received Orders -->
                             </div>
                         </div>
-                        <!-- Staff Calls -->
-                        <div class="lg:col-span-1 space-y-4">
-                            <h2 class="text-2xl font-bold text-gray-800">Live Staff Calls</h2>
-                            <div id="staff-calls-container" class="space-y-4">
-                                <!-- Staff calls will be injected here -->
-                                <div id="no-calls-msg" class="text-gray-500 card p-4">No pending staff calls.</div>
+                        <!-- Preparing -->
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-4 border-blue-500">Preparing</h2>
+                            <div id="kitchen-col-preparing" class="space-y-4 h-[calc(100vh-200px)] overflow-y-auto p-2 bg-gray-100 rounded-lg">
+                                <!-- Preparing Orders -->
                             </div>
                         </div>
+                        <!-- FIX: Removed "Ready for Pickup" column -->
                     </div>
                 </div>
 
@@ -475,20 +507,22 @@
         // --- APP STATE ---
         const state = {
             user: null,
-            liveOrders: [],
+            kitchenOrders: [], // RENAMED
             pastOrders: [],
+            dashboardStats: { gross: 0, net: 0, count: 0 }, // NEW
             staffCalls: [],
             menu: [],
             customers: [],
             tables: [],
-            appSettings: [], // NEW
-            orderSubscription: null,
+            appSettings: [],
+            
+            kitchenOrderSubscription: null, // RENAMED
+            mainOrderSubscription: null, // NEW: For all order changes (analytics, history)
             callSubscription: null,
-            menuSubscription: null, // NEW
-            customerSubscription: null, // NEW
-            tableSubscription: null, // NEW
-            settingsSubscription: null, // NEW
-            orderItemsSubscription: null, // NEW: Listener for items
+            menuSubscription: null,
+            customerSubscription: null,
+            tableSubscription: null,
+            settingsSubscription: null,
         };
 
         // --- DOM SELECTORS ---
@@ -601,30 +635,34 @@
         // --- DATA LOADING ---
         async function loadInitialData() {
             try {
-                // *** FIX: Changed order_items select
-                const [ordersRes, callsRes, menuRes, customersRes, tablesRes, settingsRes] = await Promise.all([
-                    supabase.from('orders').select('*, tables(table_number), customers(name), order_items(*, products(name))').order('created_at', { ascending: false }),
+                // FIX: Removed 'ready' from kitchen orders query
+                const [pastOrdersRes, kitchenOrdersRes, callsRes, menuRes, customersRes, tablesRes, settingsRes] = await Promise.all([
+                    supabase.from('orders').select('*, tables(table_number), customers(name), order_items(*, products(name))').in('status', ['delivered', 'cancelled']).order('created_at', { ascending: false }),
+                    supabase.from('orders').select('*, tables(table_number), customers(name), order_items(*, products(name))').in('status', ['received', 'preparing']).order('created_at', { ascending: true }),
                     supabase.from('staff_calls').select('*').eq('status', 'pending').order('created_at', { ascending: true }),
                     supabase.from('products').select('*').order('name', { ascending: true }),
                     supabase.from('customers').select('*').order('name', { ascending: true }),
                     supabase.from('tables').select('*').order('table_number', { ascending: true }),
-                    supabase.from('app_settings').select('*').order('key', { ascending: true }) // NEW
+                    supabase.from('app_settings').select('*').order('key', { ascending: true })
                 ]);
 
-                if (ordersRes.error) throw ordersRes.error;
+                if (pastOrdersRes.error) throw pastOrdersRes.error;
+                if (kitchenOrdersRes.error) throw kitchenOrdersRes.error;
                 if (callsRes.error) throw callsRes.error;
                 if (menuRes.error) throw menuRes.error;
                 if (customersRes.error) throw customersRes.error;
                 if (tablesRes.error) throw tablesRes.error;
-                if (settingsRes.error) throw settingsRes.error; // NEW
+                if (settingsRes.error) throw settingsRes.error;
 
-                state.liveOrders = ordersRes.data.filter(o => o.status === 'received' || o.status === 'preparing');
-                state.pastOrders = ordersRes.data.filter(o => o.status === 'delivered' || o.status === 'cancelled');
+                state.pastOrders = pastOrdersRes.data;
+                state.kitchenOrders = kitchenOrdersRes.data;
                 state.staffCalls = callsRes.data;
                 state.menu = menuRes.data;
                 state.customers = customersRes.data;
                 state.tables = tablesRes.data;
-                state.appSettings = settingsRes.data; // NEW
+                state.appSettings = settingsRes.data;
+                
+                await dataHelpers.loadDashboardStats(); // Calculate stats from loaded past orders
 
                 render.all();
 
@@ -633,14 +671,62 @@
                 console.error("Detailed Load Error:", error);
             }
         }
+
+        // --- NEW: Data Helpers ---
+        const dataHelpers = {
+            // Gets today's date in YYYY-MM-DD format for Supabase
+            getTodayString() {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            },
+
+            // Calculates stats for the new dashboard
+            async loadDashboardStats() {
+                const today = this.getTodayString();
+                
+                // Fetch today's delivered orders
+                const { data, error } = await supabase.from('orders')
+                    .select('final_amount, discount_amount, order_items(price_at_time_of_order, quantity)')
+                    .eq('status', 'delivered')
+                    .gte('created_at', `${today}T00:00:00.000Z`)
+                    .lte('created_at', `${today}T23:59:59.999Z`);
+                
+                if (error) {
+                    console.error("Error fetching dashboard stats:", error);
+                    return;
+                }
+                
+                let gross = 0;
+                let net = 0;
+                
+                data.forEach(order => {
+                    // Net is the final amount customer paid
+                    net += order.final_amount || 0;
+                    
+                    // Gross is net + discount, OR sum of items
+                    let orderSubtotal = (order.order_items || []).reduce((sum, item) => sum + (item.price_at_time_of_order * item.quantity), 0);
+                    gross += orderSubtotal;
+                });
+                
+                state.dashboardStats = {
+                    gross: gross,
+                    net: net,
+                    count: data.length
+                };
+                
+                // Re-render the dashboard stats
+                render.dashboard();
+            }
+        };
         
         // --- ACTIONS & EVENT HANDLERS --- (MOVED HERE)
         const actions = {
             async updateOrderStatus(orderId, status) {
-                // --- REMOVED OPTIMISTIC UI UPDATE ---
                 // The real-time listener will handle all UI changes.
-                
-                // 1. Send database update in the background
+                // This function just sends the command.
                 try {
                     const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
                     if (error) {
@@ -650,7 +736,6 @@
                     // Real-time listener will fire and update the UI.
                 } catch (e) {
                     renderError(`Error updating order: ${e.message}`);
-                    // DO NOT reload data here, as it can cause state conflicts
                 }
             },
 
@@ -673,8 +758,7 @@
                     // Real-time listener will handle the UI update
                 } catch (e) {
                     renderError(`Error updating item: ${e.message}`);
-                    // Revert checkbox on failure
-                    render.menu();
+                    render.menu(); // Revert checkbox on failure
                 }
             },
 
@@ -732,12 +816,11 @@
                         error = updateError;
                     } else { // Insert
                         delete itemData.id;
-                        const { error: insertError } = await supabase.from('products').insert([itemData]); // Insert expects an array
+                        const { error: insertError } = await supabase.from('products').insert([itemData]);
                         error = insertError;
                     }
                     if (error) throw error;
                     
-                    // REAL-TIME FIX: No reload needed, listener will catch it
                     showToast(itemData.id ? 'Item updated!' : 'Item created!');
                     closeModal();
                 } catch (e) {
@@ -783,7 +866,6 @@
                     const { data, error } = await supabase.from('customers').update(updateData).eq('id', customerId);
                     if (error) throw error;
                     
-                    // REAL-TIME FIX: No reload needed
                     showToast('Customer updated!');
                     closeModal();
                 } catch (e) {
@@ -832,12 +914,11 @@
                         const { error: updateError } = await supabase.from('tables').update({ description: tableData.description }).eq('id', tableId);
                         error = updateError;
                     } else { // Insert
-                        const { error: insertError } = await supabase.from('tables').insert([tableData]); // Insert expects an array
+                        const { error: insertError } = await supabase.from('tables').insert([tableData]);
                         error = insertError;
                     }
                     if (error) throw error;
                     
-                    // REAL-TIME FIX: No reload needed
                     showToast(tableId ? 'Table updated!' : 'Table created!');
                     closeModal();
                 } catch (e) {
@@ -880,7 +961,6 @@
                     const { data, error } = await supabase.rpc('adjust_loyalty_points', { customer_id_input: customerId, points_change: adjustment });
                     if (error) throw error;
                     
-                    // REAL-TIME FIX: No reload needed
                     showToast('Loyalty points adjusted!');
                     closeModal();
                 } catch (e) {
@@ -895,7 +975,6 @@
                         const { error } = await supabase.from('customers').delete().eq('id', customerId);
                         if (error) throw error;
                         
-                        // REAL-TIME FIX: No reload needed
                         showToast('Customer deleted.');
                     } catch (e) {
                          renderError(`Error deleting customer: ${e.message}. (Note: Cannot delete customers with existing orders)`);
@@ -909,7 +988,6 @@
                         const { error } = await supabase.from('orders').delete().eq('id', orderId);
                         if (error) throw error;
                         
-                        // REAL-TIME FIX: No reload needed
                         showToast('Order deleted.');
                     } catch (e) {
                          renderError(`Error deleting order: ${e.message}.`);
@@ -926,7 +1004,6 @@
                     const { error } = await supabase.from('app_settings').update({ value }).eq('key', key);
                     if (error) throw error;
                     showToast('Setting saved!');
-                    // Real-time listener will update the state
                 } catch (e) {
                     renderError(`Error saving setting: ${e.message}`);
                 }
@@ -948,7 +1025,6 @@
                             <h3 class="font-bold text-lg mb-2">Items:</h3>
                             ${items.length > 0 ? `
                                 <ul class="space-y-1 list-decimal list-inside">
-                                    // *** FIX: Use item.products.name
                                     ${items.map(item => `<li><span class="font-semibold">${item.products?.name || 'Item'}</span> x${item.quantity}</li>`).join('')}
                                 </ul>
                             ` : `
@@ -978,28 +1054,24 @@
             
             // --- NEW MODAL ACTIONS for blocking order screen ---
             showNewOrderModal(order) {
+                // DO NOT SHOW MODAL if user is already on the kitchen screen
+                if ($('live-kitchen-tab').classList.contains('active')) {
+                    return;
+                }
+
                 // Get HTML from helper
                 const modalInnerHTML = this.generateNewOrderModalHTML(order);
-                
-                // Wrap in unique ID
                 const modalHTML = `<div id="new-order-modal-${order.id}">${modalInnerHTML}</div>`;
-                
                 showBlockingModal(modalHTML);
             },
 
-            // *** FIX: Optimistic UI Update
             async acceptOrderFromModal(orderId) {
-                // 1. Close modal
                 closeModal();
-                // 2. Call the update function (no longer optimistic, just sends DB command)
                 await this.updateOrderStatus(orderId, 'preparing');
             },
 
-            // *** FIX: Optimistic UI Update
             async cancelOrderFromModal(orderId) {
-                // 1. Close modal
                 closeModal();
-                // 2. Call the update function (no longer optimistic, just sends DB command)
                 await this.updateOrderStatus(orderId, 'cancelled');
             },
 
@@ -1007,10 +1079,12 @@
             exportOrderHistoryCSV() {
                 const headers = ["Order ID", "Date", "Customer", "Table", "Status", "Subtotal", "Discount", "GST", "Final Total", "Items"];
                 const rows = state.pastOrders.map(order => {
-                    // *** FIX: Use item.products.name
                     const items = (order.order_items || []).map(i => `${i.products?.name || 'Item'} (x${i.quantity})`).join(' | ');
-                    const subtotal = (order.final_amount - (order.final_amount * 0.05) + (order.discount_amount || 0));
-                    const gst = order.final_amount - (order.final_amount / 1.05); // Approx
+                    
+                    let orderSubtotal = (order.order_items || []).reduce((sum, item) => sum + (item.price_at_time_of_order * item.quantity), 0);
+                    const discount = order.discount_amount || 0;
+                    const finalTotal = order.final_amount || 0;
+                    const gst = finalTotal - (orderSubtotal - discount); // More accurate GST
                     
                     return [
                         order.id,
@@ -1018,10 +1092,10 @@
                         order.customers?.name || 'Guest',
                         order.tables?.table_number || 'N/A',
                         order.status,
-                        subtotal.toFixed(2),
-                        (order.discount_amount || 0).toFixed(2),
+                        orderSubtotal.toFixed(2),
+                        discount.toFixed(2),
                         gst.toFixed(2),
-                        (order.final_amount || 0).toFixed(2),
+                        finalTotal.toFixed(2),
                         `"${items}"` // Enclose items in quotes
                     ].join(',');
                 });
@@ -1079,105 +1153,111 @@
         // --- REAL-TIME LISTENERS ---
         const listeners = {
             startAll() {
-                this.startOrderListener();
+                this.startKitchenListener(); // Renamed
+                this.startMainOrderListener(); // New
                 this.startCallListener();
                 this.startMenuListener();
                 this.startCustomerListener();
                 this.startTableListener();
                 this.startSettingsListener();
-                this.startOrderItemsListener(); // ADDED
             },
             
             stopAll() {
-                if (state.orderSubscription) supabase.removeChannel(state.orderSubscription);
+                if (state.kitchenOrderSubscription) supabase.removeChannel(state.kitchenOrderSubscription);
+                if (state.mainOrderSubscription) supabase.removeChannel(state.mainOrderSubscription);
                 if (state.callSubscription) supabase.removeChannel(state.callSubscription);
                 if (state.menuSubscription) supabase.removeChannel(state.menuSubscription);
                 if (state.customerSubscription) supabase.removeChannel(state.customerSubscription);
                 if (state.tableSubscription) supabase.removeChannel(state.tableSubscription);
                 if (state.settingsSubscription) supabase.removeChannel(state.settingsSubscription);
-                if (state.orderItemsSubscription) supabase.removeChannel(state.orderItemsSubscription); // ADDED
             },
             
-            startOrderListener() {
-                if (state.orderSubscription) return;
-                state.orderSubscription = supabase.channel('public:orders')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async (payload) => {
-                        console.log('Order change received:', payload);
+            // This listener ONLY updates the Live Kitchen tab
+            startKitchenListener() {
+                if (state.kitchenOrderSubscription) return;
+                // FIX: Removed 'ready' from filter
+                state.kitchenOrderSubscription = supabase.channel('public:orders:kitchen')
+                    .on('postgres_changes', { 
+                        event: '*', 
+                        schema: 'public', 
+                        table: 'orders',
+                        filter: 'status=in.("received","preparing")' // Only listen for kitchen statuses
+                    }, async (payload) => {
+                        console.log('Kitchen change received:', payload);
                         
-                        // --- SIMPLIFIED LOGIC ---
+                        // On ANY change (INSERT, UPDATE, DELETE) in kitchen statuses,
+                        // just reload all kitchen orders. This is the simplest,
+                        // most robust way to ensure the columns are correct.
                         
-                        // *** FIX: Handle potential null payload.new
-                        const newStatus = payload.new?.status;
-                        const orderId = payload.new?.id || payload.old?.id;
+                        // FIX: Removed 'ready' from query
+                        const { data, error } = await supabase.from('orders')
+                            .select('*, tables(table_number), customers(name), order_items(*, products(name))')
+                            .in('status', ['received', 'preparing'])
+                            .order('created_at', { ascending: true });
+                        
+                        if (error) {
+                            renderError("Error refreshing kitchen: " + error.message);
+                            return;
+                        }
+                        
+                        state.kitchenOrders = data;
+                        render.liveKitchen(); // Re-render the whole kitchen view
 
-                        if (payload.eventType === 'INSERT' && newStatus === 'received') {
-                            // NEW ORDER
+                        // If it's a new order, pop the modal (if not on kitchen tab)
+                        if (payload.eventType === 'INSERT' && payload.new.status === 'received') {
                             playNotification();
-                            const newOrderData = await fetchOrderDetails(orderId); // Fetch full data
-                            if (newOrderData) {
-                                if (!state.liveOrders.some(o => o.id === newOrderData.id)) {
-                                    state.liveOrders.push(newOrderData);
-                                }
-                                render.dashboard(); 
-                                if ($('modal-container').classList.contains('hidden')) {
-                                    actions.showNewOrderModal(newOrderData);
-                                }
+                            // Fetch the full order data for the modal
+                            const newOrderData = state.kitchenOrders.find(o => o.id === payload.new.id);
+                            if(newOrderData) {
+                                actions.showNewOrderModal(newOrderData);
                             }
                         }
-                        else if (payload.eventType === 'UPDATE') {
-                            // UPDATED ORDER
-                            const liveIndex = state.liveOrders.findIndex(o => o.id === orderId);
-                            const pastIndex = state.pastOrders.findIndex(o => o.id === orderId);
-
-                            if (newStatus === 'received' || newStatus === 'preparing') {
-                                // It's a LIVE order (or moved to live)
-                                const updatedOrderData = await fetchOrderDetails(orderId);
-                                if (updatedOrderData) {
-                                    if (liveIndex > -1) {
-                                        // It's already in the live list, update it
-                                        updatedOrderData.fetchTimer = state.liveOrders[liveIndex]?.fetchTimer; // Preserve timer
-                                        state.liveOrders[liveIndex] = updatedOrderData; 
-                                    } else {
-                                        // It's not in the live list, add it
-                                        state.liveOrders.push(updatedOrderData);
-                                    }
-                                    
-                                    if (pastIndex > -1) {
-                                        // It was in the past list, remove it
-                                        state.pastOrders.splice(pastIndex, 1); 
-                                        render.history();
-                                        render.analytics();
-                                    }
-                                }
-                            } 
-                            else { // 'delivered' or 'cancelled'
-                                // It's a PAST order
-                                if (liveIndex > -1) {
-                                    // It was in the live list, move it
-                                    const finishedOrder = state.liveOrders.splice(liveIndex, 1)[0]; 
-                                    Object.assign(finishedOrder, payload.new); // Update status from payload
-                                    state.pastOrders.unshift(finishedOrder); // Add to past
-                                    render.history();
-                                    render.analytics();
-                                } else if (pastIndex > -1) {
-                                    // It was already in past, just update its status
-                                    Object.assign(state.pastOrders[pastIndex], payload.new);
-                                    render.history();
-                                }
+                    })
+                    .subscribe();
+            },
+            
+            // This NEW listener handles changes for Analytics, History, and Dashboard stats
+            startMainOrderListener() {
+                if (state.mainOrderSubscription) return;
+                state.mainOrderSubscription = supabase.channel('public:orders:main')
+                    .on('postgres_changes', {
+                        event: '*',
+                        schema: 'public',
+                        table: 'orders'
+                    }, async (payload) => {
+                        console.log('Main order change received:', payload);
+                        
+                        const orderId = payload.new?.id || payload.old?.id;
+                        const newStatus = payload.new?.status;
+                        const oldStatus = payload.old?.status;
+                        
+                        // --- Update History Tab ---
+                        if (payload.eventType === 'INSERT' && (newStatus === 'cancelled' || newStatus === 'delivered')) {
+                            // A new order was created *already* as finished (rare, but possible)
+                            const newOrderData = await fetchOrderDetails(orderId);
+                            if (newOrderData) state.pastOrders.unshift(newOrderData);
+                            render.history();
+                        }
+                        else if (payload.eventType === 'UPDATE' && (newStatus === 'cancelled' || newStatus === 'delivered')) {
+                            // An order was just finished, add it to history
+                            const newOrderData = await fetchOrderDetails(orderId);
+                            if (newOrderData) {
+                                // Remove from list if it was already there (e.g., cancelled -> delivered)
+                                state.pastOrders = state.pastOrders.filter(o => o.id !== orderId);
+                                state.pastOrders.unshift(newOrderData);
                             }
-                            render.dashboard(); // Re-render dashboard after any update
+                            render.history();
                         }
                         else if (payload.eventType === 'DELETE') {
-                            // DELETED ORDER
-                            const liveIndex = state.liveOrders.findIndex(o => o.id === orderId);
-                            if (liveIndex > -1) state.liveOrders.splice(liveIndex, 1);
-                            
-                            const pastIndex = state.pastOrders.findIndex(o => o.id === orderId);
-                            if (pastIndex > -1) state.pastOrders.splice(pastIndex, 1);
-                            
+                            state.pastOrders = state.pastOrders.filter(o => o.id !== orderId);
                             render.history();
-                            render.analytics();
-                            render.dashboard();
+                        }
+                        
+                        // --- Update Dashboard & Analytics ---
+                        // If an order becomes 'delivered' OR an old 'delivered' order is modified
+                        if (newStatus === 'delivered' || oldStatus === 'delivered') {
+                            await dataHelpers.loadDashboardStats(); // Recalculate stats for today
+                            render.analytics(); // Re-render analytics
                         }
                     })
                     .subscribe();
@@ -1189,7 +1269,6 @@
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'staff_calls' }, (payload) => {
                         console.log('Staff call change received:', payload);
                         
-                        // *** FIX: Handle potential null payload.new
                         const callId = payload.new?.id || payload.old?.id;
                         const newStatus = payload.new?.status;
 
@@ -1209,12 +1288,11 @@
                             const index = state.staffCalls.findIndex(c => c.id === callId);
                             if (index > -1) state.staffCalls.splice(index, 1);
                         }
-                        render.dashboard();
+                        render.staffCalls(); // Only re-render calls
                     })
                     .subscribe();
             },
             
-            // NEW REALTIME LISTENERS
             startMenuListener() {
                 if (state.menuSubscription) return;
                 state.menuSubscription = supabase.channel('public:products')
@@ -1234,56 +1312,6 @@
                         }
                         state.menu.sort((a, b) => a.name.localeCompare(b.name));
                         render.menu();
-                    })
-                    .subscribe();
-            },
-            
-            // NEW: Listener to catch incoming order items and fix race condition
-            startOrderItemsListener() {
-                if (state.orderItemsSubscription) return;
-                state.orderItemsSubscription = supabase.channel('public:order_items')
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'order_items' }, (payload) => {
-                        console.log('Order item change received:', payload);
-                        const orderId = payload.new.order_id;
-                        
-                        // Find the order index
-                        const orderIndex = state.liveOrders.findIndex(o => o.id === orderId);
-                        
-                        if (orderIndex > -1) {
-                            const liveOrder = state.liveOrders[orderIndex];
-                            
-                            // Clear existing timer to debounce
-                            if (liveOrder.fetchTimer) clearTimeout(liveOrder.fetchTimer);
-                            
-                            // Set a new timer to re-fetch after 500ms
-                            liveOrder.fetchTimer = setTimeout(async () => { // Make async
-                                console.log(`Refetching order ${orderId} due to new items.`);
-                                
-                                // --- MODIFICATION START ---
-                                const updatedOrderData = await fetchOrderDetails(orderId); // Use new fetcher
-                                if (updatedOrderData) {
-                                    updatedOrderData.fetchTimer = null; // Clear timer
-                                    
-                                    // Always update the state in the background
-                                    const index = state.liveOrders.findIndex(o => o.id === orderId);
-                                    if(index > -1) {
-                                        state.liveOrders[index] = updatedOrderData; // Update state
-                                    }
-                                    
-                                    render.dashboard(); // Re-render dashboard
-                                    
-                                    // Only update the modal IF it is still open
-                                    const modalContent = $(`new-order-modal-${orderId}`);
-                                    if (modalContent) {
-                                        console.log("Modal is open, re-rendering with items.");
-                                        const newModalHTML = actions.generateNewOrderModalHTML(updatedOrderData);
-                                        modalContent.innerHTML = newModalHTML;
-                                    }
-                                }
-                                // --- MODIFICATION END ---
-                                
-                            }, 500); // 500ms debounce
-                        }
                     })
                     .subscribe();
             },
@@ -1361,7 +1389,6 @@
         // Helper to fetch full order details
         async function fetchOrderDetails(orderId) {
             try {
-                // *** FIX: Changed order_items select
                 const { data, error } = await supabase.from('orders')
                     .select('*, tables(table_number), customers(name), order_items(*, products(name))')
                     .eq('id', orderId)
@@ -1380,86 +1407,46 @@
         const render = {
             all() {
                 this.dashboard();
+                this.liveKitchen();
                 this.history();
                 this.menu();
                 this.customers();
                 this.tables();
                 this.qr();
-                this.analytics(); // NEW
-                this.reports(); // NEW
-                this.settings(); // NEW
+                this.analytics();
+                this.reports();
+                this.settings();
             },
 
+            // NEW: Renders the stats dashboard
             dashboard() {
-                const ordersContainer = $('live-orders-container');
-                const noOrdersMsg = $('no-orders-msg');
+                const statsContainer = $('stats-container');
+                if (!statsContainer) return;
                 
-                if (!ordersContainer || !noOrdersMsg) return; // Tab not active
+                const { gross, net, count } = state.dashboardStats;
+                statsContainer.innerHTML = `
+                    <div class="card p-6">
+                        <h3 class="text-sm font-medium text-gray-500">Today's Gross Revenue</h3>
+                        <p class="text-3xl font-bold text-gray-900 mt-1">₹${gross.toFixed(2)}</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-sm font-medium text-gray-500">Today's Net Revenue</h3>
+                        <p class="text-3xl font-bold text-gray-900 mt-1">₹${net.toFixed(2)}</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-sm font-medium text-gray-500">Today's Delivered Orders</h3>
+                        <p class="text-3xl font-bold text-gray-900 mt-1">${count}</p>
+                    </div>
+                `;
                 
-                if (state.liveOrders.length === 0) {
-                    ordersContainer.innerHTML = '';
-                    noOrdersMsg.classList.remove('hidden');
-                } else {
-                    noOrdersMsg.classList.add('hidden');
-                    state.liveOrders.sort((a, b) => {
-                        if (a.status === 'received' && b.status !== 'received') return -1;
-                        if (a.status !== 'received' && b.status === 'received') return 1;
-                        return new Date(b.created_at) - new Date(a.created_at);
-                    });
-                    
-                    ordersContainer.innerHTML = state.liveOrders.map(order => {
-                        const isNew = order.status === 'received';
-                        const items = order.order_items || [];
-                        const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        
-                        return `
-                            <div class="card p-4 ${isNew ? 'order-card-new' : ''} border-2 ${isNew ? 'border-yellow-500' : 'border-transparent'}">
-                                <div class="flex justify-between items-center mb-3">
-                                    <div>
-                                        <h3 class="text-xl font-bold">Table #${order.tables?.table_number || 'N/A'}</h3>
-                                        <p class="text-gray-600">by ${order.customers?.name || 'Guest'} at ${time}</p>
-                                    </div>
-                                    <span class="text-lg font-bold ${isNew ? 'text-yellow-600' : 'text-blue-600'} capitalize">${order.status}</span>
-                                </div>
-                                <div class="border-t border-gray-100 pt-3 mb-4">
-                                    <ul class="space-y-1">
-                                        ${items.map(item => `
-                                            <li class="flex justify-between">
-                                                <!-- *** FIX: Use item.products.name -->
-                                                <span class="text-gray-800">${item.products?.name || 'Item'}</span>
-                                                <span class="font-medium text-gray-600">x${item.quantity}</span>
-                                            </li>
-                                        `).join('')}
-                                    </ul>
-                                    ${order.special_instructions ? `
-                                        <p class="mt-3 text-sm italic text-yellow-800 bg-yellow-100 p-2 rounded-md">
-                                            <strong>Note:</strong> ${order.special_instructions}
-                                        </p>
-                                    ` : ''}
-                                </div>
-                                <div class="flex gap-2">
-                                    ${isNew ? `
-                                        <button class="btn btn-primary flex-1" onclick="actions.updateOrderStatus('${order.id}', 'preparing')">
-                                            Mark as Preparing
-                                        </button>
-                                    ` : `
-                                        <button class="btn btn-success flex-1" onclick="actions.updateOrderStatus('${order.id}', 'delivered')">
-                                            Mark as Delivered
-                                        </button>
-                                    `}
-                                    <button class="btn btn-secondary" onclick="actions.updateOrderStatus('${order.id}', 'cancelled')">
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
-
+                this.staffCalls();
+            },
+            
+            // NEW: Renders only staff calls
+            staffCalls() {
                 const callsContainer = $('staff-calls-container');
                 const noCallsMsg = $('no-calls-msg');
-                
-                if (!callsContainer || !noCallsMsg) return; // Tab not active
+                if (!callsContainer || !noCallsMsg) return;
                 
                 if (state.staffCalls.length === 0) {
                     callsContainer.innerHTML = '';
@@ -1486,6 +1473,88 @@
                 }
             },
 
+            // NEW: Renders the 3-column kitchen view
+            liveKitchen() {
+                const colReceived = $('kitchen-col-received');
+                const colPreparing = $('kitchen-col-preparing');
+                // FIX: Removed ready column
+                const noOrdersMsg = $('no-orders-msg');
+                
+                if (!colReceived) return; // Tab not active
+                
+                // Clear columns
+                colReceived.innerHTML = '';
+                colPreparing.innerHTML = '';
+                // FIX: Removed ready column
+                
+                const received = state.kitchenOrders.filter(o => o.status === 'received');
+                const preparing = state.kitchenOrders.filter(o => o.status === 'preparing');
+                // FIX: Removed ready filter
+                
+                // FIX: Updated condition
+                if (received.length === 0 && preparing.length === 0) {
+                    noOrdersMsg.classList.remove('hidden');
+                    colReceived.appendChild(noOrdersMsg);
+                } else {
+                    if (noOrdersMsg) noOrdersMsg.classList.add('hidden');
+                }
+                
+                // Render Received
+                received.forEach(order => colReceived.appendChild(this.createKitchenCard(order, 'received')));
+                // Render Preparing
+                preparing.forEach(order => colPreparing.appendChild(this.createKitchenCard(order, 'preparing')));
+                // FIX: Removed ready render
+            },
+            
+            // NEW: Helper to create a kitchen card
+            createKitchenCard(order, status) {
+                const card = document.createElement('div');
+                card.className = `card p-4 ${status === 'received' ? 'order-card-new border-2 border-yellow-500' : ''}`;
+                
+                const items = order.order_items || [];
+                const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                // FIX: Updated button logic
+                let buttonHTML = '';
+                if (status === 'received') {
+                    buttonHTML = `<button class="btn btn-primary w-full" onclick="actions.updateOrderStatus('${order.id}', 'preparing')">Start Preparing</button>`;
+                } else if (status === 'preparing') {
+                    buttonHTML = `<button class="btn btn-success w-full" onclick="actions.updateOrderStatus('${order.id}', 'delivered')">Mark as Delivered</button>`;
+                }
+                // FIX: Removed 'ready' status button
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <div>
+                            <h3 class="text-xl font-bold">Table #${order.tables?.table_number || 'N/A'}</h3>
+                            <p class="text-gray-600">by ${order.customers?.name || 'Guest'} at ${time}</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="actions.updateOrderStatus('${order.id}', 'cancelled')">
+                            Cancel
+                        </button>
+                    </div>
+                    <div class="border-t border-gray-100 pt-3 mb-4 max-h-40 overflow-y-auto">
+                        <ul class="space-y-1">
+                            ${items.map(item => `
+                                <li class="flex justify-between">
+                                    <span class="text-gray-800">${item.products?.name || 'Item'}</span>
+                                    <span class="font-medium text-gray-600">x${item.quantity}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                        ${order.special_instructions ? `
+                            <p class="mt-3 text-sm italic text-yellow-800 bg-yellow-100 p-2 rounded-md">
+                                <strong>Note:</strong> ${order.special_instructions}
+                            </p>
+                        ` : ''}
+                    </div>
+                    <div class="flex gap-2">
+                        ${buttonHTML}
+                    </div>
+                `;
+                return card;
+            },
+
             history() {
                 const historyBody = $('history-table-body');
                 if (!historyBody) return; // Tab not active
@@ -1494,6 +1563,10 @@
                     historyBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No past orders found.</td></tr>';
                     return;
                 }
+                
+                // Sort by date, newest first
+                state.pastOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                
                 historyBody.innerHTML = state.pastOrders.map(order => {
                     const time = new Date(order.created_at).toLocaleString();
                     const statusColor = order.status === 'delivered' ? 'text-green-600' : 'text-red-600';
@@ -1631,7 +1704,6 @@
                 const itemCounts = {};
                 deliveredOrders.forEach(order => {
                     (order.order_items || []).forEach(item => {
-                        // *** FIX: Use item.products.name
                         const name = item.products?.name || 'Unknown Item';
                         itemCounts[name] = (itemCounts[name] || 0) + item.quantity;
                     });
@@ -1690,10 +1762,8 @@
             container.innerHTML = `<div class="modal-overlay" onclick="closeModal()"><div class="modal-content" onclick="event.stopPropagation();">${html}</div></div>`;
             container.classList.remove('hidden');
         }
-        // NEW BLOCKING MODAL FUNCTION
         function showBlockingModal(html) {
             const container = $('modal-container');
-            // Note: No onclick="closeModal()" on the overlay
             container.innerHTML = `<div class="modal-overlay"><div class="modal-content" onclick="event.stopPropagation();">${html}</div></div>`;
             container.classList.remove('hidden');
         }
@@ -1724,9 +1794,13 @@
                 $$('.tab-content').forEach(content => content.classList.remove('active'));
                 $(`${tab}-tab`).classList.add('active');
                 
-                // Re-render analytics if tab is clicked (data might have changed)
+                // Re-render tabs that depend on data
                 if (tab === 'analytics') {
                     render.analytics();
+                } else if (tab === 'dashboard') {
+                    render.dashboard();
+                } else if (tab === 'live-kitchen') {
+                    render.liveKitchen();
                 }
             }
         };
@@ -1740,6 +1814,4 @@
     </script>
 </body>
 </html>
-
-
 
