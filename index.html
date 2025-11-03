@@ -1085,64 +1085,73 @@
             startOrderListener() {
                 if (state.orderSubscription) return;
                 state.orderSubscription = supabase.channel('public:orders')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async (payload) => { // Made async
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async (payload) => {
                         console.log('Order change received:', payload);
                         
-                        if (payload.eventType === 'INSERT' && payload.new.status === 'received') {
-                            // MODIFICATION START: Show blocking modal
+                        // --- SIMPLIFIED LOGIC ---
+                        
+                        const newStatus = payload.new.status;
+                        const orderId = payload.new.id;
+
+                        if (payload.eventType === 'INSERT' && newStatus === 'received') {
+                            // NEW ORDER
                             playNotification();
-                            // Fetch full details first
-                            const { data, error } = await supabase.from('orders')
-                                .select('*, tables(table_number), customers(name), order_items(product_name, quantity)')
-                                .eq('id', payload.new.id)
-                                .single();
-                            
-                            if (data) {
-                                // Add to live orders
-                                if (!state.liveOrders.some(o => o.id === data.id)) {
-                                    state.liveOrders.push(data);
+                            const newOrderData = await fetchOrderDetails(orderId); // Fetch full data
+                            if (newOrderData) {
+                                if (!state.liveOrders.some(o => o.id === newOrderData.id)) {
+                                    state.liveOrders.push(newOrderData);
                                 }
-                                render.dashboard(); // Render it on the dashboard (so it's there if modal is missed)
-                                
-                                // NOW, check if we should show the modal
-                                if (!$('modal-container').classList.contains('hidden')) {
-                                    // A modal is already open, don't show another one over it.
-                                    console.log("New order received, but modal is already open.");
-                                } else {
-                                    // No modal is open, show the new order modal.
-                                    actions.showNewOrderModal(data);
+                                render.dashboard(); 
+                                if ($('modal-container').classList.contains('hidden')) {
+                                    actions.showNewOrderModal(newOrderData);
                                 }
                             }
-                            // MODIFICATION END
                         }
                         else if (payload.eventType === 'UPDATE') {
-                            const updatedOrder = payload.new;
-                            const index = state.liveOrders.findIndex(o => o.id === updatedOrder.id);
-                            
-                            if (index > -1) {
-                                if (updatedOrder.status !== 'received' && updatedOrder.status !== 'preparing') {
-                                    const finishedOrder = state.liveOrders.splice(index, 1)[0];
-                                    // Manually update fields from payload
-                                    Object.assign(finishedOrder, updatedOrder);
-                                    state.pastOrders.unshift(finishedOrder);
+                            // UPDATED ORDER
+                            const liveIndex = state.liveOrders.findIndex(o => o.id === orderId);
+                            const pastIndex = state.pastOrders.findIndex(o => o.id === orderId);
+
+                            if (newStatus === 'received' || newStatus === 'preparing') {
+                                // It's a LIVE order (or moved to live)
+                                const updatedOrderData = await fetchOrderDetails(orderId);
+                                if (updatedOrderData) {
+                                    if (liveIndex > -1) {
+                                        // It's already in the live list, update it
+                                        updatedOrderData.fetchTimer = state.liveOrders[liveIndex]?.fetchTimer; // Preserve timer
+                                        state.liveOrders[liveIndex] = updatedOrderData; 
+                                    } else {
+                                        // It's not in the live list, add it
+                                        state.liveOrders.push(updatedOrderData);
+                                    }
+                                    
+                                    if (pastIndex > -1) {
+                                        // It was in the past list, remove it
+                                        state.pastOrders.splice(pastIndex, 1); 
+                                        render.history();
+                                        render.analytics();
+                                    }
+                                }
+                            } 
+                            else { // 'delivered' or 'cancelled'
+                                // It's a PAST order
+                                if (liveIndex > -1) {
+                                    // It was in the live list, move it
+                                    const finishedOrder = state.liveOrders.splice(liveIndex, 1)[0]; 
+                                    Object.assign(finishedOrder, payload.new); // Update status from payload
+                                    state.pastOrders.unshift(finishedOrder); // Add to past
                                     render.history();
-                                    render.analytics(); // Update analytics
-                                } else {
-                                    fetchOrderDetails(updatedOrder.id, index);
+                                    render.analytics();
+                                } else if (pastIndex > -1) {
+                                    // It was already in past, just update its status
+                                    Object.assign(state.pastOrders[pastIndex], payload.new);
+                                    render.history();
                                 }
                             }
-                            else if (updatedOrder.status === 'received' || updatedOrder.status === 'preparing') {
-                                fetchOrderDetails(updatedOrder.id);
-                                const pastIndex = state.pastOrders.findIndex(o => o.id === updatedOrder.id);
-                                if (pastIndex > -1) {
-                                    state.pastOrders.splice(pastIndex, 1);
-                                    render.history();
-                                    render.analytics(); // Update analytics
-                                }
-                            }
+                            render.dashboard(); // Re-render dashboard after any update
                         }
                         else if (payload.eventType === 'DELETE') {
-                            // Handle deletion from both lists
+                            // DELETED ORDER
                             const liveIndex = state.liveOrders.findIndex(o => o.id === payload.old.id);
                             if (liveIndex > -1) state.liveOrders.splice(liveIndex, 1);
                             
@@ -1150,9 +1159,9 @@
                             if (pastIndex > -1) state.pastOrders.splice(pastIndex, 1);
                             
                             render.history();
-                            render.analytics(); // Update analytics
+                            render.analytics();
+                            render.dashboard();
                         }
-                        render.dashboard();
                     })
                     .subscribe();
             },
@@ -1226,19 +1235,22 @@
                             // Set a new timer to re-fetch after 500ms
                             liveOrder.fetchTimer = setTimeout(async () => { // Make async
                                 console.log(`Refetching order ${orderId} due to new items.`);
-                                await fetchOrderDetails(orderId, orderIndex); // Wait for fetch
-                                liveOrder.fetchTimer = null; // Clear timer after execution
                                 
                                 // --- MODIFICATION START ---
-                                // Now that fetchOrderDetails is complete, check for modal
-                                const updatedOrder = state.liveOrders[orderIndex];
-                                if (updatedOrder && updatedOrder.status === 'received') {
-                                    const modalContent = $(`new-order-modal-${orderId}`);
-                                    if (modalContent) {
-                                        // Modal is open! Re-render its content.
-                                        console.log("Modal is open, re-rendering with items.");
-                                        const newModalHTML = actions.generateNewOrderModalHTML(updatedOrder);
-                                        modalContent.innerHTML = newModalHTML;
+                                const updatedOrderData = await fetchOrderDetails(orderId); // Use new fetcher
+                                if (updatedOrderData) {
+                                    updatedOrderData.fetchTimer = null; // Clear timer
+                                    state.liveOrders[orderIndex] = updatedOrderData; // Update state
+                                    
+                                    render.dashboard(); // Re-render dashboard
+                                    
+                                    if (updatedOrderData.status === 'received') {
+                                        const modalContent = $(`new-order-modal-${orderId}`);
+                                        if (modalContent) {
+                                            console.log("Modal is open, re-rendering with items.");
+                                            const newModalHTML = actions.generateNewOrderModalHTML(updatedOrderData);
+                                            modalContent.innerHTML = newModalHTML;
+                                        }
                                     }
                                 }
                                 // --- MODIFICATION END ---
@@ -1314,7 +1326,7 @@
         };
 
         // Helper to fetch full order details
-        async function fetchOrderDetails(orderId, updateIndex = -1) {
+        async function fetchOrderDetails(orderId) {
             try {
                 const { data, error } = await supabase.from('orders')
                     .select('*, tables(table_number), customers(name), order_items(product_name, quantity)')
@@ -1322,23 +1334,10 @@
                     .single();
                 
                 if (error) throw error;
-                if (!data) return; // Order might have been deleted
-
-                if (updateIndex > -1) {
-                    // Preserve the fetchTimer property if it exists
-                    data.fetchTimer = state.liveOrders[updateIndex]?.fetchTimer;
-                    state.liveOrders[updateIndex] = data; // Replace existing
-                } else {
-                    if (!state.liveOrders.some(o => o.id === data.id)) {
-                        state.liveOrders.push(data);
-                    }
-                }
-                render.dashboard();
+                return data; // Just return the data
             } catch (e) {
                 console.error("Failed to fetch order details:", e);
-                if (e && e.message && e.message.includes("Cannot read properties of null (reading 'classList')")) {
-                    renderError("Dashboard render error: " + e.message);
-                }
+                return null; // Return null on failure
             }
         }
 
@@ -1705,4 +1704,5 @@
     </script>
 </body>
 </html>
+
 
