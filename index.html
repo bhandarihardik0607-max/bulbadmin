@@ -601,8 +601,9 @@
         // --- DATA LOADING ---
         async function loadInitialData() {
             try {
+                // *** FIX: Changed order_items select
                 const [ordersRes, callsRes, menuRes, customersRes, tablesRes, settingsRes] = await Promise.all([
-                    supabase.from('orders').select('*, tables(table_number), customers(name), order_items(product_name, quantity)').order('created_at', { ascending: false }),
+                    supabase.from('orders').select('*, tables(table_number), customers(name), order_items(*, products(name))').order('created_at', { ascending: false }),
                     supabase.from('staff_calls').select('*').eq('status', 'pending').order('created_at', { ascending: true }),
                     supabase.from('products').select('*').order('name', { ascending: true }),
                     supabase.from('customers').select('*').order('name', { ascending: true }),
@@ -636,13 +637,40 @@
         // --- ACTIONS & EVENT HANDLERS --- (MOVED HERE)
         const actions = {
             async updateOrderStatus(orderId, status) {
+                // --- OPTIMISTIC UI UPDATE ---
+                // 1. Find the order
+                const liveIndex = state.liveOrders.findIndex(o => o.id === orderId);
+                
+                if (liveIndex > -1) {
+                    if (status === 'preparing') {
+                        // 2. Update status locally
+                        state.liveOrders[liveIndex].status = 'preparing';
+                        // 3. Re-render dashboard
+                        render.dashboard();
+                    } else if (status === 'delivered' || status === 'cancelled') {
+                        // 2. Move from live to past
+                        const finishedOrder = state.liveOrders.splice(liveIndex, 1)[0];
+                        finishedOrder.status = status;
+                        state.pastOrders.unshift(finishedOrder);
+                        // 3. Re-render both
+                        render.dashboard();
+                        render.history();
+                        render.analytics();
+                    }
+                }
+                
+                // 4. Send database update in the background
                 try {
                     const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
-                    if (error) throw error;
+                    if (error) {
+                        throw error;
+                    }
                     showToast(`Order marked as ${status}.`);
-                    // Real-time listener will handle the UI update
+                    // Real-time listener will eventually fire and confirm, but UI is already updated
                 } catch (e) {
                     renderError(`Error updating order: ${e.message}`);
+                    // If error, force a full reload to re-sync state
+                    await loadInitialData();
                 }
             },
 
@@ -940,7 +968,8 @@
                             <h3 class="font-bold text-lg mb-2">Items:</h3>
                             ${items.length > 0 ? `
                                 <ul class="space-y-1 list-decimal list-inside">
-                                    ${items.map(item => `<li><span class="font-semibold">${item.product_name || 'Item'}</span> x${item.quantity}</li>`).join('')}
+                                    // *** FIX: Use item.products.name
+                                    ${items.map(item => `<li><span class="font-semibold">${item.products?.name || 'Item'}</span> x${item.quantity}</li>`).join('')}
                                 </ul>
                             ` : `
                                 <p class="text-gray-500 text-center">Loading items...</p>
@@ -978,21 +1007,28 @@
                 showBlockingModal(modalHTML);
             },
 
+            // *** FIX: Optimistic UI Update
             async acceptOrderFromModal(orderId) {
-                await this.updateOrderStatus(orderId, 'preparing');
+                // 1. Close modal
                 closeModal();
+                // 2. Call the optimistic update function
+                await this.updateOrderStatus(orderId, 'preparing');
             },
 
+            // *** FIX: Optimistic UI Update
             async cancelOrderFromModal(orderId) {
-                await this.updateOrderStatus(orderId, 'cancelled');
+                // 1. Close modal
                 closeModal();
+                // 2. Call the optimistic update function
+                await this.updateOrderStatus(orderId, 'cancelled');
             },
 
             // --- CSV EXPORT ACTIONS ---
             exportOrderHistoryCSV() {
                 const headers = ["Order ID", "Date", "Customer", "Table", "Status", "Subtotal", "Discount", "GST", "Final Total", "Items"];
                 const rows = state.pastOrders.map(order => {
-                    const items = (order.order_items || []).map(i => `${i.product_name} (x${i.quantity})`).join(' | ');
+                    // *** FIX: Use item.products.name
+                    const items = (order.order_items || []).map(i => `${i.products?.name || 'Item'} (x${i.quantity})`).join(' | ');
                     const subtotal = (order.final_amount - (order.final_amount * 0.05) + (order.discount_amount || 0));
                     const gst = order.final_amount - (order.final_amount / 1.05); // Approx
                     
@@ -1090,8 +1126,9 @@
                         
                         // --- SIMPLIFIED LOGIC ---
                         
-                        const newStatus = payload.new.status;
-                        const orderId = payload.new.id;
+                        // *** FIX: Handle potential null payload.new
+                        const newStatus = payload.new?.status;
+                        const orderId = payload.new?.id || payload.old?.id;
 
                         if (payload.eventType === 'INSERT' && newStatus === 'received') {
                             // NEW ORDER
@@ -1152,10 +1189,10 @@
                         }
                         else if (payload.eventType === 'DELETE') {
                             // DELETED ORDER
-                            const liveIndex = state.liveOrders.findIndex(o => o.id === payload.old.id);
+                            const liveIndex = state.liveOrders.findIndex(o => o.id === orderId);
                             if (liveIndex > -1) state.liveOrders.splice(liveIndex, 1);
                             
-                            const pastIndex = state.pastOrders.findIndex(o => o.id === payload.old.id);
+                            const pastIndex = state.pastOrders.findIndex(o => o.id === orderId);
                             if (pastIndex > -1) state.pastOrders.splice(pastIndex, 1);
                             
                             render.history();
@@ -1172,20 +1209,24 @@
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'staff_calls' }, (payload) => {
                         console.log('Staff call change received:', payload);
                         
-                        if (payload.eventType === 'INSERT' && payload.new.status === 'pending') {
+                        // *** FIX: Handle potential null payload.new
+                        const callId = payload.new?.id || payload.old?.id;
+                        const newStatus = payload.new?.status;
+
+                        if (payload.eventType === 'INSERT' && newStatus === 'pending') {
                             state.staffCalls.push(payload.new);
                             playNotification();
                         }
                         else if (payload.eventType === 'UPDATE') {
-                            const index = state.staffCalls.findIndex(c => c.id === payload.new.id);
-                            if (payload.new.status !== 'pending' && index > -1) {
+                            const index = state.staffCalls.findIndex(c => c.id === callId);
+                            if (newStatus !== 'pending' && index > -1) {
                                 state.staffCalls.splice(index, 1);
-                            } else if (payload.new.status === 'pending' && index === -1) {
+                            } else if (newStatus === 'pending' && index === -1) {
                                 state.staffCalls.push(payload.new);
                             }
                         }
                         else if (payload.eventType === 'DELETE') {
-                            const index = state.staffCalls.findIndex(c => c.id === payload.old.id);
+                            const index = state.staffCalls.findIndex(c => c.id === callId);
                             if (index > -1) state.staffCalls.splice(index, 1);
                         }
                         render.dashboard();
@@ -1199,15 +1240,17 @@
                 state.menuSubscription = supabase.channel('public:products')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
                         console.log('Menu change received:', payload);
+                        const itemId = payload.new?.id || payload.old?.id;
+                        
                         if (payload.eventType === 'INSERT') {
                             state.menu.push(payload.new);
                         }
                         else if (payload.eventType === 'UPDATE') {
-                            const index = state.menu.findIndex(i => i.id === payload.new.id);
+                            const index = state.menu.findIndex(i => i.id === itemId);
                             if (index > -1) state.menu[index] = payload.new;
                         }
                         else if (payload.eventType === 'DELETE') {
-                            state.menu = state.menu.filter(i => i.id !== payload.old.id);
+                            state.menu = state.menu.filter(i => i.id !== itemId);
                         }
                         state.menu.sort((a, b) => a.name.localeCompare(b.name));
                         render.menu();
@@ -1240,17 +1283,21 @@
                                 const updatedOrderData = await fetchOrderDetails(orderId); // Use new fetcher
                                 if (updatedOrderData) {
                                     updatedOrderData.fetchTimer = null; // Clear timer
-                                    state.liveOrders[orderIndex] = updatedOrderData; // Update state
+                                    
+                                    // Always update the state in the background
+                                    const index = state.liveOrders.findIndex(o => o.id === orderId);
+                                    if(index > -1) {
+                                        state.liveOrders[index] = updatedOrderData; // Update state
+                                    }
                                     
                                     render.dashboard(); // Re-render dashboard
                                     
-                                    if (updatedOrderData.status === 'received') {
-                                        const modalContent = $(`new-order-modal-${orderId}`);
-                                        if (modalContent) {
-                                            console.log("Modal is open, re-rendering with items.");
-                                            const newModalHTML = actions.generateNewOrderModalHTML(updatedOrderData);
-                                            modalContent.innerHTML = newModalHTML;
-                                        }
+                                    // Only update the modal IF it is still open
+                                    const modalContent = $(`new-order-modal-${orderId}`);
+                                    if (modalContent) {
+                                        console.log("Modal is open, re-rendering with items.");
+                                        const newModalHTML = actions.generateNewOrderModalHTML(updatedOrderData);
+                                        modalContent.innerHTML = newModalHTML;
                                     }
                                 }
                                 // --- MODIFICATION END ---
@@ -1266,15 +1313,17 @@
                 state.customerSubscription = supabase.channel('public:customers')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, (payload) => {
                         console.log('Customer change received:', payload);
+                        const custId = payload.new?.id || payload.old?.id;
+
                         if (payload.eventType === 'INSERT') {
                             state.customers.push(payload.new);
                         }
                         else if (payload.eventType === 'UPDATE') {
-                            const index = state.customers.findIndex(c => c.id === payload.new.id);
+                            const index = state.customers.findIndex(c => c.id === custId);
                             if (index > -1) state.customers[index] = payload.new;
                         }
                         else if (payload.eventType === 'DELETE') {
-                            state.customers = state.customers.filter(c => c.id !== payload.old.id);
+                            state.customers = state.customers.filter(c => c.id !== custId);
                         }
                         state.customers.sort((a, b) => a.name.localeCompare(b.name));
                         render.customers();
@@ -1287,15 +1336,17 @@
                 state.tableSubscription = supabase.channel('public:tables')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'tables' }, (payload) => {
                         console.log('Table change received:', payload);
+                        const tableId = payload.new?.id || payload.old?.id;
+
                         if (payload.eventType === 'INSERT') {
                             state.tables.push(payload.new);
                         }
                         else if (payload.eventType === 'UPDATE') {
-                            const index = state.tables.findIndex(t => t.id === payload.new.id);
+                            const index = state.tables.findIndex(t => t.id === tableId);
                             if (index > -1) state.tables[index] = payload.new;
                         }
                         else if (payload.eventType === 'DELETE') {
-                            state.tables = state.tables.filter(t => t.id !== payload.old.id);
+                            state.tables = state.tables.filter(t => t.id !== tableId);
                         }
                         state.tables.sort((a, b) => a.table_number - b.table_number);
                         render.tables();
@@ -1308,15 +1359,17 @@
                 state.settingsSubscription = supabase.channel('public:app_settings')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, (payload) => {
                         console.log('Settings change received:', payload);
+                        const settingKey = payload.new?.key || payload.old?.key;
+                        
                         if (payload.eventType === 'INSERT') {
                             state.appSettings.push(payload.new);
                         }
                         else if (payload.eventType === 'UPDATE') {
-                            const index = state.appSettings.findIndex(s => s.key === payload.new.key);
+                            const index = state.appSettings.findIndex(s => s.key === settingKey);
                             if (index > -1) state.appSettings[index] = payload.new;
                         }
                         else if (payload.eventType === 'DELETE') {
-                            state.appSettings = state.appSettings.filter(s => s.key !== payload.old.key);
+                            state.appSettings = state.appSettings.filter(s => s.key !== settingKey);
                         }
                         state.appSettings.sort((a, b) => a.key.localeCompare(b.key));
                         render.settings();
@@ -1328,8 +1381,9 @@
         // Helper to fetch full order details
         async function fetchOrderDetails(orderId) {
             try {
+                // *** FIX: Changed order_items select
                 const { data, error } = await supabase.from('orders')
-                    .select('*, tables(table_number), customers(name), order_items(product_name, quantity)')
+                    .select('*, tables(table_number), customers(name), order_items(*, products(name))')
                     .eq('id', orderId)
                     .single();
                 
@@ -1391,7 +1445,8 @@
                                     <ul class="space-y-1">
                                         ${items.map(item => `
                                             <li class="flex justify-between">
-                                                <span class="text-gray-800">${item.product_name || 'Item'}</span>
+                                                <!-- *** FIX: Use item.products.name -->
+                                                <span class="text-gray-800">${item.products?.name || 'Item'}</span>
                                                 <span class="font-medium text-gray-600">x${item.quantity}</span>
                                             </li>
                                         `).join('')}
@@ -1596,7 +1651,8 @@
                 const itemCounts = {};
                 deliveredOrders.forEach(order => {
                     (order.order_items || []).forEach(item => {
-                        const name = item.product_name || 'Unknown Item';
+                        // *** FIX: Use item.products.name
+                        const name = item.products?.name || 'Unknown Item';
                         itemCounts[name] = (itemCounts[name] || 0) + item.quantity;
                     });
                 });
