@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulb Cafe - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .modal-overlay {
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-content {
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="flex items-center justify-center min-h-screen bg-gray-900">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
+            <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Bulb Cafe Admin</h1>
+            <div id="login-error" class="text-red-500 text-center mb-4 hidden"></div>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                </div>
+                <button type="submit" id="login-button" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="hidden">
+        <header class="bg-white shadow-md p-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-600">Bulb Cafe Admin</h1>
+            <div>
+                <span id="admin-email" class="text-gray-700 mr-4"></span>
+                <button id="logout-button" class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600">Logout</button>
+            </div>
+        </header>
+
+        <nav class="bg-gray-800 text-white">
+            <div class="max-w-7xl mx-auto px-4 flex space-x-4">
+                <button data-page="live-orders" class="admin-nav-tab py-3 px-4 font-semibold border-b-4 border-blue-500">Live Orders</button>
+                <button data-page="menu" class="admin-nav-tab py-3 px-4 font-medium text-gray-300 border-b-4 border-transparent hover:border-gray-500">Menu</button>
+                <button data-page="tables" class="admin-nav-tab py-3 px-4 font-medium text-gray-300 border-b-4 border-transparent hover:border-gray-500">Tables</button>
+                <button data-page="customers" class="admin-nav-tab py-3 px-4 font-medium text-gray-300 border-b-4 border-transparent hover:border-gray-500">Customers</button>
+            </div>
+        </nav>
+
+        <main id="admin-content" class="max-w-7xl mx-auto p-6">
+            <!-- Content will be injected here -->
+        </main>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed right-4 bottom-4 py-3 px-5 rounded-lg shadow-xl z-50 transition-all duration-300 bg-green-500 text-white">
+        <p id="toast-message"></p>
+    </div>
+
+<script type="module">
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => document.querySelectorAll(selector);
+
+    // --- SUPABASE CONFIG ---
+    // !! IMPORTANT !!
+    // These are the same keys from your client-facing app.
+    // For this admin panel to WORK, you MUST either:
+    // 1. Log in with a user that has special admin RLS policies (see SQL file).
+    // 2. OR, disable RLS on your tables in the Supabase dashboard (not recommended for production).
+    // 3. OR, create a new "admin" role in Supabase and grant it permissions.
+    //
+    // The `supabase_schema.sql` file provided earlier DOES NOT include admin policies,
+    // so this panel will likely fail to fetch data until you update your RLS.
+    //
+    const SUPABASE_URL = 'https://ttdnlatylcqrevzlyrru.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZG5sYXR5bGNxcmV2emx5cnJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxNzAyMDEsImV4cCI6MjA3NTc0NjIwMX0.aiQ1_viA1JrugEyMWxA2e5f2Aqrao9BNgCTb70NWyCc';
+    
+    const { createClient } = window.supabase;
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const state = {
+        user: null,
+        currentPage: 'live-orders',
+        liveOrdersSubscription: null,
+    };
+
+    // --- AUTH ---
+    async function checkAuth() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            state.user = session.user;
+            $('#admin-email').textContent = state.user.email;
+            $('#login-screen').classList.add('hidden');
+            $('#admin-dashboard').classList.remove('hidden');
+            navigateTo(state.currentPage);
+        } else {
+            $('#login-screen').classList.remove('hidden');
+            $('#admin-dashboard').classList.add('hidden');
+        }
+    }
+
+    async function login(email, password) {
+        const btn = $('#login-button');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>';
+        
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+        if (error) {
+            $('#login-error').textContent = error.message;
+            $('#login-error').classList.remove('hidden');
+            btn.disabled = false;
+            btn.innerHTML = 'Login';
+        } else {
+            $('#login-error').classList.add('hidden');
+            state.user = data.user;
+            await checkAuth();
+        }
+    }
+
+    async function logout() {
+        await supabase.auth.signOut();
+        if (state.liveOrdersSubscription) {
+            supabase.removeChannel(state.liveOrdersSubscription);
+            state.liveOrdersSubscription = null;
+        }
+        await checkAuth();
+    }
+
+    // --- NAVIGATION ---
+    function navigateTo(pageId) {
+        state.currentPage = pageId;
+        
+        // Update tabs
+        $$('.admin-nav-tab').forEach(tab => {
+            const isTarget = tab.dataset.page === pageId;
+            tab.classList.toggle('border-blue-500', isTarget);
+            tab.classList.toggle('text-white', isTarget);
+            tab.classList.toggle('text-gray-300', !isTarget);
+            tab.classList.toggle('border-transparent', !isTarget);
+        });
+
+        // Unsubscribe from real-time listener if we leave the orders page
+        if (pageId !== 'live-orders' && state.liveOrdersSubscription) {
+            supabase.removeChannel(state.liveOrdersSubscription);
+            state.liveOrdersSubscription = null;
+        }
+
+        const content = $('#admin-content');
+        content.innerHTML = '<div class="flex justify-center items-center h-64"><div class="spinner !w-12 !h-12 !border-4"></div></div>';
+
+        // Load content
+        switch(pageId) {
+            case 'live-orders': fetchLiveOrders(); break;
+            case 'menu': fetchMenu(); break;
+            case 'tables': fetchTables(); break;
+            case 'customers': fetchCustomers(); break;
+        }
+    }
+
+    // --- DATA FETCHING & RENDERING ---
+
+    // 1. Live Orders
+    async function fetchLiveOrders() {
+        const { data: orders, error } = await supabase
+            .from('orders')
+            .select(`
+                *, 
+                tables(table_number), 
+                customers(name), 
+                order_items(quantity, product_name)
+            `)
+            .in('status', ['received', 'preparing'])
+            .order('created_at', { ascending: true });
+
+        if (error) return renderError(error.message);
+        renderLiveOrders(orders);
+
+        // Subscribe to changes
+        if (!state.liveOrdersSubscription) {
+            state.liveOrdersSubscription = supabase.channel('public:orders')
+                .on('postgres_changes', 
+                    { event: '*', schema: 'public', table: 'orders' },
+                    (payload) => {
+                        console.log('Order change received!', payload);
+                        fetchLiveOrders(); // Refetch all orders on any change
+                    }
+                )
+                .subscribe();
+        }
+    }
+
+    function renderLiveOrders(orders) {
+        const content = $('#admin-content');
+        if (orders.length === 0) {
+            content.innerHTML = '<h2 class="text-2xl font-semibold text-gray-700">No active orders.</h2>';
+            return;
+        }
+
+        content.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                ${orders.map(order => renderOrderCard(order)).join('')}
+            </div>
+        `;
+    }
+
+    function renderOrderCard(order) {
+        const itemsHTML = order.order_items.map(item => `
+            <li class="text-sm text-gray-700">
+                <span class="font-medium">${item.quantity}x</span> ${item.product_name || 'Item'}
+            </li>
+        `).join('');
+
+        const isReceived = order.status === 'received';
+        const isPreparing = order.status === 'preparing';
+
+        return `
+            <div class="bg-white p-6 rounded-lg shadow-lg ${isReceived ? 'border-l-8 border-yellow-400' : 'border-l-8 border-blue-500'}">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold">Table #${order.tables?.table_number || 'N/A'}</h3>
+                    <span class="text-lg font-semibold capitalize px-3 py-1 rounded-full ${isReceived ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}">
+                        ${order.status}
+                    </span>
+                </div>
+                <p class="text-gray-600 mb-1"><strong>Customer:</strong> ${order.customers?.name || 'Guest'}</p>
+                <p class="text-gray-600 mb-1"><strong>Order ID:</strong> ${order.id.slice(0, 8)}...</p>
+                <p class="text-gray-600 mb-4"><strong>Time:</strong> ${new Date(order.created_at).toLocaleTimeString()}</p>
+                
+                <div class="border-t border-b border-gray-200 py-3 my-3">
+                    <ul class="space-y-1">${itemsHTML}</ul>
+                </div>
+                
+                <p class="font-bold text-xl text-right mb-4">Total: ₹${order.final_amount.toFixed(2)}</p>
+
+                <div class="flex space-x-2">
+                    ${isReceived ? `
+                        <button onclick="window.admin.updateOrderStatus('${order.id}', 'preparing')" class="flex-1 bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600">
+                            Mark as Preparing
+                        </button>
+                    ` : ''}
+                    ${isPreparing ? `
+                        <button onclick="window.admin.updateOrderStatus('${order.id}', 'delivered')" class="flex-1 bg-green-500 text-white font-semibold py-2 rounded-lg hover:bg-green-600">
+                            Mark as Delivered
+                        </button>
+                    ` : ''}
+                    <button onclick="window.admin.updateOrderStatus('${order.id}', 'cancelled')" class="flex-1 bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg hover:bg-gray-400">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+        const { error } = await supabase
+            .from('orders')
+            .update({ status: newStatus })
+            .eq('id', orderId);
+
+        if (error) {
+            showToast(`Error: ${error.message}`, true);
+        } else {
+            showToast(`Order updated to ${newStatus}!`);
+            fetchLiveOrders(); // Refetch
+        }
+    }
+
+    // 2. Menu
+    async function fetchMenu() {
+        const { data: products, error } = await supabase
+            .from('products')
+            .select('*')
+            .order('brand', { ascending: true })
+            .order('category', { ascending: true })
+            .order('name', { ascending: true });
+
+        if (error) return renderError(error.message);
+        renderMenu(products);
+    }
+
+    function renderMenu(products) {
+        $('#admin-content').innerHTML = `
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold text-gray-800">Menu Management</h2>
+                <button onclick="window.admin.showProductModal(null)" class="bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-700">
+                    Add New Item
+                </button>
+            </div>
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-gray-200 text-gray-700">
+                        <tr>
+                            <th class="py-3 px-4 text-left">Name</th>
+                            <th class="py-3 px-4 text-left">Brand</th>
+                            <th class="py-3 px-4 text-left">Category</th>
+                            <th class="py-3 px-4 text-left">Price</th>
+                            <th class="py-3 px-4 text-left">Available</th>
+                            <th class="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        ${products.map(p => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-gray-800">${p.name}</td>
+                                <td class="py-3 px-4 text-gray-600">${p.brand}</td>
+                                <td class="py-3 px-4 text-gray-600">${p.category}</td>
+                                <td class="py-3 px-4 text-gray-600">₹${p.price.toFixed(2)}</td>
+                                <td class="py-3 px-4">
+                                    <span class="px-3 py-1 text-xs font-semibold rounded-full ${p.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        ${p.is_available ? 'Yes' : 'No'}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    <button onclick='window.admin.showProductModal(${JSON.stringify(p)})' class="text-blue-600 hover:underline font-medium">Edit</button>
+                                    <button onclick="window.admin.deleteProduct(${p.id}, '${p.name}')" class="text-red-600 hover:underline font-medium ml-4">Delete</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    async function deleteProduct(productId, productName) {
+        if (!confirm(`Are you sure you want to delete "${productName}"? This cannot be undone.`)) return;
+
+        const { error } = await supabase
+            .from('products')
+            .delete()
+            .eq('id', productId);
+        
+        if (error) {
+            showToast(`Error: ${error.message}`, true);
+        } else {
+            showToast('Product deleted successfully.');
+            fetchMenu();
+        }
+    }
+
+    function showProductModal(product) {
+        const isEdit = product !== null;
+        const modalId = 'product-modal';
+        const modalHTML = `
+            <div id="${modalId}" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">${isEdit ? 'Edit Menu Item' : 'Add New Menu Item'}</h2>
+                    <form id="product-form">
+                        <input type="hidden" name="id" value="${isEdit ? product.id : ''}">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Name</label>
+                                <input type="text" name="name" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" value="${isEdit ? product.name : ''}" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Brand</label>
+                                <select name="brand" class="mt-1 w-full p-2 border border-gray-300 rounded-lg bg-white" required>
+                                    <option value="Bulb Cafe" ${isEdit && product.brand === 'Bulb Cafe' ? 'selected' : ''}>Bulb Cafe</option>
+                                    <option value="Gulabi Thali" ${isEdit && product.brand === 'Gulabi Thali' ? 'selected' : ''}>Gulabi Thali</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Category</label>
+                                <input type="text" name="category" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" value="${isEdit ? product.category : ''}" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Price (₹)</label>
+                                <input type="number" step="0.01" name="price" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" value="${isEdit ? product.price : ''}" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Available</label>
+                                <select name="is_available" class="mt-1 w-full p-2 border border-gray-300 rounded-lg bg-white" required>
+                                    <option value="true" ${isEdit && product.is_available ? 'selected' : ''}>Yes</option>
+                                    <option value="false" ${isEdit && !product.is_available ? 'selected' : ''}>No</option>
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Description</label>
+                                <textarea name="description" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" rows="3">${isEdit ? product.description : ''}</textarea>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-4 mt-6">
+                            <button type="button" onclick="window.admin.closeModal('${modalId}')" class="bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
+                            <button type="submit" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        $('#modal-container').innerHTML = modalHTML;
+        $('#product-form').addEventListener('submit', saveProduct);
+    }
+    
+    async function saveProduct(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const productData = {
+            id: formData.get('id') || undefined,
+            name: formData.get('name'),
+            brand: formData.get('brand'),
+            category: formData.get('category'),
+            price: parseFloat(formData.get('price')),
+            is_available: formData.get('is_available') === 'true',
+            description: formData.get('description'),
+        };
+
+        const { error } = await supabase
+            .from('products')
+            .upsert(productData) // upsert handles both insert and update
+            .select();
+
+        if (error) {
+            showToast(`Error: ${error.message}`, true);
+        } else {
+            showToast(`Product ${productData.id ? 'updated' : 'created'} successfully.`);
+            closeModal('product-modal');
+            fetchMenu();
+        }
+    }
+
+    // 3. Tables
+    async function fetchTables() {
+        const { data, error } = await supabase.from('tables').select('*').order('table_number');
+        if (error) return renderError(error.message);
+        renderTables(data);
+    }
+    
+    function renderTables(tables) {
+         $('#admin-content').innerHTML = `
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Table Management</h2>
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-gray-200 text-gray-700">
+                        <tr>
+                            <th class="py-3 px-4 text-left">Table Number</th>
+                            <th class="py-3 px-4 text-left">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        ${tables.map(t => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-gray-800">${t.table_number}</td>
+                                <td class="py-3 px-4 text-gray-600">${t.description || 'N/A'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            <!-- Add Table functionality can be added here -->
+        `;
+    }
+
+    // 4. Customers
+    async function fetchCustomers() {
+        const { data, error } = await supabase.from('customers').select('*').order('name');
+        if (error) return renderError(error.message);
+        renderCustomers(data);
+    }
+    
+    function renderCustomers(customers) {
+         $('#admin-content').innerHTML = `
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Customer Management</h2>
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-gray-200 text-gray-700">
+                        <tr>
+                            <th class="py-3 px-4 text-left">Name</th>
+                            <th class="py-3 px-4 text-left">WhatsApp Number</th>
+                            <th class="py-3 px-4 text-left">Loyalty Points</th>
+                            <th class="py-3 px-4 text-left">User ID</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        ${customers.map(c => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-gray-800">${c.name}</td>
+                                <td class="py-3 px-4 text-gray-600">${c.whatsapp_number || 'N/A'}</td>
+                                <td class="py-3 px-4 text-gray-600">${c.loyalty_points}</td>
+                                <td class="py-3 px-4 text-gray-500 text-xs">${c.id}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // --- UTILITIES ---
+    function renderError(message) {
+        $('#admin-content').innerHTML = `
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-lg" role="alert">
+                <h3 class="font-bold text-lg">Error Loading Data</h3>
+                <p class="mt-2"><strong>Message:</strong> ${message}</p>
+                <p class="mt-4 text-sm">
+                    <strong>This is likely an RLS (Row Level Security) issue.</strong><br>
+                    Your RLS policies are probably blocking this admin account from viewing all data. 
+                    You must update your policies in the Supabase dashboard to grant full access to this logged-in user.
+                </p>
+            </div>
+        `;
+    }
+
+    function showToast(message, isError = false, duration = 3000) {
+        const toast = $('#toast'), p = $('#toast-message');
+        p.textContent = message;
+        toast.classList.remove('hidden');
+        toast.classList.toggle('bg-red-500', isError);
+        toast.classList.toggle('bg-green-500', !isError);
+
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, duration);
+    }
+
+    function closeModal(id) {
+        $(`#${id}`)?.remove();
+    }
+
+    // --- EVENT LISTENERS ---
+    $('#login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        login($('#email').value, $('#password').value);
+    });
+
+    $('#logout-button').addEventListener('click', logout);
+
+    $$('.admin-nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => navigateTo(tab.dataset.page));
+    });
+
+    // --- INITIALIZE ---
+    checkAuth();
+
+    // Expose functions to global window to be callable from inline HTML
+    window.admin = {
+        navigateTo,
+        updateOrderStatus,
+        showProductModal,
+        deleteProduct,
+        closeModal
+    };
+
+</script>
+</body>
+</html>
