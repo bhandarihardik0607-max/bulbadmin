@@ -253,6 +253,7 @@
                                     <th class="p-2 text-left font-semibold text-gray-600">Table</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Total</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Status</th>
+                                    <th class="p-2 text-right font-semibold text-gray-600">Actions</th> <!-- New Header -->
                                 </tr>
                             </thead>
                             <tbody id="history-table-body">
@@ -740,7 +741,7 @@
             history() {
                 const historyBody = $('history-table-body');
                 if (state.pastOrders.length === 0) {
-                    historyBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">No past orders found.</td></tr>';
+                    historyBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No past orders found.</td></tr>';
                     return;
                 }
                 historyBody.innerHTML = state.pastOrders.map(order => {
@@ -753,6 +754,11 @@
                             <td class="p-2">${order.tables?.table_number || 'N/A'}</td>
                             <td class="p-2">₹${(order.final_amount || 0).toFixed(2)}</td>
                             <td class="p-2 font-semibold ${statusColor} capitalize">${order.status}</td>
+                            <td class="p-2 text-right">
+                                <button class="btn btn-danger btn-sm" onclick="actions.deleteOrder('${order.id}', '${order.customers?.name || 'Guest'}')">
+                                    Delete
+                                </button>
+                            </td>
                         </tr>
                     `;
                 }).join('');
@@ -1104,6 +1110,23 @@
                          renderError(`Error deleting customer: ${e.message}. (Note: Cannot delete customers with existing orders)`);
                     }
                 }
+            },
+
+            // --- NEW: DELETE ORDER ---
+            async deleteOrder(orderId, customerName) {
+                if (confirm(`Are you sure you want to delete this order from ${customerName} (ID: ${orderId})?\nThis will also delete all associated order items.\nTHIS ACTION CANNOT BE UNDONE.`)) {
+                    try {
+                        // 'ON DELETE CASCADE' in the SQL schema will handle deleting order_items
+                        const { error } = await supabase.from('orders').delete().eq('id', orderId);
+                        if (error) throw error;
+                        
+                        // Remove from local state and re-render
+                        state.pastOrders = state.pastOrders.filter(o => o.id !== orderId);
+                        render.history();
+                    } catch (e) {
+                         renderError(`Error deleting order: ${e.message}.`);
+                    }
+                }
             }
         };
 
@@ -1123,7 +1146,7 @@
         $('login-form').onsubmit = (e) => {
             e.preventDefault();
             const email = $('email').value;
-            const password = $('password').value;
+            const password = $('password').value; // <-- FIX was here
             auth.login(email, password);
         };
 
