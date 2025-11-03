@@ -24,6 +24,7 @@
             background-color: var(--bg-light);
             color: var(--text-dark);
             font-family: 'Poppins', sans-serif;
+            overflow-y: hidden; /* Prevent body scroll */
         }
         .card {
             background-color: var(--bg-white);
@@ -61,76 +62,64 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 0.5rem;
         }
-        .btn-primary {
-            background-color: var(--brand-blue);
-            color: var(--bg-white);
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
-        .btn-primary:hover {
-            background-color: #2563eb;
-        }
-        .btn-secondary {
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            border: 1px solid var(--border-light);
-        }
-        .btn-secondary:hover {
-            background-color: #e5e7eb;
-        }
-        .btn-danger {
-            background-color: var(--accent-red);
-            color: var(--bg-white);
-        }
-        .btn-danger:hover {
-            background-color: #dc2626;
-        }
-        .btn-success {
-            background-color: var(--accent-green);
-            color: var(--bg-white);
-        }
-        .btn-success:hover {
-            background-color: #16a34a;
-        }
-        .btn-sm {
-            padding: 0.25rem 0.75rem;
-            font-size: 0.875rem;
-        }
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-        }
-        .modal-content {
-            background-color: var(--bg-white);
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
-        }
-        .form-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-light);
-            border-radius: 0.5rem;
-            background-color: var(--bg-light);
-        }
-        .form-input:focus {
-            outline: 2px solid var(--brand-blue);
-            background-color: var(--bg-white);
-        }
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
+        .btn-primary { background-color: var(--brand-blue); color: var(--bg-white); }
+        .btn-primary:hover:not(:disabled) { background-color: #2563eb; }
+        .btn-secondary { background-color: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-light); }
+        .btn-secondary:hover:not(:disabled) { background-color: #e5e7eb; }
+        .btn-danger { background-color: var(--accent-red); color: var(--bg-white); }
+        .btn-danger:hover:not(:disabled) { background-color: #dc2626; }
+        .btn-success { background-color: var(--accent-green); color: var(--bg-white); }
+        .btn-success:hover:not(:disabled) { background-color: #16a34a; }
+        
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; }
+        .modal-content { background-color: var(--bg-white); padding: 1.5rem; border-radius: 0.75rem; width: 90%; max-width: 500px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
+        .form-input { width: 100%; padding: 0.75rem; border: 1px solid var(--border-light); border-radius: 0.5rem; background-color: var(--bg-light); }
+        .form-input:focus { outline: 2px solid var(--brand-blue); background-color: var(--bg-white); }
+        .form-label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-dark); }
+        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        /* Kitchen Column Layout */
+        .kitchen-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            height: calc(100vh - 12rem); /* Full height minus header/padding */
+        }
+        .kitchen-column {
+            background-color: var(--bg-light);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .kitchen-column-header {
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-light);
+            margin-bottom: 1rem;
+        }
+        .kitchen-column-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .kitchen-column-body {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 0.5rem; /* For scrollbar */
+        }
+        /* Custom Scrollbar */
+        .kitchen-column-body::-webkit-scrollbar { width: 8px; }
+        .kitchen-column-body::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .kitchen-column-body::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        .kitchen-column-body::-webkit-scrollbar-thumb:hover { background: #aaa; }
 
         .order-card-new {
             animation: pulse-new 2s infinite;
@@ -146,17 +135,21 @@
             0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
         }
-        
-        .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid transparent;
-            border-top-color: white;
+
+        /* Spinner */
+        .spinner-small {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid currentColor;
+            border-bottom-color: transparent;
             border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
             animation: spin 1s linear infinite;
         }
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -165,15 +158,8 @@
 </head>
 <body class="min-h-screen">
 
-    <!-- Global Error Toast -->
-    <div id="error-toast" class="hidden fixed top-4 right-4 z-[100] bg-red-600 text-white p-4 rounded-lg shadow-lg">
-        <p id="error-message"></p>
-    </div>
-    
-    <!-- Global Success Toast -->
-    <div id="success-toast" class="hidden fixed top-4 right-4 z-[100] bg-green-600 text-white p-4 rounded-lg shadow-lg">
-        <p id="success-message"></p>
-    </div>
+    <!-- Global Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[100] space-y-2"></div>
 
     <!-- Login Screen -->
     <div id="login-screen" class="flex items-center justify-center min-h-screen">
@@ -190,7 +176,8 @@
                     <input type="password" id="password" class="form-input" required>
                 </div>
                 <button type="submit" id="login-button" class="btn btn-primary w-full py-3">
-                    Sign In
+                    <span class="btn-text">Sign In</span>
+                    <span class="spinner-small hidden"></span>
                 </button>
             </form>
         </div>
@@ -204,16 +191,14 @@
             <div class="p-4 h-16 flex items-center border-b border-gray-200">
                 <span class="text-2xl font-bold" style="color: var(--brand-yellow);">💡 BULB ADMIN</span>
             </div>
-            <nav id="nav-links" class="flex flex-col space-y-2 p-4">
-                <!-- NEW: Dashboard Tab -->
-                <button class="nav-link" data-tab="dashboard">
-                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m1-3 1 3m0 0-1 3m1-3 1 3m0 0h-3.75m6.75-3h-3.75z" /></svg>
-                    Dashboard
-                </button>
-                <!-- NEW: Live Kitchen Tab (was Dashboard) -->
+            <nav id="nav-links" class="flex flex-col space-y-2 p-4 flex-grow">
                 <button class="nav-link active" data-tab="live-kitchen">
-                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 21h-5.625A2.25 2.25 0 0113.125 18.75V16.5A2.25 2.25 0 0115.375 14.25H18a2.25 2.25 0 012.25 2.25V18.75A2.25 2.25 0 0118 21H5.25A2.25 2.25 0 013 18.75V16.5A2.25 2.25 0 015.25 14.25H7.5A2.25 2.25 0 019.75 16.5V18.75A2.25 2.25 0 017.5 21H3m0 0h18M12 6.75h.008v.008H12V6.75z" /></svg>
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.657 7.343A8 8 0 0117.657 18.657z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1014.12 11.88a3 3 0 00-4.242 4.242z"></path></svg>
                     Live Kitchen
+                </button>
+                <button class="nav-link" data-tab="dashboard">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    Dashboard
                 </button>
                 <button class="nav-link" data-tab="history">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -227,89 +212,95 @@
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     Customers
                 </button>
+                 <button class="nav-link" data-tab="analytics">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                    Analytics
+                </button>
+                <button class="nav-link" data-tab="reports">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Reports
+                </button>
                 <button class="nav-link" data-tab="tables">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h6m-6 4h6m-6 4h6"></path></svg>
                     Tables
                 </button>
                 <button class="nav-link" data-tab="qr">
-                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.5v15h15V18m-15-3.75h15m-15-3.75h15M3.75 4.5h15v3.75m-15 9V4.5m0 15h3.75m-3.75 0V18m0 0h3.75m0 0v3.75m0-3.75h3.75m0 0v3.75M7.5 18h3.75m0 0v3.75m0-3.75h3.75M11.25 18v3.75m0-3.75h3.75m0 0v3.75m0-3.75h3.75m0 0v3.75M15 18h3.75m0 0v3.75m0-3.75h3.75m0 0V18m0 0h-3.75m0 0V18m0 0h-3.75m0 0V18m0 0h-3.75m0 0V18m0 0h-3.75M15 18h-3.75m0 0v-3.75m0 0h-3.75m0 0V18m0 0H7.5m0 0v-3.75m0 0h3.75M11.25 14.25h3.75m0 0v-3.75m0 0h-3.75m0 0v3.75m0 0H11.25m0 0V10.5M7.5 10.5v3.75m0 0h3.75m0 0V10.5m0 0H7.5m0 0V6.75m0 0h3.75M11.25 6.75h3.75m0 0v3.75m0 0h-3.75m0 0V6.75m0 0H11.25m3.75 3.75h3.75m0 0v3.75m0 0h-3.75m0 0v-3.75m0 0h3.75M15 14.25v-3.75" /></svg>
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     QR Generator
                 </button>
-                <button class="nav-link" data-tab="analytics">
-                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m1-3 1 3m0 0-1 3m1-3 1 3m0 0h-3.75m6.75-3h-3.75z" /></svg>
-                    Analytics
-                </button>
-                <button class="nav-link" data-tab="reports">
-                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                    Reports
-                </button>
                 <button class="nav-link" data-tab="settings">
-                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-1.007 1.11-1.226m-2.22 0a2.25 2.25 0 0 0-2.22 2.22v.946c0 .329-.055.658-.168.975a.75.75 0 0 1-1.472.235A2.25 2.25 0 0 0 5.25 6.75H3.75a2.25 2.25 0 0 0-2.25 2.25v.946c0 .329.055.658.168.975a.75.75 0 0 1-1.472.235A2.25 2.25 0 0 0 .75 13.25v1.5c0 .621.504 1.125 1.125 1.125h1.5a2.25 2.25 0 0 0 2.25-2.25v-.946c0-.329.055-.658.168-.975a.75.75 0 0 1 1.472-.235A2.25 2.25 0 0 0 9.75 13.25h4.5a2.25 2.25 0 0 0 2.25-2.25v-.946c0-.329-.055-.658-.168-.975a.75.75 0 0 1 1.472-.235A2.25 2.25 0 0 0 18.75 11.25h1.5a2.25 2.25 0 0 0 2.25-2.25v-1.5a2.25 2.25 0 0 0-2.25-2.25h-1.5a2.25 2.25 0 0 0-2.25 2.25v.946c0 .329-.055.658-.168.975a.75.75 0 0 1-1.472-.235A2.25 2.25 0 0 0 14.25 6.75h-4.5a2.25 2.25 0 0 0-2.25 2.25v.946c0 .329.055.658.168.975a.75.75 0 0 1-1.472.235A2.25 2.25 0 0 0 5.25 11.25H3.75a2.25 2.25 0 0 0-2.25 2.25v1.5c0 .621.504 1.125 1.125 1.125h1.5a2.25 2.25 0 0 0 2.25-2.25v-.946a.75.75 0 0 1 .168-.975.75.75 0 0 1 1.472-.235a2.25 2.25 0 0 0 2.25 2.25h4.5a2.25 2.25 0 0 0 2.25-2.25v-.946a.75.75 0 0 1 .168-.975.75.75 0 0 1 1.472-.235a2.25 2.25 0 0 0 2.25 2.25h1.5a2.25 2.25 0 0 0 2.25-2.25v-1.5a2.25 2.25 0 0 0-2.25-2.25h-1.5a2.25 2.25 0 0 0-2.25 2.25v.946c0 .329-.055.658-.168.975a.75.75 0 0 1-1.472-.235A2.25 2.25 0 0 0 14.25 13.25h-4.5a2.25 2.25 0 0 0-2.25-2.25v-.946a.75.75 0 0 1-.168-.975.75.75 0 0 1-1.472.235A2.25 2.25 0 0 0 5.25 6.75H3.75a2.25 2.25 0 0 0-2.25 2.25v.946c0 .329.055.658.168.975a.75.75 0 0 1-1.472.235A2.25 2.25 0 0 0 .75 11.25v-1.5a2.25 2.25 0 0 0 2.25-2.25h1.5A2.25 2.25 0 0 0 6.75 9v-.946a2.25 2.25 0 0 0-2.25-2.25H3.75z" /></svg>
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     Settings
                 </button>
             </nav>
-            <div class="mt-auto p-4">
-                <button id="logout-button" class="btn btn-secondary w-full">Logout</button>
+            <!-- Logout Button -->
+            <div class="p-4 border-t border-gray-200">
+                <button id="logout-button" class="nav-link">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Logout
+                </button>
             </div>
         </aside>
 
         <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col overflow-y-auto">
+        <div class="flex-1 flex flex-col overflow-y-hidden">
             <!-- Top bar for user -->
             <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
                 <div class="flex justify-end items-center h-16 px-4 sm:px-6 lg:px-8">
                     <span id="admin-email" class="text-gray-700 font-medium mr-4"></span>
-                    <!-- Logout button moved to sidebar -->
                 </div>
             </header>
 
-            <main class="p-4 sm:p-6 lg:p-8">
-                <!-- NEW: Dashboard -->
-                <div id="dashboard-tab" class="tab-content">
-                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="stats-container">
-                        <!-- Stats will be injected here -->
-                        <div class="card p-6">
-                            <h3 class="text-sm font-medium text-gray-500">Today's Gross Revenue</h3>
-                            <p class="text-3xl font-bold text-gray-900 mt-1">₹0.00</p>
+            <main class="p-4 sm:p-6 lg:p-8 flex-1 overflow-y-auto">
+                <!-- Live Kitchen -->
+                <div id="live-kitchen-tab" class="tab-content active h-full">
+                    <div class="kitchen-container">
+                        <!-- Received Column -->
+                        <div class="kitchen-column">
+                            <div class="kitchen-column-header">
+                                <h2 class="kitchen-column-title text-yellow-600">Received</h2>
+                            </div>
+                            <div id="kitchen-col-received" class="kitchen-column-body space-y-4">
+                                <!-- JS will render received orders here -->
+                                <p id="no-received-msg" class="text-gray-500 card p-4">No new orders.</p>
+                            </div>
                         </div>
-                        <div class="card p-6">
-                            <h3 class="text-sm font-medium text-gray-500">Today's Net Revenue</h3>
-                            <p class="text-3xl font-bold text-gray-900 mt-1">₹0.00</p>
-                        </div>
-                        <div class="card p-6">
-                            <h3 class="text-sm font-medium text-gray-500">Today's Total Orders</h3>
-                            <p class="text-3xl font-bold text-gray-900 mt-1">0</p>
-                        </div>
-                    </div>
-                    <div class="mt-8">
-                        <h2 class="text-2xl font-bold text-gray-800">Live Staff Calls</h2>
-                        <div id="staff-calls-container" class="space-y-4 mt-4">
-                            <!-- Staff calls will be injected here -->
-                            <div id="no-calls-msg" class="text-gray-500 card p-4">No pending staff calls.</div>
+                        <!-- Preparing Column -->
+                        <div class="kitchen-column">
+                            <div class="kitchen-column-header">
+                                <h2 class="kitchen-column-title text-blue-600">Preparing</h2>
+                            </div>
+                            <div id="kitchen-col-preparing" class="kitchen-column-body space-y-4">
+                                <!-- JS will render preparing orders here -->
+                                <p id="no-preparing-msg" class="text-gray-500 card p-4">No orders in preparation.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- NEW: Live Kitchen (was Dashboard) -->
-                <div id="live-kitchen-tab" class="tab-content active">
-                    <!-- FIX: Changed to 2 columns -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Received -->
-                        <div>
-                            <h2 class="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-4 border-yellow-500">Received</h2>
-                            <div id="kitchen-col-received" class="space-y-4 h-[calc(100vh-200px)] overflow-y-auto p-2 bg-gray-100 rounded-lg">
-                                <div id="no-orders-msg" class="text-gray-500 text-center p-4">No new orders.</div>
-                                <!-- Received Orders -->
-                            </div>
+                <!-- Dashboard -->
+                <div id="dashboard-tab" class="tab-content">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold text-gray-500">Today's Gross Revenue</h3>
+                            <p id="stat-gross-revenue" class="text-4xl font-bold text-gray-800 mt-2">₹0.00</p>
                         </div>
-                        <!-- Preparing -->
-                        <div>
-                            <h2 class="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-4 border-blue-500">Preparing</h2>
-                            <div id="kitchen-col-preparing" class="space-y-4 h-[calc(100vh-200px)] overflow-y-auto p-2 bg-gray-100 rounded-lg">
-                                <!-- Preparing Orders -->
-                            </div>
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold text-gray-500">Today's Net Revenue (After Discounts)</h3>
+                            <p id="stat-net-revenue" class="text-4xl font-bold text-gray-800 mt-2">₹0.00</p>
                         </div>
-                        <!-- FIX: Removed "Ready for Pickup" column -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold text-gray-500">Total Orders Today</h3>
+                            <p id="stat-total-orders" class="text-4xl font-bold text-gray-800 mt-2">0</p>
+                        </div>
+                    </div>
+                    <!-- Staff Calls -->
+                    <div class="mt-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Live Staff Calls</h2>
+                        <div id="staff-calls-container" class="space-y-4">
+                            <!-- Staff calls will be injected here -->
+                            <div id="no-calls-msg" class="text-gray-500 card p-4">No pending staff calls.</div>
+                        </div>
                     </div>
                 </div>
 
@@ -380,6 +371,53 @@
                     </div>
                 </div>
 
+                <!-- Analytics -->
+                <div id="analytics-tab" class="tab-content space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Analytics</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold text-gray-500">Total Revenue (All Time)</h3>
+                            <p id="analytics-total-revenue" class="text-4xl font-bold text-gray-800 mt-2">₹0.00</p>
+                        </div>
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold text-gray-500">Total Delivered Orders (All Time)</h3>
+                            <p id="analytics-total-orders" class="text-4xl font-bold text-gray-800 mt-2">0</p>
+                        </div>
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold text-gray-500">Average Order Value (All Time)</h3>
+                            <p id="analytics-avg-order" class="text-4xl font-bold text-gray-800 mt-2">₹0.00</p>
+                        </div>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Top 5 Selling Items (All Time)</h3>
+                        <div id="analytics-top-items" class="space-y-2">
+                            <p class="text-gray-500">No data available.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports -->
+                <div id="reports-tab" class="tab-content space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Download Reports</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="card p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Order History</h3>
+                            <p class="text-gray-600 mb-4">Download a CSV of all past orders.</p>
+                            <button id="download-orders-csv" class="btn btn-primary">Download Orders</button>
+                        </div>
+                        <div class="card p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Customer List</h3>
+                            <p class="text-gray-600 mb-4">Download a CSV of all customers and their points.</p>
+                            <button id="download-customers-csv" class="btn btn-primary">Download Customers</button>
+                        </div>
+                        <div class="card p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Menu Items</h3>
+                            <p class="text-gray-600 mb-4">Download a CSV of all menu items and prices.</p>
+                            <button id="download-menu-csv" class="btn btn-primary">Download Menu</button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Table Management -->
                 <div id="tables-tab" class="tab-content space-y-6">
                     <div class="flex justify-between items-center">
@@ -408,56 +446,23 @@
                         <h2 class="text-2xl font-bold text-gray-800">Table QR Codes (1-10)</h2>
                         <button onclick="window.print()" class="btn btn-primary">Print All</button>
                     </div>
-                    <div id="qr-code-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                    <div id="qr-code-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 print:grid-cols-2">
                         <!-- QR codes will be injected here -->
                     </div>
                 </div>
-                
-                <!-- NEW: Analytics -->
-                <div id="analytics-tab" class="tab-content space-y-6">
-                    <h2 class="text-2xl font-bold text-gray-800">Analytics</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="analytics-stats-container">
-                        <!-- Analytics stats will be injected here -->
-                    </div>
-                    <div class="card p-4">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4">Top 5 Selling Items</h3>
-                        <div id="analytics-top-items-container">
-                            <!-- Top items will be injected here -->
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- NEW: Reports -->
-                <div id="reports-tab" class="tab-content space-y-6">
-                    <h2 class="text-2xl font-bold text-gray-800">Reports</h2>
-                    <div class="card p-6 space-y-4">
-                        <p class="text-gray-600">Download your store data in CSV format.</p>
-                        <div class="flex flex-col md:flex-row gap-4">
-                            <button class="btn btn-primary" onclick="actions.exportOrderHistoryCSV()">
-                                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                                Export Order History
-                            </button>
-                            <button class="btn btn-primary" onclick="actions.exportCustomerListCSV()">
-                                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                                Export Customer List
-                            </button>
-                            <button class="btn btn-primary" onclick="actions.exportMenuCSV()">
-                                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                                Export Menu
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- NEW: Settings -->
+
+                <!-- Settings -->
                 <div id="settings-tab" class="tab-content space-y-6">
                     <h2 class="text-2xl font-bold text-gray-800">App Settings</h2>
-                    <div class="card p-6">
-                        <div id="settings-container" class="space-y-6">
-                            <!-- Settings will be injected here -->
-                        </div>
+                    <div id="settings-container" class="card p-6 max-w-lg space-y-4">
+                        <p class="text-gray-500">Loading settings...</p>
                     </div>
+                    <button id="save-settings-btn" class="btn btn-primary">
+                        <span class="btn-text">Save Settings</span>
+                        <span class="spinner-small hidden"></span>
+                    </button>
                 </div>
+
             </main>
         </div>
     </div>
@@ -507,47 +512,59 @@
         // --- APP STATE ---
         const state = {
             user: null,
-            kitchenOrders: [], // RENAMED
+            activeTab: 'live-kitchen',
+            liveOrders: [],
             pastOrders: [],
-            dashboardStats: { gross: 0, net: 0, count: 0 }, // NEW
             staffCalls: [],
             menu: [],
             customers: [],
             tables: [],
-            appSettings: [],
-            
-            kitchenOrderSubscription: null, // RENAMED
-            mainOrderSubscription: null, // NEW: For all order changes (analytics, history)
+            settings: [],
+            orderSubscription: null,
             callSubscription: null,
             menuSubscription: null,
             customerSubscription: null,
-            tableSubscription: null,
+            tablesSubscription: null,
             settingsSubscription: null,
+            orderItemsSubscription: null,
+            orderItemsDebounceTimer: null,
         };
 
         // --- DOM SELECTORS ---
         const $ = (id) => document.getElementById(id);
         const $$ = (sel) => document.querySelectorAll(sel);
 
-        // --- TOAST/ERROR HANDLING ---
+        // --- TOAST NOTIFICATIONS ---
         function showToast(message, type = 'success') {
-            const toast = type === 'success' ? $('success-toast') : $('error-toast');
-            const msgEl = type === 'success' ? $('success-message') : $('error-message');
+            const container = $('toast-container');
+            const id = `toast-${Date.now()}`;
+            const bgColor = type === 'success' ? 'bg-green-600' : 'bg-red-600';
             
-            if (!toast || !msgEl) return;
+            const toast = document.createElement('div');
+            toast.id = id;
+            toast.className = `p-4 rounded-lg shadow-lg text-white ${bgColor} animate-fade-in`;
+            toast.innerHTML = `<p>${message}</p>`;
             
-            msgEl.textContent = message;
-            toast.classList.remove('hidden');
-
+            container.appendChild(toast);
+            
             setTimeout(() => {
-                toast.classList.add('hidden');
+                const el = $(id);
+                if (el) {
+                    el.classList.add('animate-fade-out');
+                    setTimeout(() => el.remove(), 500);
+                }
             }, 3000);
         }
+        // Add animation styles to head
+        document.head.insertAdjacentHTML('beforeend', `
+            <style>
+                @keyframes fade-in { 0% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: translateY(0); } }
+                @keyframes fade-out { 0% { opacity: 1; } 100% { opacity: 0; } }
+                .animate-fade-in { animation: fade-in 0.5s ease; }
+                .animate-fade-out { animation: fade-out 0.5s ease forwards; }
+            </style>
+        `);
 
-        function renderError(message, autoHide = true) {
-            console.error(message);
-            showToast(message, 'error');
-        }
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -562,7 +579,7 @@
                 auth.checkSession();
             } catch (e) {
                 console.error("CRITICAL: SUPABASE initialization failed.", e);
-                renderError(`CRITICAL: App failed to start. ${e.message}`, false);
+                showToast(`CRITICAL: App failed to start. ${e.message}`, 'error');
             }
         });
 
@@ -587,22 +604,27 @@
                         this.showLogin();
                     }
                 } catch (e) {
-                    renderError(`Auth Error: ${e.message}`);
+                    showToast(`Auth Error: ${e.message}`, 'error');
                     this.showLogin();
                 }
             },
             async login(email, password) {
                 const btn = $('login-button');
-                btn.disabled = true;
-                btn.innerHTML = '<div class="spinner"></div>';
+                const btnText = btn.querySelector('.btn-text');
+                const spinner = btn.querySelector('.spinner-small');
                 
+                btn.disabled = true;
+                btnText.classList.add('hidden');
+                spinner.classList.remove('hidden');
+
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                 
                 btn.disabled = false;
-                btn.innerHTML = 'Sign In';
-                
+                btnText.classList.remove('hidden');
+                spinner.classList.add('hidden');
+
                 if (error) {
-                    renderError(error.message);
+                    showToast(error.message, 'error');
                 } else {
                     state.user = data.user;
                     this.showApp();
@@ -612,7 +634,6 @@
             async logout() {
                 await supabase.auth.signOut();
                 state.user = null;
-                // Stop all listeners
                 listeners.stopAll();
                 this.showLogin();
             },
@@ -627,7 +648,6 @@
                 
                 await loadInitialData();
                 
-                // Start all real-time listeners
                 listeners.startAll();
             }
         };
@@ -635,107 +655,680 @@
         // --- DATA LOADING ---
         async function loadInitialData() {
             try {
-                // FIX: Removed 'ready' from kitchen orders query
-                const [pastOrdersRes, kitchenOrdersRes, callsRes, menuRes, customersRes, tablesRes, settingsRes] = await Promise.all([
-                    supabase.from('orders').select('*, tables(table_number), customers(name), order_items(*, products(name))').in('status', ['delivered', 'cancelled']).order('created_at', { ascending: false }),
-                    supabase.from('orders').select('*, tables(table_number), customers(name), order_items(*, products(name))').in('status', ['received', 'preparing']).order('created_at', { ascending: true }),
+                const [ordersRes, callsRes, menuRes, customersRes, tablesRes, settingsRes] = await Promise.all([
+                    supabase.from('orders')
+                        .select('*, tables(table_number), customers(name), order_items(product_id, quantity, product_name)')
+                        .in('status', ['received', 'preparing'])
+                        .order('created_at', { ascending: false }),
                     supabase.from('staff_calls').select('*').eq('status', 'pending').order('created_at', { ascending: true }),
                     supabase.from('products').select('*').order('name', { ascending: true }),
                     supabase.from('customers').select('*').order('name', { ascending: true }),
                     supabase.from('tables').select('*').order('table_number', { ascending: true }),
-                    supabase.from('app_settings').select('*').order('key', { ascending: true })
+                    supabase.from('app_settings').select('*')
                 ]);
 
-                if (pastOrdersRes.error) throw pastOrdersRes.error;
-                if (kitchenOrdersRes.error) throw kitchenOrdersRes.error;
+                if (ordersRes.error) throw ordersRes.error;
                 if (callsRes.error) throw callsRes.error;
                 if (menuRes.error) throw menuRes.error;
                 if (customersRes.error) throw customersRes.error;
                 if (tablesRes.error) throw tablesRes.error;
                 if (settingsRes.error) throw settingsRes.error;
 
-                state.pastOrders = pastOrdersRes.data;
-                state.kitchenOrders = kitchenOrdersRes.data;
+                state.liveOrders = ordersRes.data;
                 state.staffCalls = callsRes.data;
                 state.menu = menuRes.data;
                 state.customers = customersRes.data;
                 state.tables = tablesRes.data;
-                state.appSettings = settingsRes.data;
+                state.settings = settingsRes.data;
                 
-                await dataHelpers.loadDashboardStats(); // Calculate stats from loaded past orders
+                // We don't load history initially, only when tab is clicked
+                state.pastOrders = [];
 
                 render.all();
+                
+                // Load dashboard stats after initial render
+                loadDashboardStats();
 
             } catch (error) {
-                renderError(`Error Loading Data: ${error.message}\nThis is likely an RLS (Row Level Security) issue.\nYour RLS policies are probably blocking this admin account from viewing all data. You must update your policies in the Supabase dashboard to grant full access to this logged-in user.`);
+                showToast(`Error Loading Data: ${error.message}. Check RLS policies.`, 'error');
                 console.error("Detailed Load Error:", error);
             }
         }
 
-        // --- NEW: Data Helpers ---
-        const dataHelpers = {
-            // Gets today's date in YYYY-MM-DD format for Supabase
-            getTodayString() {
-                const today = new Date();
-                const year = today.getFullYear();
-                const month = String(today.getMonth() + 1).padStart(2, '0');
-                const day = String(today.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
+        async function loadDashboardStats() {
+            // NOTE: This function requires the 'get_today_stats' RPC function in Supabase.
+            // The user's database is missing this function, so it has been disabled to prevent errors.
+            console.warn("Analytics Error: RPC function 'get_today_stats' not found in Supabase. Dashboard stats are disabled.");
+            try {
+                // const { data, error } = await supabase.rpc('get_today_stats');
+                // if (error) throw error;
+                // const stats = data[0];
+                
+                // Set to N/A since RPC is missing
+                $('stat-gross-revenue').textContent = `N/A`;
+                $('stat-net-revenue').textContent = `N/A`;
+                $('stat-total-orders').textContent = `N/A`;
+
+            } catch(e) {
+                // This will catch any future errors, but the main call is commented out.
+                console.error("Error loading dashboard stats:", e);
+                showToast("Could not load dashboard stats.", "error");
+            }
+        }
+        
+        async function loadHistory() {
+             try {
+                const { data, error } = await supabase.from('orders')
+                    .select('*, tables(table_number), customers(name)')
+                    .in('status', ['delivered', 'cancelled'])
+                    .order('created_at', { ascending: false })
+                    .limit(100); // Limit to last 100
+                
+                if (error) throw error;
+                state.pastOrders = data;
+                render.history();
+             } catch(e) {
+                console.error("Error loading history:", e);
+                showToast("Could not load order history.", "error");
+             }
+        }
+        
+        async function loadAnalytics() {
+            // NOTE: This function requires 'get_all_time_stats' and 'get_top_selling_items' RPC functions.
+            // The user's database is missing these, so this tab is disabled to prevent errors.
+            console.warn("Analytics Error: RPC functions 'get_all_time_stats' and 'get_top_selling_items' not found. Analytics tab is disabled.");
+            try {
+                // const { data: stats, error: statsError } = await supabase.rpc('get_all_time_stats');
+                // if (statsError) throw statsError;
+                // const s = stats[0];
+
+                $('analytics-total-revenue').textContent = `N/A`;
+                $('analytics-total-orders').textContent = `N/A`;
+                $('analytics-avg-order').textContent = `N/A`;
+                
+                // const { data: items, error: itemsError } = await supabase.rpc('get_top_selling_items');
+                // if (itemsError) throw itemsError;
+                
+                const topItemsContainer = $('analytics-top-items');
+                topItemsContainer.innerHTML = `<p class="text-gray-500">Analytics functions are not configured in the database.</p>`;
+            } catch(e) {
+                console.error("Error loading analytics:", e);
+                showToast("Could not load analytics.", "error");
+            }
+        }
+
+        // Helper to fetch full order details
+        async function fetchOrderWithItems(orderId) {
+            try {
+                const { data, error } = await supabase.from('orders')
+                    .select('*, tables(table_number), customers(name), order_items(*)')
+                    .eq('id', orderId)
+                    .single();
+                
+                if (error) throw error;
+
+                // Manually join product names if order_items doesn't have them
+                for (const item of data.order_items) {
+                    if (!item.product_name) {
+                        const product = state.menu.find(p => p.id === item.product_id);
+                        item.product_name = product ? product.name : 'Unknown Item';
+                    }
+                }
+                return data;
+            } catch (e) {
+                console.error("Failed to fetch order details:", e);
+                showToast(`Error fetching order ${orderId}: ${e.message}`, 'error');
+                return null;
+            }
+        }
+
+
+        // --- REAL-TIME LISTENERS ---
+        const listeners = {
+            startAll() {
+                this.startOrderListener();
+                this.startCallListener();
+                this.startMenuListener();
+                this.startCustomerListener();
+                this.startTablesListener();
+                this.startSettingsListener();
+                this.startOrderItemsListener();
+            },
+            
+            stopAll() {
+                if (state.orderSubscription) supabase.removeChannel(state.orderSubscription);
+                if (state.callSubscription) supabase.removeChannel(state.callSubscription);
+                if (state.menuSubscription) supabase.removeChannel(state.menuSubscription);
+                if (state.customerSubscription) supabase.removeChannel(state.customerSubscription);
+                if (state.tablesSubscription) supabase.removeChannel(state.tablesSubscription);
+                if (state.settingsSubscription) supabase.removeChannel(state.settingsSubscription);
+                if (state.orderItemsSubscription) supabase.removeChannel(state.orderItemsSubscription);
             },
 
-            // Calculates stats for the new dashboard
-            async loadDashboardStats() {
-                const today = this.getTodayString();
+            startOrderListener() {
+                if (state.orderSubscription) return;
+                state.orderSubscription = supabase.channel('public:orders')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async (payload) => {
+                        console.log('Order change received:', payload);
+                        const orderId = payload.new?.id || payload.old?.id;
+                        let order = payload.new;
+                        let oldOrder = payload.old;
+
+                        if (payload.eventType === 'INSERT' && order.status === 'received') {
+                            const fullOrder = await fetchOrderWithItems(orderId);
+                            if (fullOrder) {
+                                state.liveOrders.push(fullOrder);
+                                playNotification();
+                                if (state.activeTab !== 'live-kitchen') {
+                                    actions.showNewOrderModal(fullOrder);
+                                }
+                            }
+                            loadDashboardStats(); // Refresh stats
+                        }
+                        else if (payload.eventType === 'UPDATE') {
+                            const index = state.liveOrders.findIndex(o => o.id === orderId);
+                            
+                            // If order moves from live to past (delivered/cancelled)
+                            if (index > -1 && (order.status === 'delivered' || order.status === 'cancelled')) {
+                                const [finishedOrder] = state.liveOrders.splice(index, 1);
+                                finishedOrder.status = order.status;
+                                state.pastOrders.unshift(finishedOrder);
+                                if (state.activeTab === 'history') render.history();
+                                loadDashboardStats(); // Refresh stats
+                            }
+                            // If a live order is updated (e.g., received -> preparing)
+                            else if (index > -1) {
+                                const fullOrder = await fetchOrderWithItems(orderId);
+                                if(fullOrder) state.liveOrders[index] = fullOrder;
+                            }
+                            // If a past order becomes live again (e.g., cancelled -> received)
+                            else if (index === -1 && (order.status === 'received' || order.status === 'preparing')) {
+                                const fullOrder = await fetchOrderWithItems(orderId);
+                                if(fullOrder) state.liveOrders.push(fullOrder);
+                                
+                                const pastIndex = state.pastOrders.findIndex(o => o.id === orderId);
+                                if (pastIndex > -1) {
+                                    state.pastOrders.splice(pastIndex, 1);
+                                    if (state.activeTab === 'history') render.history();
+                                }
+                            }
+                        }
+                        else if (payload.eventType === 'DELETE') {
+                            const index = state.liveOrders.findIndex(o => o.id === orderId);
+                            if (index > -1) state.liveOrders.splice(index, 1);
+                            
+                            const pastIndex = state.pastOrders.findIndex(o => o.id === orderId);
+                            if (pastIndex > -1) state.pastOrders.splice(pastIndex, 1);
+                        }
+                        
+                        render.kitchen(); // Always re-render kitchen on any order change
+                    })
+                    .subscribe();
+            },
+
+            startOrderItemsListener() {
+                if (state.orderItemsSubscription) return;
+                state.orderItemsSubscription = supabase.channel('public:order_items')
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'order_items' }, (payload) => {
+                        console.log('Order item insert received:', payload);
+                        const orderId = payload.new.order_id;
+                        
+                        // Debounce: Wait 500ms after the last item insert to fetch order details
+                        if (state.orderItemsDebounceTimer) {
+                            clearTimeout(state.orderItemsDebounceTimer);
+                        }
+                        
+                        state.orderItemsDebounceTimer = setTimeout(async () => {
+                            const orderIndex = state.liveOrders.findIndex(o => o.id === orderId);
+                            // Only fetch if the order is live and we don't have items for it yet
+                            if (orderIndex > -1) {
+                                const fullOrder = await fetchOrderWithItems(orderId);
+                                if (fullOrder) {
+                                    state.liveOrders[orderIndex] = fullOrder;
+                                    render.kitchen(); // Re-render the kitchen with new item data
+                                    
+                                    // If modal is open for this order, refresh its content
+                                    const modal = $(`order-modal-${orderId}`);
+                                    if(modal) {
+                                        modal.innerHTML = actions.generateNewOrderModalHTML(fullOrder);
+                                    }
+                                }
+                            }
+                        }, 500);
+                    })
+                    .subscribe();
+            },
+
+            startCallListener() {
+                if (state.callSubscription) return;
+                state.callSubscription = supabase.channel('public:staff_calls')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'staff_calls' }, (payload) => {
+                        console.log('Staff call change received:', payload);
+                        const callId = payload.new?.id || payload.old?.id;
+                        const call = payload.new;
+                        const oldCall = payload.old;
+                        const index = state.staffCalls.findIndex(c => c.id === callId);
+
+                        if (payload.eventType === 'INSERT' && call.status === 'pending') {
+                            state.staffCalls.push(call);
+                            playNotification();
+                        }
+                        else if (payload.eventType === 'UPDATE') {
+                            if (index > -1 && call.status !== 'pending') {
+                                state.staffCalls.splice(index, 1); // Remove resolved
+                            } else if (index === -1 && call.status === 'pending') {
+                                state.staffCalls.push(call); // Add pending
+                            }
+                        }
+                        else if (payload.eventType === 'DELETE' && index > -1) {
+                            state.staffCalls.splice(index, 1);
+                        }
+                        render.dashboard();
+                    })
+                    .subscribe();
+            },
+
+            startMenuListener() {
+                if (state.menuSubscription) return;
+                state.menuSubscription = supabase.channel('public:products')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
+                        console.log('Menu change received:', payload);
+                        const itemId = payload.new?.id || payload.old?.id;
+                        const index = state.menu.findIndex(i => i.id === itemId);
+
+                        if (payload.eventType === 'INSERT') {
+                            state.menu.push(payload.new);
+                        } else if (payload.eventType === 'UPDATE' && index > -1) {
+                            state.menu[index] = payload.new;
+                        } else if (payload.eventType === 'DELETE' && index > -1) {
+                            state.menu.splice(index, 1);
+                        }
+                        
+                        if (state.activeTab === 'menu') {
+                            state.menu.sort((a, b) => a.name.localeCompare(b.name));
+                            render.menu();
+                        }
+                    })
+                    .subscribe();
+            },
+
+            startCustomerListener() {
+                if (state.customerSubscription) return;
+                state.customerSubscription = supabase.channel('public:customers')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, (payload) => {
+                        console.log('Customer change received:', payload);
+                        const custId = payload.new?.id || payload.old?.id;
+                        const index = state.customers.findIndex(c => c.id === custId);
+
+                        if (payload.eventType === 'INSERT') {
+                            state.customers.push(payload.new);
+                        } else if (payload.eventType === 'UPDATE' && index > -1) {
+                            state.customers[index] = payload.new;
+                        } else if (payload.eventType === 'DELETE' && index > -1) {
+                            state.customers.splice(index, 1);
+                        }
+                        
+                        if (state.activeTab === 'customers') {
+                            state.customers.sort((a, b) => a.name.localeCompare(b.name));
+                            render.customers();
+                        }
+                    })
+                    .subscribe();
+            },
+            
+            startTablesListener() {
+                if (state.tablesSubscription) return;
+                state.tablesSubscription = supabase.channel('public:tables')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'tables' }, (payload) => {
+                        console.log('Table change received:', payload);
+                        const tableId = payload.new?.id || payload.old?.id;
+                        const index = state.tables.findIndex(t => t.id === tableId);
+
+                        if (payload.eventType === 'INSERT') {
+                            state.tables.push(payload.new);
+                        } else if (payload.eventType === 'UPDATE' && index > -1) {
+                            state.tables[index] = payload.new;
+                        } else if (payload.eventType === 'DELETE' && index > -1) {
+                            state.tables.splice(index, 1);
+                        }
+                        
+                        if (state.activeTab === 'tables') {
+                            state.tables.sort((a, b) => a.table_number - b.table_number);
+                            render.tables();
+                        }
+                        if (state.activeTab === 'qr') render.qr();
+                    })
+                    .subscribe();
+            },
+
+            startSettingsListener() {
+                if (state.settingsSubscription) return;
+                state.settingsSubscription = supabase.channel('public:app_settings')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, (payload) => {
+                        console.log('Settings change received:', payload);
+                        const settingKey = payload.new?.key || payload.old?.key;
+                        const index = state.settings.findIndex(s => s.key === settingKey);
+
+                        if (payload.eventType === 'INSERT') {
+                            state.settings.push(payload.new);
+                        } else if (payload.eventType === 'UPDATE' && index > -1) {
+                            state.settings[index] = payload.new;
+                        } else if (payload.eventType === 'DELETE' && index > -1) {
+                            state.settings.splice(index, 1);
+                        }
+                        
+                        if (state.activeTab === 'settings') render.settings();
+                    })
+                    .subscribe();
+            },
+        };
+
+
+        // --- RENDERING ---
+        const render = {
+            all() {
+                this.kitchen();
+                this.dashboard();
+                this.menu();
+                this.customers();
+                this.tables();
+                this.qr();
+                this.settings();
+                // History and Analytics are loaded on-demand
+            },
+
+            kitchen() {
+                const receivedContainer = $('kitchen-col-received');
+                const preparingContainer = $('kitchen-col-preparing');
+                const noReceivedMsg = $('no-received-msg');
+                const noPreparingMsg = $('no-preparing-msg');
                 
-                // Fetch today's delivered orders
-                const { data, error } = await supabase.from('orders')
-                    .select('final_amount, discount_amount, order_items(price_at_time_of_order, quantity)')
-                    .eq('status', 'delivered')
-                    .gte('created_at', `${today}T00:00:00.000Z`)
-                    .lte('created_at', `${today}T23:59:59.999Z`);
-                
-                if (error) {
-                    console.error("Error fetching dashboard stats:", error);
-                    return;
+                const receivedOrders = state.liveOrders.filter(o => o.status === 'received').sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+                const preparingOrders = state.liveOrders.filter(o => o.status === 'preparing').sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+
+                if (receivedOrders.length === 0) {
+                    receivedContainer.innerHTML = '';
+                    noReceivedMsg.classList.remove('hidden');
+                } else {
+                    noReceivedMsg.classList.add('hidden');
+                    receivedContainer.innerHTML = receivedOrders.map(this.kitchenCard).join('');
                 }
                 
-                let gross = 0;
-                let net = 0;
+                if (preparingOrders.length === 0) {
+                    preparingContainer.innerHTML = '';
+                    noPreparingMsg.classList.remove('hidden');
+                } else {
+                    noPreparingMsg.classList.add('hidden');
+                    preparingContainer.innerHTML = preparingOrders.map(this.kitchenCard).join('');
+                }
+            },
+
+            kitchenCard(order) {
+                const isNew = order.status === 'received';
+                const items = order.order_items || [];
+                const hasItems = items.length > 0;
+                const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 
-                data.forEach(order => {
-                    // Net is the final amount customer paid
-                    net += order.final_amount || 0;
+                const itemsHTML = hasItems
+                    ? items.map(item => `
+                        <li class="flex justify-between">
+                            <span class="text-gray-800">${item.product_name || 'Item...'}</span>
+                            <span class="font-medium text-gray-600">x${item.quantity}</span>
+                        </li>`).join('')
+                    : '<li><span class="text-gray-500">Loading items...</span></li>';
+
+                let buttonHTML = '';
+                if (order.status === 'received') {
+                    buttonHTML = `<button class="btn btn-primary flex-1" onclick="actions.updateOrderStatus('${order.id}', 'preparing', this)">Accept Order</button>
+                                  <button class="btn btn-secondary" onclick="actions.updateOrderStatus('${order.id}', 'cancelled', this)">Cancel</button>`;
+                } else if (order.status === 'preparing') {
+                    buttonHTML = `<button class="btn btn-success flex-1" onclick="actions.updateOrderStatus('${order.id}', 'delivered', this)">Mark as Delivered</button>
+                                  <button class="btn btn-secondary" onclick="actions.updateOrderStatus('${order.id}', 'cancelled', this)">Cancel</button>`;
+                }
+
+                return `
+                    <div id="order-card-${order.id}" class="card p-4 ${isNew ? 'order-card-new' : ''} border-2 ${isNew ? 'border-yellow-500' : 'border-transparent'}">
+                        <div class="flex justify-between items-center mb-3">
+                            <div>
+                                <h3 class="text-xl font-bold">Table #${order.tables?.table_number || 'N/A'}</h3>
+                                <p class="text-gray-600">by ${order.customers?.name || 'Guest'} at ${time}</p>
+                            </div>
+                            <span class="text-lg font-bold ${isNew ? 'text-yellow-600' : 'text-blue-600'} capitalize">${order.status}</span>
+                        </div>
+                        <div class="border-t border-gray-100 pt-3 mb-4">
+                            <ul class="space-y-1">${itemsHTML}</ul>
+                            ${order.special_instructions ? `
+                                <p class="mt-3 text-sm italic text-yellow-800 bg-yellow-100 p-2 rounded-md">
+                                    <strong>Note:</strong> ${order.special_instructions}
+                                </p>
+                            ` : ''}
+                        </div>
+                        <div class="border-t border-gray-100 pt-3 space-y-2">
+                            ${order.discount_amount > 0 ? `
+                                <div class="flex justify-between text-sm font-medium text-green-600">
+                                    <span>Discount:</span>
+                                    <span>- ₹${order.discount_amount.toFixed(2)}</span>
+                                </div>
+                            ` : ''}
+                            <div class="flex justify-between text-lg font-bold text-dark">
+                                <span>Total:</span>
+                                <span>₹${(order.final_amount || 0).toFixed(2)}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-4">${buttonHTML}</div>
+                    </div>
+                `;
+            },
+
+            dashboard() {
+                // Render Staff Calls
+                const callsContainer = $('staff-calls-container');
+                const noCallsMsg = $('no-calls-msg');
+                
+                if (state.staffCalls.length === 0) {
+                    callsContainer.innerHTML = ''; // Clear old calls
+                    noCallsMsg.classList.remove('hidden');
+                } else {
+                    noCallsMsg.classList.add('hidden');
+                    state.staffCalls.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     
-                    // Gross is net + discount, OR sum of items
-                    let orderSubtotal = (order.order_items || []).reduce((sum, item) => sum + (item.price_at_time_of_order * item.quantity), 0);
-                    gross += orderSubtotal;
+                    callsContainer.innerHTML = state.staffCalls.map(call => {
+                        const time = new Date(call.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        return `
+                            <div class="card p-4 call-card-new border-2 border-red-500">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-xl font-bold">Table #${call.table_number}</h3>
+                                    <span class="text-sm text-gray-500">${time}</span>
+                                </div>
+                                <p class="text-lg text-red-700 font-semibold capitalize mb-3">${call.call_type === 'payment' ? 'Needs Payment' : 'Needs Assistance'}</p>
+                                <button class="btn btn-danger w-full" onclick="actions.resolveStaffCall('${call.id}')">
+                                    Resolve
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            },
+
+            history() {
+                const historyBody = $('history-table-body');
+                if (state.pastOrders.length === 0) {
+                    historyBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No past orders found.</td></tr>';
+                    return;
+                }
+                historyBody.innerHTML = state.pastOrders.map(order => {
+                    const time = new Date(order.created_at).toLocaleString();
+                    const statusColor = order.status === 'delivered' ? 'text-green-600' : 'text-red-600';
+                    return `
+                        <tr class="border-b border-gray-100">
+                            <td class="p-2">${time}</td>
+                            <td class="p-2">${order.customers?.name || 'Guest'}</td>
+                            <td class="p-2">${order.tables?.table_number || 'N/A'}</td>
+                            <td class="p-2">₹${(order.final_amount || 0).toFixed(2)}</td>
+                            <td class="p-2 font-semibold ${statusColor} capitalize">${order.status}</td>
+                            <td class="p-2 text-right">
+                                <button class="btn btn-danger btn-sm" onclick="actions.deleteOrder('${order.id}', '${order.customers?.name || 'Guest'}')">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            },
+
+            menu() {
+                const menuBody = $('menu-table-body');
+                menuBody.innerHTML = state.menu.map(item => `
+                    <tr class="border-b border-gray-100">
+                        <td class="p-2">${item.name}</td>
+                        <td class="p-2">₹${item.price}</td>
+                        <td class="p-2">${item.category}</td>
+                        <td class="p-2">${item.brand}</td>
+                        <td class="p-2">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" ${item.is_available ? 'checked' : ''} class="sr-only peer" onchange="actions.toggleItemAvailability('${item.id}', this.checked)">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                        </td>
+                        <td class="p-2 text-right">
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showMenuModal('${item.id}')">Edit</button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            customers() {
+                const customersBody = $('customers-table-body');
+                customersBody.innerHTML = state.customers.map(cust => `
+                    <tr class="border-b border-gray-100">
+                        <td class="p-2">${cust.name}</td>
+                        <td class="p-2">${cust.whatsapp_number || 'N/A'}</td>
+                        <td class="p-2">${cust.loyalty_points || 0}</td>
+                        <td class="p-2 text-right space-x-2">
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showLoyaltyModal('${cust.id}', '${cust.name}', ${cust.loyalty_points || 0})">Adjust Points</button>
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showCustomerModal('${cust.id}')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="actions.deleteCustomer('${cust.id}', '${cust.name}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            tables() {
+                const tablesBody = $('tables-table-body');
+                tablesBody.innerHTML = state.tables.map(table => `
+                    <tr class="border-b border-gray-100">
+                        <td class="p-2 font-bold">${table.table_number}</td>
+                        <td class="p-2">${table.description || 'N/A'}</td>
+                        <td class="p-2 text-right">
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showTableModal('${table.id}')">Edit</button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            qr() {
+                const container = $('qr-code-container');
+                const customerAppUrl = 'https://bulb-77jm.onrender.com/';
+                container.innerHTML = ''; // Clear
+                // Use state.tables to generate QR codes
+                state.tables.sort((a,b) => a.table_number - b.table_number).forEach(table => {
+                    const i = table.table_number;
+                    const url = `${customerAppUrl}?table=${i}`;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'card p-4 flex flex-col items-center print:break-inside-avoid';
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `qr-canvas-${i}`;
+                    
+                    const label = document.createElement('h3');
+                    label.className = 'text-lg font-bold mt-3';
+                    label.textContent = `Table ${i}`;
+                    
+                    wrapper.appendChild(canvas);
+                    wrapper.appendChild(label);
+                    container.appendChild(wrapper);
+                    
+                    new QRious({
+                        element: canvas,
+                        value: url,
+                        size: 200,
+                        padding: 10,
+                        level: 'H'
+                    });
                 });
-                
-                state.dashboardStats = {
-                    gross: gross,
-                    net: net,
-                    count: data.length
-                };
-                
-                // Re-render the dashboard stats
-                render.dashboard();
+            },
+
+            settings() {
+                const container = $('settings-container');
+                if (state.settings.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500">No settings found.</p>';
+                    return;
+                }
+                container.innerHTML = state.settings.map(s => {
+                    const key = s.key;
+                    const value = s.value;
+                    let inputType = 'text';
+                    if (typeof value === 'number') inputType = 'number';
+                    
+                    // Simple description based on key
+                    let description = '';
+                    if (key === 'loyalty_threshold') description = 'Min order value (₹) to earn points.';
+                    if (key === 'loyalty_earn_rate') description = 'Points earned (as % of subtotal).';
+                    if (key === 'loyalty_redeem_rate') description = 'Max % of points balance to redeem.';
+
+                    return `
+                        <div>
+                            <label for="setting-${key}" class="form-label capitalize">${key.replace(/_/g, ' ')}</label>
+                            <input type="${inputType}" id="setting-${key}" name="${key}" class="form-input" value="${value}">
+                            ${description ? `<p class="text-xs text-gray-500 mt-1">${description}</p>` : ''}
+                        </div>
+                    `;
+                }).join('');
             }
         };
-        
-        // --- ACTIONS & EVENT HANDLERS --- (MOVED HERE)
+
+        // --- ACTIONS & EVENT HANDLERS ---
         const actions = {
-            async updateOrderStatus(orderId, status) {
-                // The real-time listener will handle all UI changes.
-                // This function just sends the command.
+            async updateOrderStatus(orderId, newStatus, btnElement) {
+                // Optimistic UI Update
+                const order = state.liveOrders.find(o => o.id === orderId);
+                if (!order) return;
+                
+                const oldStatus = order.status;
+                order.status = newStatus;
+                
+                // If moving to delivered/cancelled, remove from live list
+                if (newStatus === 'delivered' || newStatus === 'cancelled') {
+                    state.liveOrders = state.liveOrders.filter(o => o.id !== orderId);
+                    order.status = newStatus;
+                    state.pastOrders.unshift(order); // Add to history
+                    if (state.activeTab === 'history') render.history();
+                    loadDashboardStats(); // Refresh stats
+                }
+                
+                render.kitchen(); // Re-render kitchen immediately
+
+                // Disable button
+                if(btnElement) {
+                    btnElement.disabled = true;
+                    btnElement.innerHTML = `<span class="spinner-small"></span>`;
+                }
+
+                // Database Update
                 try {
-                    const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
-                    if (error) {
-                        throw error;
-                    }
-                    showToast(`Order update sent: ${status}.`);
-                    // Real-time listener will fire and update the UI.
+                    const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+                    if (error) throw error;
+                    // Real-time listener will catch this, but UI is already updated
+                    showToast(`Order #${order.tables?.table_number} marked as ${newStatus}`);
                 } catch (e) {
-                    renderError(`Error updating order: ${e.message}`);
+                    showToast(`Error updating order: ${e.message}`, 'error');
+                    // Rollback UI on failure
+                    order.status = oldStatus;
+                    if (newStatus === 'delivered' || newStatus === 'cancelled') {
+                        state.pastOrders.shift();
+                        state.liveOrders.push(order);
+                    }
+                    render.kitchen();
                 }
             },
 
@@ -743,10 +1336,10 @@
                 try {
                     const { error } = await supabase.from('staff_calls').update({ status: 'resolved' }).eq('id', callId);
                     if (error) throw error;
-                    showToast('Staff call resolved.');
                     // Real-time listener will handle the UI update
+                    showToast('Staff call resolved');
                 } catch (e) {
-                    renderError(`Error resolving call: ${e.message}`);
+                    showToast(`Error resolving call: ${e.message}`, 'error');
                 }
             },
 
@@ -754,12 +1347,75 @@
                 try {
                     const { error } = await supabase.from('products').update({ is_available: isAvailable }).eq('id', itemId);
                     if (error) throw error;
-                    showToast(`Item availability updated.`);
-                    // Real-time listener will handle the UI update
+                    // Real-time listener will handle UI update
+                    showToast('Item availability updated');
                 } catch (e) {
-                    renderError(`Error updating item: ${e.message}`);
-                    render.menu(); // Revert checkbox on failure
+                    showToast(`Error updating item: ${e.message}`, 'error');
+                    // Revert checkbox on failure
+                    render.menu();
                 }
+            },
+            
+            // --- New Order Modal ---
+            showNewOrderModal(order) {
+                const modalHTML = this.generateNewOrderModalHTML(order);
+                showBlockingModal(modalHTML, `order-modal-${order.id}`);
+            },
+            
+            generateNewOrderModalHTML(order) {
+                const items = order.order_items || [];
+                const hasItems = items.length > 0;
+                const itemsHTML = hasItems
+                    ? items.map(item => `
+                        <li class="flex justify-between">
+                            <span class="text-gray-800">${item.product_name || 'Item...'}</span>
+                            <span class="font-medium text-gray-600">x${item.quantity}</span>
+                        </li>`).join('')
+                    : '<li><span class="text-gray-500">Loading items...</span></li>';
+
+                return `
+                    <h2 class="text-3xl font-bold text-center text-yellow-500 mb-4">!! NEW ORDER !!</h2>
+                    <h3 class="text-2xl font-bold text-center">Table #${order.tables?.table_number || 'N/A'}</h3>
+                    <p class="text-center text-gray-600 mb-6">By: ${order.customers?.name || 'Guest'}</p>
+                    <div class="border-t border-b border-gray-200 py-4 mb-4">
+                        <ul class="space-y-1">${itemsHTML}</ul>
+                        ${order.special_instructions ? `
+                            <p class="mt-3 text-sm italic text-yellow-800 bg-yellow-100 p-2 rounded-md">
+                                <strong>Note:</strong> ${order.special_instructions}
+                            </p>
+                        ` : ''}
+                    </div>
+                    <div class="space-y-2 mb-6">
+                        ${order.discount_amount > 0 ? `
+                            <div class="flex justify-between text-sm font-medium text-green-600">
+                                <span>Discount:</span>
+                                <span>- ₹${order.discount_amount.toFixed(2)}</span>
+                            </div>
+                        ` : ''}
+                        <div class="flex justify-between text-xl font-bold text-dark">
+                            <span>Total:</span>
+                            <span>₹${(order.final_amount || 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button class="btn btn-success py-3 text-lg" onclick="actions.acceptOrderFromModal('${order.id}')">
+                            Accept Order
+                        </button>
+                        <button class="btn btn-danger py-3 text-lg" onclick="actions.cancelOrderFromModal('${order.id}')">
+                            Cancel Order
+                        </button>
+                    </div>
+                `;
+            },
+            
+            acceptOrderFromModal(orderId) {
+                this.updateOrderStatus(orderId, 'preparing');
+                closeModal();
+            },
+            
+            cancelOrderFromModal(orderId) {
+                this.updateOrderStatus(orderId, 'cancelled');
+                closeModal();
             },
 
             // --- MODAL: MENU ITEM ---
@@ -816,15 +1472,16 @@
                         error = updateError;
                     } else { // Insert
                         delete itemData.id;
-                        const { error: insertError } = await supabase.from('products').insert([itemData]);
+                        const { error: insertError } = await supabase.from('products').insert(itemData);
                         error = insertError;
                     }
                     if (error) throw error;
                     
-                    showToast(itemData.id ? 'Item updated!' : 'Item created!');
+                    // Real-time listener will handle UI update
+                    showToast('Menu item saved successfully');
                     closeModal();
                 } catch (e) {
-                    renderError(`Error saving item: ${e.message}`);
+                    showToast(`Error saving item: ${e.message}`, 'error');
                 }
             },
             
@@ -863,13 +1520,13 @@
                 };
 
                 try {
-                    const { data, error } = await supabase.from('customers').update(updateData).eq('id', customerId);
+                    const { error } = await supabase.from('customers').update(updateData).eq('id', customerId);
                     if (error) throw error;
                     
-                    showToast('Customer updated!');
+                    showToast('Customer updated');
                     closeModal();
                 } catch (e) {
-                    renderError(`Error updating customer: ${e.message}`);
+                    showToast(`Error updating customer: ${e.message}`, 'error');
                 }
             },
 
@@ -883,7 +1540,7 @@
                         <input type="hidden" name="id" value="${table?.id || ''}">
                         <div>
                             <label class="form-label">Table Number</label>
-                            <input type="number" name="table_number" class="form-input" value="${table?.table_number || ''}" required ${!isNew ? 'readonly class="bg-gray-200"' : ''}>
+                            <input type="number" name="table_number" class="form-input" value="${table?.table_number || ''}" required ${!isNew ? 'readonly bg-gray-200' : ''}>
                         </div>
                         <div>
                             <label class="form-label">Description</label>
@@ -914,15 +1571,15 @@
                         const { error: updateError } = await supabase.from('tables').update({ description: tableData.description }).eq('id', tableId);
                         error = updateError;
                     } else { // Insert
-                        const { error: insertError } = await supabase.from('tables').insert([tableData]);
+                        const { error: insertError } = await supabase.from('tables').insert(tableData);
                         error = insertError;
                     }
                     if (error) throw error;
                     
-                    showToast(tableId ? 'Table updated!' : 'Table created!');
+                    showToast('Table saved');
                     closeModal();
                 } catch (e) {
-                    renderError(`Error saving table: ${e.message}`);
+                    showToast(`Error saving table: ${e.message}`, 'error');
                 }
             },
 
@@ -954,817 +1611,146 @@
                 const adjustment = parseInt(formData.get('adjustment'));
 
                 if (isNaN(adjustment)) {
-                    return renderError("Invalid number for points.");
+                    return showToast("Invalid number for points.", 'error');
                 }
 
                 try {
-                    const { data, error } = await supabase.rpc('adjust_loyalty_points', { customer_id_input: customerId, points_change: adjustment });
+                    const { error } = await supabase.rpc('adjust_loyalty_points', { customer_id_input: customerId, points_change: adjustment });
                     if (error) throw error;
                     
-                    showToast('Loyalty points adjusted!');
+                    showToast('Loyalty points adjusted');
                     closeModal();
                 } catch (e) {
-                    renderError(`Error adjusting points: ${e.message}`);
+                    showToast(`Error adjusting points: ${e.message}`, 'error');
+                }
+            },
+            
+            async saveSettings(btnElement) {
+                const btnText = btnElement.querySelector('.btn-text');
+                const spinner = btnElement.querySelector('.spinner-small');
+                
+                btnElement.disabled = true;
+                btnText.classList.add('hidden');
+                spinner.classList.remove('hidden');
+
+                const inputs = $$('#settings-container input');
+                const updates = Array.from(inputs).map(input => {
+                    let value = input.value;
+                    if (input.type === 'number') value = parseFloat(value);
+                    return { key: input.name, value: value };
+                });
+
+                try {
+                    // Supabase upsert can handle multiple updates
+                    const { error } = await supabase.from('app_settings').upsert(updates);
+                    if (error) throw error;
+                    showToast('Settings saved successfully');
+                } catch (e) {
+                    showToast(`Error saving settings: ${e.message}`, 'error');
+                } finally {
+                    btnElement.disabled = false;
+                    btnText.classList.remove('hidden');
+                    spinner.classList.add('hidden');
                 }
             },
 
             // --- DELETE ACTIONS ---
-            async deleteCustomer(customerId, customerName) {
-                if (confirm(`Are you sure you want to delete ${customerName} (ID: ${customerId})?\nTHIS ACTION CANNOT BE UNDONE.`)) {
-                    try {
-                        const { error } = await supabase.from('customers').delete().eq('id', customerId);
-                        if (error) throw error;
-                        
-                        showToast('Customer deleted.');
-                    } catch (e) {
-                         renderError(`Error deleting customer: ${e.message}. (Note: Cannot delete customers with existing orders)`);
-                    }
-                }
-            },
-
             async deleteOrder(orderId, customerName) {
                 if (confirm(`Are you sure you want to delete this order from ${customerName} (ID: ${orderId})?\nThis will also delete all associated order items.\nTHIS ACTION CANNOT BE UNDONE.`)) {
                     try {
                         const { error } = await supabase.from('orders').delete().eq('id', orderId);
                         if (error) throw error;
-                        
-                        showToast('Order deleted.');
+                        // Real-time listener handles UI
+                        showToast('Order deleted');
                     } catch (e) {
-                         renderError(`Error deleting order: ${e.message}.`);
+                         showToast(`Error deleting order: ${e.message}.`, 'error');
+                    }
+                }
+            },
+
+            async deleteCustomer(customerId, customerName) {
+                if (confirm(`Are you sure you want to delete ${customerName}?\nTHIS ACTION CANNOT BE UNDONE.`)) {
+                    try {
+                        const { error } = await supabase.from('customers').delete().eq('id', customerId);
+                        if (error) throw error;
+                        // Real-time listener handles UI
+                        showToast('Customer deleted');
+                    } catch (e) {
+                         showToast(`Error deleting customer: ${e.message}. (Note: Cannot delete customers with existing orders)`, 'error');
                     }
                 }
             },
             
-            // --- NEW ACTIONS ---
-            async saveSetting(key) {
-                const input = $(`setting-${key}`);
-                const value = input.value;
-                
-                try {
-                    const { error } = await supabase.from('app_settings').update({ value }).eq('key', key);
-                    if (error) throw error;
-                    showToast('Setting saved!');
-                } catch (e) {
-                    renderError(`Error saving setting: ${e.message}`);
-                }
-            },
-            
-            // --- NEW HELPER for modal content ---
-            generateNewOrderModalHTML(order) {
-                const items = order.order_items || [];
-                const discount = order.discount_amount || 0;
-                const points = order.discount_points_redeemed || 0;
-                
-                return `
-                    <div class="text-center">
-                        <h1 class="text-4xl font-bold text-yellow-500 mb-4 animate-pulse">!! NEW ORDER !!</h1>
-                        <h2 class="text-3xl font-bold">Table #${order.tables?.table_number || 'N/A'}</h2>
-                        <p class="text-xl text-gray-600 mb-6">By: ${order.customers?.name || 'Guest'}</p>
-                        
-                        <div class="text-left my-4 border-y border-gray-200 py-4 max-h-40 overflow-y-auto">
-                            <h3 class="font-bold text-lg mb-2">Items:</h3>
-                            ${items.length > 0 ? `
-                                <ul class="space-y-1 list-decimal list-inside">
-                                    ${items.map(item => `<li><span class="font-semibold">${item.products?.name || 'Item'}</span> x${item.quantity}</li>`).join('')}
-                                </ul>
-                            ` : `
-                                <p class="text-gray-500 text-center">Loading items...</p>
-                            `}
-                            ${order.special_instructions ? `<p class="mt-3 text-sm italic text-yellow-800 bg-yellow-100 p-2 rounded-md"><strong>Note:</strong> ${order.special_instructions}</p>` : ''}
-                        </div>
-
-                        ${discount > 0 ? `
-                        <div class="text-left my-4 bg-green-100 border border-green-300 p-3 rounded-lg">
-                            <h3 class="font-bold text-lg text-green-800">Discount Applied!</h3>
-                            <p class="text-green-700">Customer redeemed <span class="font-bold">${points} points</span> for a <span class="font-bold">₹${discount.toFixed(2)} discount</span>.</p>
-                        </div>
-                        ` : ''}
-
-                        <div class="flex gap-4 mt-8">
-                            <button class="btn btn-success flex-1 py-4 text-lg" onclick="actions.acceptOrderFromModal('${order.id}')">
-                                Accept Order
-                            </button>
-                            <button class="btn btn-danger flex-1 py-4 text-lg" onclick="actions.cancelOrderFromModal('${order.id}')">
-                                Cancel Order
-                            </button>
-                        </div>
-                    </div>
-                `;
-            },
-            
-            // --- NEW MODAL ACTIONS for blocking order screen ---
-            showNewOrderModal(order) {
-                // DO NOT SHOW MODAL if user is already on the kitchen screen
-                if ($('live-kitchen-tab').classList.contains('active')) {
+            // --- CSV EXPORTS ---
+            downloadCSV(data, filename) {
+                if (data.length === 0) {
+                    showToast("No data to export.", "error");
                     return;
                 }
-
-                // Get HTML from helper
-                const modalInnerHTML = this.generateNewOrderModalHTML(order);
-                const modalHTML = `<div id="new-order-modal-${order.id}">${modalInnerHTML}</div>`;
-                showBlockingModal(modalHTML);
-            },
-
-            async acceptOrderFromModal(orderId) {
-                closeModal();
-                await this.updateOrderStatus(orderId, 'preparing');
-            },
-
-            async cancelOrderFromModal(orderId) {
-                closeModal();
-                await this.updateOrderStatus(orderId, 'cancelled');
-            },
-
-            // --- CSV EXPORT ACTIONS ---
-            exportOrderHistoryCSV() {
-                const headers = ["Order ID", "Date", "Customer", "Table", "Status", "Subtotal", "Discount", "GST", "Final Total", "Items"];
-                const rows = state.pastOrders.map(order => {
-                    const items = (order.order_items || []).map(i => `${i.products?.name || 'Item'} (x${i.quantity})`).join(' | ');
-                    
-                    let orderSubtotal = (order.order_items || []).reduce((sum, item) => sum + (item.price_at_time_of_order * item.quantity), 0);
-                    const discount = order.discount_amount || 0;
-                    const finalTotal = order.final_amount || 0;
-                    const gst = finalTotal - (orderSubtotal - discount); // More accurate GST
-                    
-                    return [
-                        order.id,
-                        new Date(order.created_at).toLocaleString(),
-                        order.customers?.name || 'Guest',
-                        order.tables?.table_number || 'N/A',
-                        order.status,
-                        orderSubtotal.toFixed(2),
-                        discount.toFixed(2),
-                        gst.toFixed(2),
-                        finalTotal.toFixed(2),
-                        `"${items}"` // Enclose items in quotes
-                    ].join(',');
-                });
                 
-                this.downloadCSV([headers.join(','), ...rows].join('\n'), 'order-history.csv');
-            },
-            
-            exportCustomerListCSV() {
-                const headers = ["ID", "Name", "Phone", "Loyalty Points"];
-                const rows = state.customers.map(cust => {
-                    return [
-                        cust.id,
-                        `"${cust.name}"`,
-                        cust.whatsapp_number || '',
-                        cust.loyalty_points || 0
-                    ].join(',');
-                });
-                
-                this.downloadCSV([headers.join(','), ...rows].join('\n'), 'customer-list.csv');
-            },
-            
-            exportMenuCSV() {
-                const headers = ["ID", "Name", "Price", "Category", "Brand", "Is Available"];
-                const rows = state.menu.map(item => {
-                    return [
-                        item.id,
-                        `"${item.name}"`,
-                        item.price,
-                        item.category,
-                        item.brand,
-                        item.is_available
-                    ].join(',');
-                });
-                
-                this.downloadCSV([headers.join(','), ...rows].join('\n'), 'menu.csv');
-            },
-            
-            downloadCSV(csvContent, fileName) {
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const replacer = (key, value) => value === null ? '' : value;
+                const header = Object.keys(data[0]);
+                let csv = data.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','));
+                csv.unshift(header.join(','));
+                csv = csv.join('\r\n');
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                
-                link.setAttribute('href', url);
-                link.setAttribute('download', fileName);
-                link.style.visibility = 'hidden';
-                
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                showToast(`Report "${fileName}" downloaded.`);
-            }
-        };
-
-        // --- REAL-TIME LISTENERS ---
-        const listeners = {
-            startAll() {
-                this.startKitchenListener(); // Renamed
-                this.startMainOrderListener(); // New
-                this.startCallListener();
-                this.startMenuListener();
-                this.startCustomerListener();
-                this.startTableListener();
-                this.startSettingsListener();
-            },
-            
-            stopAll() {
-                if (state.kitchenOrderSubscription) supabase.removeChannel(state.kitchenOrderSubscription);
-                if (state.mainOrderSubscription) supabase.removeChannel(state.mainOrderSubscription);
-                if (state.callSubscription) supabase.removeChannel(state.callSubscription);
-                if (state.menuSubscription) supabase.removeChannel(state.menuSubscription);
-                if (state.customerSubscription) supabase.removeChannel(state.customerSubscription);
-                if (state.tableSubscription) supabase.removeChannel(state.tableSubscription);
-                if (state.settingsSubscription) supabase.removeChannel(state.settingsSubscription);
-            },
-            
-            // This listener ONLY updates the Live Kitchen tab
-            startKitchenListener() {
-                if (state.kitchenOrderSubscription) return;
-                // FIX: Removed 'ready' from filter
-                state.kitchenOrderSubscription = supabase.channel('public:orders:kitchen')
-                    .on('postgres_changes', { 
-                        event: '*', 
-                        schema: 'public', 
-                        table: 'orders',
-                        filter: 'status=in.("received","preparing")' // Only listen for kitchen statuses
-                    }, async (payload) => {
-                        console.log('Kitchen change received:', payload);
-                        
-                        // On ANY change (INSERT, UPDATE, DELETE) in kitchen statuses,
-                        // just reload all kitchen orders. This is the simplest,
-                        // most robust way to ensure the columns are correct.
-                        
-                        // FIX: Removed 'ready' from query
-                        const { data, error } = await supabase.from('orders')
-                            .select('*, tables(table_number), customers(name), order_items(*, products(name))')
-                            .in('status', ['received', 'preparing'])
-                            .order('created_at', { ascending: true });
-                        
-                        if (error) {
-                            renderError("Error refreshing kitchen: " + error.message);
-                            return;
-                        }
-                        
-                        state.kitchenOrders = data;
-                        render.liveKitchen(); // Re-render the whole kitchen view
-
-                        // If it's a new order, pop the modal (if not on kitchen tab)
-                        if (payload.eventType === 'INSERT' && payload.new.status === 'received') {
-                            playNotification();
-                            // Fetch the full order data for the modal
-                            const newOrderData = state.kitchenOrders.find(o => o.id === payload.new.id);
-                            if(newOrderData) {
-                                actions.showNewOrderModal(newOrderData);
-                            }
-                        }
-                    })
-                    .subscribe();
-            },
-            
-            // This NEW listener handles changes for Analytics, History, and Dashboard stats
-            startMainOrderListener() {
-                if (state.mainOrderSubscription) return;
-                state.mainOrderSubscription = supabase.channel('public:orders:main')
-                    .on('postgres_changes', {
-                        event: '*',
-                        schema: 'public',
-                        table: 'orders'
-                    }, async (payload) => {
-                        console.log('Main order change received:', payload);
-                        
-                        const orderId = payload.new?.id || payload.old?.id;
-                        const newStatus = payload.new?.status;
-                        const oldStatus = payload.old?.status;
-                        
-                        // --- Update History Tab ---
-                        if (payload.eventType === 'INSERT' && (newStatus === 'cancelled' || newStatus === 'delivered')) {
-                            // A new order was created *already* as finished (rare, but possible)
-                            const newOrderData = await fetchOrderDetails(orderId);
-                            if (newOrderData) state.pastOrders.unshift(newOrderData);
-                            render.history();
-                        }
-                        else if (payload.eventType === 'UPDATE' && (newStatus === 'cancelled' || newStatus === 'delivered')) {
-                            // An order was just finished, add it to history
-                            const newOrderData = await fetchOrderDetails(orderId);
-                            if (newOrderData) {
-                                // Remove from list if it was already there (e.g., cancelled -> delivered)
-                                state.pastOrders = state.pastOrders.filter(o => o.id !== orderId);
-                                state.pastOrders.unshift(newOrderData);
-                            }
-                            render.history();
-                        }
-                        else if (payload.eventType === 'DELETE') {
-                            state.pastOrders = state.pastOrders.filter(o => o.id !== orderId);
-                            render.history();
-                        }
-                        
-                        // --- Update Dashboard & Analytics ---
-                        // If an order becomes 'delivered' OR an old 'delivered' order is modified
-                        if (newStatus === 'delivered' || oldStatus === 'delivered') {
-                            await dataHelpers.loadDashboardStats(); // Recalculate stats for today
-                            render.analytics(); // Re-render analytics
-                        }
-                    })
-                    .subscribe();
-            },
-
-            startCallListener() {
-                if (state.callSubscription) return;
-                state.callSubscription = supabase.channel('public:staff_calls')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'staff_calls' }, (payload) => {
-                        console.log('Staff call change received:', payload);
-                        
-                        const callId = payload.new?.id || payload.old?.id;
-                        const newStatus = payload.new?.status;
-
-                        if (payload.eventType === 'INSERT' && newStatus === 'pending') {
-                            state.staffCalls.push(payload.new);
-                            playNotification();
-                        }
-                        else if (payload.eventType === 'UPDATE') {
-                            const index = state.staffCalls.findIndex(c => c.id === callId);
-                            if (newStatus !== 'pending' && index > -1) {
-                                state.staffCalls.splice(index, 1);
-                            } else if (newStatus === 'pending' && index === -1) {
-                                state.staffCalls.push(payload.new);
-                            }
-                        }
-                        else if (payload.eventType === 'DELETE') {
-                            const index = state.staffCalls.findIndex(c => c.id === callId);
-                            if (index > -1) state.staffCalls.splice(index, 1);
-                        }
-                        render.staffCalls(); // Only re-render calls
-                    })
-                    .subscribe();
-            },
-            
-            startMenuListener() {
-                if (state.menuSubscription) return;
-                state.menuSubscription = supabase.channel('public:products')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
-                        console.log('Menu change received:', payload);
-                        const itemId = payload.new?.id || payload.old?.id;
-                        
-                        if (payload.eventType === 'INSERT') {
-                            state.menu.push(payload.new);
-                        }
-                        else if (payload.eventType === 'UPDATE') {
-                            const index = state.menu.findIndex(i => i.id === itemId);
-                            if (index > -1) state.menu[index] = payload.new;
-                        }
-                        else if (payload.eventType === 'DELETE') {
-                            state.menu = state.menu.filter(i => i.id !== itemId);
-                        }
-                        state.menu.sort((a, b) => a.name.localeCompare(b.name));
-                        render.menu();
-                    })
-                    .subscribe();
-            },
-
-            startCustomerListener() {
-                if (state.customerSubscription) return;
-                state.customerSubscription = supabase.channel('public:customers')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, (payload) => {
-                        console.log('Customer change received:', payload);
-                        const custId = payload.new?.id || payload.old?.id;
-
-                        if (payload.eventType === 'INSERT') {
-                            state.customers.push(payload.new);
-                        }
-                        else if (payload.eventType === 'UPDATE') {
-                            const index = state.customers.findIndex(c => c.id === custId);
-                            if (index > -1) state.customers[index] = payload.new;
-                        }
-                        else if (payload.eventType === 'DELETE') {
-                            state.customers = state.customers.filter(c => c.id !== custId);
-                        }
-                        state.customers.sort((a, b) => a.name.localeCompare(b.name));
-                        render.customers();
-                    })
-                    .subscribe();
-            },
-            
-            startTableListener() {
-                if (state.tableSubscription) return;
-                state.tableSubscription = supabase.channel('public:tables')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'tables' }, (payload) => {
-                        console.log('Table change received:', payload);
-                        const tableId = payload.new?.id || payload.old?.id;
-
-                        if (payload.eventType === 'INSERT') {
-                            state.tables.push(payload.new);
-                        }
-                        else if (payload.eventType === 'UPDATE') {
-                            const index = state.tables.findIndex(t => t.id === tableId);
-                            if (index > -1) state.tables[index] = payload.new;
-                        }
-                        else if (payload.eventType === 'DELETE') {
-                            state.tables = state.tables.filter(t => t.id !== tableId);
-                        }
-                        state.tables.sort((a, b) => a.table_number - b.table_number);
-                        render.tables();
-                    })
-                    .subscribe();
-            },
-            
-            startSettingsListener() {
-                if (state.settingsSubscription) return;
-                state.settingsSubscription = supabase.channel('public:app_settings')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, (payload) => {
-                        console.log('Settings change received:', payload);
-                        const settingKey = payload.new?.key || payload.old?.key;
-                        
-                        if (payload.eventType === 'INSERT') {
-                            state.appSettings.push(payload.new);
-                        }
-                        else if (payload.eventType === 'UPDATE') {
-                            const index = state.appSettings.findIndex(s => s.key === settingKey);
-                            if (index > -1) state.appSettings[index] = payload.new;
-                        }
-                        else if (payload.eventType === 'DELETE') {
-                            state.appSettings = state.appSettings.filter(s => s.key !== settingKey);
-                        }
-                        state.appSettings.sort((a, b) => a.key.localeCompare(b.key));
-                        render.settings();
-                    })
-                    .subscribe();
-            }
-        };
-
-        // Helper to fetch full order details
-        async function fetchOrderDetails(orderId) {
-            try {
-                const { data, error } = await supabase.from('orders')
-                    .select('*, tables(table_number), customers(name), order_items(*, products(name))')
-                    .eq('id', orderId)
-                    .single();
-                
-                if (error) throw error;
-                return data; // Just return the data
-            } catch (e) {
-                console.error("Failed to fetch order details:", e);
-                return null; // Return null on failure
-            }
-        }
-
-
-        // --- RENDERING ---
-        const render = {
-            all() {
-                this.dashboard();
-                this.liveKitchen();
-                this.history();
-                this.menu();
-                this.customers();
-                this.tables();
-                this.qr();
-                this.analytics();
-                this.reports();
-                this.settings();
-            },
-
-            // NEW: Renders the stats dashboard
-            dashboard() {
-                const statsContainer = $('stats-container');
-                if (!statsContainer) return;
-                
-                const { gross, net, count } = state.dashboardStats;
-                statsContainer.innerHTML = `
-                    <div class="card p-6">
-                        <h3 class="text-sm font-medium text-gray-500">Today's Gross Revenue</h3>
-                        <p class="text-3xl font-bold text-gray-900 mt-1">₹${gross.toFixed(2)}</p>
-                    </div>
-                    <div class="card p-6">
-                        <h3 class="text-sm font-medium text-gray-500">Today's Net Revenue</h3>
-                        <p class="text-3xl font-bold text-gray-900 mt-1">₹${net.toFixed(2)}</p>
-                    </div>
-                    <div class="card p-6">
-                        <h3 class="text-sm font-medium text-gray-500">Today's Delivered Orders</h3>
-                        <p class="text-3xl font-bold text-gray-900 mt-1">${count}</p>
-                    </div>
-                `;
-                
-                this.staffCalls();
-            },
-            
-            // NEW: Renders only staff calls
-            staffCalls() {
-                const callsContainer = $('staff-calls-container');
-                const noCallsMsg = $('no-calls-msg');
-                if (!callsContainer || !noCallsMsg) return;
-                
-                if (state.staffCalls.length === 0) {
-                    callsContainer.innerHTML = '';
-                    noCallsMsg.classList.remove('hidden');
-                } else {
-                    noCallsMsg.classList.add('hidden');
-                    state.staffCalls.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                    
-                    callsContainer.innerHTML = state.staffCalls.map(call => {
-                        const time = new Date(call.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        return `
-                            <div class="card p-4 call-card-new border-2 border-red-500">
-                                <div class="flex justify-between items-center mb-2">
-                                    <h3 class="text-xl font-bold">Table #${call.table_number}</h3>
-                                    <span class="text-sm text-gray-500">${time}</span>
-                                </div>
-                                <p class="text-lg text-red-700 font-semibold capitalize mb-3">${call.call_type === 'payment' ? 'Needs Payment' : 'Needs Assistance'}</p>
-                                <button class="btn btn-danger w-full" onclick="actions.resolveStaffCall('${call.id}')">
-                                    Resolve
-                                </button>
-                            </div>
-                        `;
-                    }).join('');
-                }
-            },
-
-            // NEW: Renders the 3-column kitchen view
-            liveKitchen() {
-                const colReceived = $('kitchen-col-received');
-                const colPreparing = $('kitchen-col-preparing');
-                // FIX: Removed ready column
-                const noOrdersMsg = $('no-orders-msg');
-                
-                if (!colReceived) return; // Tab not active
-                
-                // Clear columns
-                colReceived.innerHTML = '';
-                colPreparing.innerHTML = '';
-                // FIX: Removed ready column
-                
-                const received = state.kitchenOrders.filter(o => o.status === 'received');
-                const preparing = state.kitchenOrders.filter(o => o.status === 'preparing');
-                // FIX: Removed ready filter
-                
-                // FIX: Updated condition
-                if (received.length === 0 && preparing.length === 0) {
-                    noOrdersMsg.classList.remove('hidden');
-                    colReceived.appendChild(noOrdersMsg);
-                } else {
-                    if (noOrdersMsg) noOrdersMsg.classList.add('hidden');
-                }
-                
-                // Render Received
-                received.forEach(order => colReceived.appendChild(this.createKitchenCard(order, 'received')));
-                // Render Preparing
-                preparing.forEach(order => colPreparing.appendChild(this.createKitchenCard(order, 'preparing')));
-                // FIX: Removed ready render
-            },
-            
-            // NEW: Helper to create a kitchen card
-            createKitchenCard(order, status) {
-                const card = document.createElement('div');
-                card.className = `card p-4 ${status === 'received' ? 'order-card-new border-2 border-yellow-500' : ''}`;
-                
-                const items = order.order_items || [];
-                const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                
-                // FIX: Updated button logic
-                let buttonHTML = '';
-                if (status === 'received') {
-                    buttonHTML = `<button class="btn btn-primary w-full" onclick="actions.updateOrderStatus('${order.id}', 'preparing')">Start Preparing</button>`;
-                } else if (status === 'preparing') {
-                    buttonHTML = `<button class="btn btn-success w-full" onclick="actions.updateOrderStatus('${order.id}', 'delivered')">Mark as Delivered</button>`;
-                }
-                // FIX: Removed 'ready' status button
-
-                card.innerHTML = `
-                    <div class="flex justify-between items-center mb-3">
-                        <div>
-                            <h3 class="text-xl font-bold">Table #${order.tables?.table_number || 'N/A'}</h3>
-                            <p class="text-gray-600">by ${order.customers?.name || 'Guest'} at ${time}</p>
-                        </div>
-                        <button class="btn btn-secondary btn-sm" onclick="actions.updateOrderStatus('${order.id}', 'cancelled')">
-                            Cancel
-                        </button>
-                    </div>
-                    <div class="border-t border-gray-100 pt-3 mb-4 max-h-40 overflow-y-auto">
-                        <ul class="space-y-1">
-                            ${items.map(item => `
-                                <li class="flex justify-between">
-                                    <span class="text-gray-800">${item.products?.name || 'Item'}</span>
-                                    <span class="font-medium text-gray-600">x${item.quantity}</span>
-                                </li>
-                            `).join('')}
-                        </ul>
-                        ${order.special_instructions ? `
-                            <p class="mt-3 text-sm italic text-yellow-800 bg-yellow-100 p-2 rounded-md">
-                                <strong>Note:</strong> ${order.special_instructions}
-                            </p>
-                        ` : ''}
-                    </div>
-                    <div class="flex gap-2">
-                        ${buttonHTML}
-                    </div>
-                `;
-                return card;
-            },
-
-            history() {
-                const historyBody = $('history-table-body');
-                if (!historyBody) return; // Tab not active
-                
-                if (state.pastOrders.length === 0) {
-                    historyBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No past orders found.</td></tr>';
-                    return;
-                }
-                
-                // Sort by date, newest first
-                state.pastOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                
-                historyBody.innerHTML = state.pastOrders.map(order => {
-                    const time = new Date(order.created_at).toLocaleString();
-                    const statusColor = order.status === 'delivered' ? 'text-green-600' : 'text-red-600';
-                    return `
-                        <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="p-2">${time}</td>
-                            <td class="p-2">${order.customers?.name || 'Guest'}</td>
-                            <td class="p-2">${order.tables?.table_number || 'N/A'}</td>
-                            <td class="p-2">₹${(order.final_amount || 0).toFixed(2)}</td>
-                            <td class="p-2 font-semibold ${statusColor} capitalize">${order.status}</td>
-                            <td class="p-2 text-right">
-                                <button class="btn btn-danger btn-sm" onclick="actions.deleteOrder('${order.id}', '${order.customers?.name || 'Guest'}')">
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            },
-
-            menu() {
-                const menuBody = $('menu-table-body');
-                if (!menuBody) return; // Tab not active
-                
-                menuBody.innerHTML = state.menu.map(item => `
-                    <tr class="border-b border-gray-100 hover:bg-gray-50">
-                        <td class="p-2">${item.name}</td>
-                        <td class="p-2">₹${item.price}</td>
-                        <td class="p-2">${item.category}</td>
-                        <td class="p-2">${item.brand}</td>
-                        <td class="p-2">
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" ${item.is_available ? 'checked' : ''} class="sr-only peer" onchange="actions.toggleItemAvailability('${item.id}', this.checked)">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                            </label>
-                        </td>
-                        <td class="p-2 text-right">
-                            <button class="btn btn-secondary btn-sm" onclick="actions.showMenuModal('${item.id}')">Edit</button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            customers() {
-                const customersBody = $('customers-table-body');
-                if (!customersBody) return; // Tab not active
-                
-                customersBody.innerHTML = state.customers.map(cust => `
-                    <tr class="border-b border-gray-100 hover:bg-gray-50">
-                        <td class="p-2">${cust.name}</td>
-                        <td class="p-2">${cust.whatsapp_number || 'N/A'}</td>
-                        <td class="p-2">${cust.loyalty_points || 0}</td>
-                        <td class="p-2 text-right space-x-2">
-                            <button class="btn btn-secondary btn-sm" onclick="actions.showLoyaltyModal('${cust.id}', '${cust.name}', ${cust.loyalty_points || 0})">Adjust Points</button>
-                            <button class="btn btn-secondary btn-sm" onclick="actions.showCustomerModal('${cust.id}')">Edit</button>
-                            <button class="btn btn-danger btn-sm" onclick="actions.deleteCustomer('${cust.id}', '${cust.name}')">Delete</button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            tables() {
-                const tablesBody = $('tables-table-body');
-                if (!tablesBody) return; // Tab not active
-                
-                tablesBody.innerHTML = state.tables.map(table => `
-                    <tr class="border-b border-gray-100 hover:bg-gray-50">
-                        <td class="p-2 font-bold">${table.table_number}</td>
-                        <td class="p-2">${table.description || 'N/A'}</td>
-                        <td class="p-2 text-right">
-                            <button class="btn btn-secondary btn-sm" onclick="actions.showTableModal('${table.id}')">Edit</button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            qr() {
-                const container = $('qr-code-container');
-                if (!container) return; // Tab not active
-                
-                const customerAppUrl = 'https://bulb-77jm.onrender.com/';
-                container.innerHTML = ''; // Clear
-                for (let i = 1; i <= 10; i++) {
-                    const url = `${customerAppUrl}?table=${i}`;
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'card p-4 flex flex-col items-center';
-                    
-                    const canvas = document.createElement('canvas');
-                    canvas.id = `qr-canvas-${i}`;
-                    
-                    const label = document.createElement('h3');
-                    label.className = 'text-lg font-bold mt-3';
-                    label.textContent = `Table ${i}`;
-                    
-                    wrapper.appendChild(canvas);
-                    wrapper.appendChild(label);
-                    container.appendChild(wrapper);
-                    
-                    new QRious({
-                        element: canvas,
-                        value: url,
-                        size: 200,
-                        padding: 10,
-                        level: 'H'
-                    });
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', `${filename}.csv`);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                 }
             },
             
-            // NEW RENDER FUNCTIONS
-            analytics() {
-                const statsContainer = $('analytics-stats-container');
-                const topItemsContainer = $('analytics-top-items-container');
-                if (!statsContainer || !topItemsContainer) return; // Tab not active
-
-                const deliveredOrders = state.pastOrders.filter(o => o.status === 'delivered');
-                const totalRevenue = deliveredOrders.reduce((sum, order) => sum + (order.final_amount || 0), 0);
-                const totalOrders = deliveredOrders.length;
-                const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-
-                statsContainer.innerHTML = `
-                    <div class="card p-6">
-                        <h3 class="text-sm font-medium text-gray-500">Total Revenue</h3>
-                        <p class="text-3xl font-bold text-gray-900 mt-1">₹${totalRevenue.toFixed(2)}</p>
-                    </div>
-                    <div class="card p-6">
-                        <h3 class="text-sm font-medium text-gray-500">Total Delivered Orders</h3>
-                        <p class="text-3xl font-bold text-gray-900 mt-1">${totalOrders}</p>
-                    </div>
-                    <div class="card p-6">
-                        <h3 class="text-sm font-medium text-gray-500">Avg. Order Value</h3>
-                        <p class="text-3xl font-bold text-gray-900 mt-1">₹${avgOrderValue.toFixed(2)}</p>
-                    </div>
-                `;
-
-                const itemCounts = {};
-                deliveredOrders.forEach(order => {
-                    (order.order_items || []).forEach(item => {
-                        const name = item.products?.name || 'Unknown Item';
-                        itemCounts[name] = (itemCounts[name] || 0) + item.quantity;
-                    });
-                });
-                
-                const topItems = Object.entries(itemCounts)
-                                     .sort(([,a], [,b]) => b - a)
-                                     .slice(0, 5);
-                
-                if (topItems.length === 0) {
-                    topItemsContainer.innerHTML = '<p class="text-gray-500">No item data from delivered orders yet.</p>';
-                } else {
-                    topItemsContainer.innerHTML = `
-                        <ol class="list-decimal list-inside space-y-2">
-                            ${topItems.map(([name, count]) => `
-                                <li class="text-gray-700">
-                                    <span class="font-semibold">${name}</span> (${count} sold)
-                                </li>
-                            `).join('')}
-                        </ol>
-                    `;
+            async exportOrders() {
+                try {
+                    const { data, error } = await supabase.from('orders').select('*, tables(table_number), customers(name, whatsapp_number)').order('created_at', { ascending: false });
+                    if (error) throw error;
+                    const flatData = data.map(o => ({
+                        order_id: o.id,
+                        date: new Date(o.created_at).toLocaleString(),
+                        customer_name: o.customers?.name,
+                        customer_phone: o.customers?.whatsapp_number,
+                        table: o.tables?.table_number,
+                        status: o.status,
+                        subtotal: o.total_amount + o.discount_amount, // Re-calculate subtotal
+                        discount_points: o.discount_points_redeemed,
+                        discount_amount: o.discount_amount,
+                        net_total: o.total_amount, // This is net after discount, before tax
+                        gst: (o.final_amount - o.total_amount),
+                        final_amount: o.final_amount,
+                        payment_method: o.payment_method,
+                        special_instructions: o.special_instructions
+                    }));
+                    this.downloadCSV(flatData, 'bulb_cafe_orders');
+                } catch(e) {
+                    showToast(`Error exporting orders: ${e.message}`, 'error');
                 }
             },
             
-            reports() {
-                // This tab is static HTML, no render logic needed
+            exportCustomers() {
+                this.downloadCSV(state.customers, 'bulb_cafe_customers');
             },
             
-            settings() {
-                const container = $('settings-container');
-                if (!container) return; // Tab not active
-
-                if (state.appSettings.length === 0) {
-                    container.innerHTML = '<p class="text-gray-500">No application settings found.</p>';
-                    return;
-                }
-                
-                container.innerHTML = state.appSettings.map(setting => `
-                    <div class="flex flex-col md:flex-row md:items-center justify-between">
-                        <div>
-                            <label for="setting-${setting.key}" class="form-label capitalize">${setting.key.replace(/_/g, ' ')}</label>
-                            <p class="text-sm text-gray-500 -mt-2 mb-2">Key: ${setting.key}</p>
-                        </div>
-                        <div class="flex gap-2 w-full md:w-auto">
-                            <input type="text" id="setting-${setting.key}" class="form-input w-full md:w-40" value="${setting.value}">
-                            <button class="btn btn-primary" onclick="actions.saveSetting('${setting.key}')">Save</button>
-                        </div>
-                    </div>
-                `).join('');
+            exportMenu() {
+                this.downloadCSV(state.menu, 'bulb_cafe_menu');
             }
         };
 
         // --- GLOBAL MODAL CONTROLS ---
-        function showModal(html) {
+        function showModal(html, id = 'modal-default') {
             const container = $('modal-container');
-            container.innerHTML = `<div class="modal-overlay" onclick="closeModal()"><div class="modal-content" onclick="event.stopPropagation();">${html}</div></div>`;
+            container.innerHTML = `<div id="${id}-overlay" class="modal-overlay" onclick="closeModal()"><div id="${id}" class="modal-content" onclick="event.stopPropagation();">${html}</div></div>`;
             container.classList.remove('hidden');
         }
-        function showBlockingModal(html) {
+        function showBlockingModal(html, id = 'modal-blocking') {
             const container = $('modal-container');
-            container.innerHTML = `<div class="modal-overlay"><div class="modal-content" onclick="event.stopPropagation();">${html}</div></div>`;
+            container.innerHTML = `<div id="${id}-overlay" class="modal-overlay"><div id="${id}" class="modal-content">${html}</div></div>`;
             container.classList.remove('hidden');
         }
         function closeModal() {
@@ -1776,37 +1762,39 @@
         // --- GLOBAL EVENT BINDINGS ---
         $('login-form').onsubmit = (e) => {
             e.preventDefault();
-            const email = $('email').value;
-            const password = $('password').value;
-            auth.login(email, password);
+            auth.login($('email').value, $('password').value);
         };
 
-        $$('#logout-button').forEach(btn => btn.onclick = () => auth.logout());
+        $('logout-button').onclick = () => auth.logout();
 
         $('nav-links').onclick = (e) => {
             const navLink = e.target.closest('.nav-link');
-            if (navLink) {
-                const tab = navLink.dataset.tab;
-                
-                $$('.nav-link').forEach(link => link.classList.remove('active'));
-                navLink.classList.add('active');
-                
-                $$('.tab-content').forEach(content => content.classList.remove('active'));
-                $(`${tab}-tab`).classList.add('active');
-                
-                // Re-render tabs that depend on data
-                if (tab === 'analytics') {
-                    render.analytics();
-                } else if (tab === 'dashboard') {
-                    render.dashboard();
-                } else if (tab === 'live-kitchen') {
-                    render.liveKitchen();
-                }
-            }
+            if (!navLink) return;
+            
+            const tab = navLink.dataset.tab;
+            if (tab === state.activeTab) return; // Already on this tab
+            
+            state.activeTab = tab;
+            
+            $$('.nav-link').forEach(link => link.classList.remove('active'));
+            navLink.classList.add('active');
+            
+            $$('.tab-content').forEach(content => content.classList.remove('active'));
+            $(`${tab}-tab`).classList.add('active');
+            
+            // Load data for tabs that are not loaded initially
+            if (tab === 'history' && state.pastOrders.length === 0) loadHistory();
+            if (tab === 'analytics') loadAnalytics();
+            if (tab === 'dashboard') loadDashboardStats();
         };
 
         $('add-item-btn').onclick = () => actions.showMenuModal();
         $('add-table-btn').onclick = () => actions.showTableModal();
+        $('save-settings-btn').onclick = (e) => actions.saveSettings(e.currentTarget);
+        
+        $('download-orders-csv').onclick = () => actions.exportOrders();
+        $('download-customers-csv').onclick = () => actions.exportCustomers();
+        $('download-menu-csv').onclick = () => actions.exportMenu();
 
         // Make actions globally accessible for inline onclicks
         window.actions = actions;
