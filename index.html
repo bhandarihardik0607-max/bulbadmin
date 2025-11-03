@@ -637,40 +637,20 @@
         // --- ACTIONS & EVENT HANDLERS --- (MOVED HERE)
         const actions = {
             async updateOrderStatus(orderId, status) {
-                // --- OPTIMISTIC UI UPDATE ---
-                // 1. Find the order
-                const liveIndex = state.liveOrders.findIndex(o => o.id === orderId);
+                // --- REMOVED OPTIMISTIC UI UPDATE ---
+                // The real-time listener will handle all UI changes.
                 
-                if (liveIndex > -1) {
-                    if (status === 'preparing') {
-                        // 2. Update status locally
-                        state.liveOrders[liveIndex].status = 'preparing';
-                        // 3. Re-render dashboard
-                        render.dashboard();
-                    } else if (status === 'delivered' || status === 'cancelled') {
-                        // 2. Move from live to past
-                        const finishedOrder = state.liveOrders.splice(liveIndex, 1)[0];
-                        finishedOrder.status = status;
-                        state.pastOrders.unshift(finishedOrder);
-                        // 3. Re-render both
-                        render.dashboard();
-                        render.history();
-                        render.analytics();
-                    }
-                }
-                
-                // 4. Send database update in the background
+                // 1. Send database update in the background
                 try {
                     const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
                     if (error) {
                         throw error;
                     }
-                    showToast(`Order marked as ${status}.`);
-                    // Real-time listener will eventually fire and confirm, but UI is already updated
+                    showToast(`Order update sent: ${status}.`);
+                    // Real-time listener will fire and update the UI.
                 } catch (e) {
                     renderError(`Error updating order: ${e.message}`);
-                    // If error, force a full reload to re-sync state
-                    await loadInitialData();
+                    // DO NOT reload data here, as it can cause state conflicts
                 }
             },
 
@@ -1011,7 +991,7 @@
             async acceptOrderFromModal(orderId) {
                 // 1. Close modal
                 closeModal();
-                // 2. Call the optimistic update function
+                // 2. Call the update function (no longer optimistic, just sends DB command)
                 await this.updateOrderStatus(orderId, 'preparing');
             },
 
@@ -1019,7 +999,7 @@
             async cancelOrderFromModal(orderId) {
                 // 1. Close modal
                 closeModal();
-                // 2. Call the optimistic update function
+                // 2. Call the update function (no longer optimistic, just sends DB command)
                 await this.updateOrderStatus(orderId, 'cancelled');
             },
 
@@ -1760,5 +1740,6 @@
     </script>
 </body>
 </html>
+
 
 
