@@ -14,6 +14,8 @@
         }
         .modal-content {
             animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -453,13 +455,19 @@
     
     function renderTables(tables) {
          $('#admin-content').innerHTML = `
-            <h2 class="text-3xl font-bold text-gray-800 mb-6">Table Management</h2>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold text-gray-800">Table Management</h2>
+                <button onclick="window.admin.showTableModal(null)" class="bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-700">
+                    Add New Table
+                </button>
+            </div>
             <div class="bg-white shadow-lg rounded-lg overflow-hidden">
                 <table class="w-full">
                     <thead class="bg-gray-200 text-gray-700">
                         <tr>
                             <th class="py-3 px-4 text-left">Table Number</th>
                             <th class="py-3 px-4 text-left">Description</th>
+                            <th class="py-3 px-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -467,14 +475,71 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="py-3 px-4 font-medium text-gray-800">${t.table_number}</td>
                                 <td class="py-3 px-4 text-gray-600">${t.description || 'N/A'}</td>
+                                <td class="py-3 px-4 text-right">
+                                    <button onclick='window.admin.showTableModal(${JSON.stringify(t)})' class="text-blue-600 hover:underline font-medium">Edit</button>
+                                </td>
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
             </div>
-            <!-- Add Table functionality can be added here -->
         `;
     }
+
+    function showTableModal(table) {
+        const isEdit = table !== null;
+        const modalId = 'table-modal';
+        const modalHTML = `
+            <div id="${modalId}" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">${isEdit ? 'Edit Table' : 'Add New Table'}</h2>
+                    <form id="table-form">
+                        <input type="hidden" name="id" value="${isEdit ? table.id : ''}">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Table Number</label>
+                            <input type="number" name="table_number" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" value="${isEdit ? table.table_number : ''}" ${isEdit ? 'readonly' : ''} required>
+                            ${isEdit ? '<p class="text-xs text-gray-500 mt-1">Table number cannot be changed.</p>' : ''}
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700">Description</label>
+                            <input type="text" name="description" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" value="${isEdit ? (table.description || '') : ''}">
+                        </div>
+                        <div class="flex justify-end gap-4 mt-6">
+                            <button type="button" onclick="window.admin.closeModal('${modalId}')" class="bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
+                            <button type="submit" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        $('#modal-container').innerHTML = modalHTML;
+        $('#table-form').addEventListener('submit', saveTable);
+    }
+
+    async function saveTable(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const tableData = {
+            id: formData.get('id') || undefined,
+            table_number: parseInt(formData.get('table_number')),
+            description: formData.get('description'),
+        };
+
+        const { error } = await supabase
+            .from('tables')
+            .upsert(tableData)
+            .select();
+
+        if (error) {
+            showToast(`Error: ${error.message}`, true);
+        } else {
+            showToast(`Table ${tableData.id ? 'updated' : 'created'} successfully.`);
+            closeModal('table-modal');
+            fetchTables();
+        }
+    }
+
 
     // 4. Customers
     async function fetchCustomers() {
@@ -494,6 +559,7 @@
                             <th class="py-3 px-4 text-left">WhatsApp Number</th>
                             <th class="py-3 px-4 text-left">Loyalty Points</th>
                             <th class="py-3 px-4 text-left">User ID</th>
+                            <th class="py-3 px-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -503,6 +569,10 @@
                                 <td class="py-3 px-4 text-gray-600">${c.whatsapp_number || 'N/A'}</td>
                                 <td class="py-3 px-4 text-gray-600">${c.loyalty_points}</td>
                                 <td class="py-3 px-4 text-gray-500 text-xs">${c.id}</td>
+                                <td class="py-3 px-4 text-right">
+                                    <button onclick='window.admin.showCustomerHistoryModal("${c.id}")' class="text-green-600 hover:underline font-medium">History</button>
+                                    <button onclick='window.admin.showCustomerModal(${JSON.stringify(c)})' class="text-blue-600 hover:underline font-medium ml-4">Edit</button>
+                                </td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -510,6 +580,123 @@
             </div>
         `;
     }
+
+    function showCustomerModal(customer) {
+        const modalId = 'customer-modal';
+        const modalHTML = `
+            <div id="${modalId}" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Customer</h2>
+                    <form id="customer-form">
+                        <input type="hidden" name="id" value="${customer.id}">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">User ID (Read-only)</label>
+                                <input type="text" class="mt-1 w-full p-2 border border-gray-300 rounded-lg bg-gray-100" value="${customer.id}" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Name</label>
+                                <input type="text" name="name" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" value="${customer.name || ''}" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">WhatsApp Number</label>
+                                <input type="tel" name="whatsapp_number" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" value="${customer.whatsapp_number || ''}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Loyalty Points</label>
+                                <input type="number" name="loyalty_points" class="mt-1 w-full p-2 border border-gray-300 rounded-lg" value="${customer.loyalty_points || 0}" required>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-4 mt-6">
+                            <button type="button" onclick="window.admin.closeModal('${modalId}')" class="bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
+                            <button type="submit" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        $('#modal-container').innerHTML = modalHTML;
+        $('#customer-form').addEventListener('submit', saveCustomer);
+    }
+
+    async function saveCustomer(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const customerData = {
+            id: formData.get('id'),
+            name: formData.get('name'),
+            whatsapp_number: formData.get('whatsapp_number'),
+            loyalty_points: parseInt(formData.get('loyalty_points')),
+        };
+
+        const { error } = await supabase
+            .from('customers')
+            .update(customerData)
+            .eq('id', customerData.id);
+
+        if (error) {
+            showToast(`Error: ${error.message}`, true);
+        } else {
+            showToast(`Customer updated successfully.`);
+            closeModal('customer-modal');
+            fetchCustomers();
+        }
+    }
+
+    async function showCustomerHistoryModal(customerId) {
+        const modalId = 'customer-history-modal';
+        showToast('Fetching order history...', false, 2000);
+
+        const { data, error } = await supabase
+            .from('orders')
+            .select(`
+                *,
+                order_items(quantity, product_name)
+            `)
+            .eq('customer_id', customerId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            showToast(`Error: ${error.message}`, true);
+            return;
+        }
+
+        let historyHTML = '<p class="text-gray-500">No orders found for this customer.</p>';
+        if (data && data.length > 0) {
+            historyHTML = data.map(order => `
+                <div class="bg-gray-100 p-4 rounded-lg border border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold text-gray-800">Order ID: ${order.id.slice(0, 8)}...</span>
+                        <span class="font-bold text-lg">₹${order.final_amount.toFixed(2)}</span>
+                    </div>
+                    <p class="text-sm text-gray-500">${new Date(order.created_at).toLocaleString()}</p>
+                    <p class="text-sm text-gray-600 capitalize mt-1">Status: ${order.status}</p>
+                    <ul class="mt-2 pl-4 list-disc space-y-1">
+                        ${order.order_items.map(item => `
+                            <li class="text-sm text-gray-700">
+                                <span class="font-medium">${item.quantity}x</span> ${item.product_name || 'Item'}
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `).join('<hr class="my-4">');
+        }
+
+        const modalHTML = `
+            <div id="${modalId}" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Order History</h2>
+                    <div class="space-y-4">${historyHTML}</div>
+                    <div class="flex justify-end mt-6">
+                        <button type="button" onclick="window.admin.closeModal('${modalId}')" class="bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded-lg hover:bg-gray-300">Close</button>
+                    </div>
+                </div>
+            </div>
+        `;
+         $('#modal-container').innerHTML = modalHTML;
+    }
+
 
     // --- UTILITIES ---
     function renderError(message) {
@@ -563,9 +750,13 @@
         updateOrderStatus,
         showProductModal,
         deleteProduct,
-        closeModal
+        closeModal,
+        showTableModal,
+        showCustomerModal,
+        showCustomerHistoryModal
     };
 
 </script>
 </body>
 </html>
+
