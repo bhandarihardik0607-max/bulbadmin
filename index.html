@@ -202,7 +202,7 @@
                         <h2 class="text-2xl font-bold text-gray-800">Live Orders</h2>
                         <div id="live-orders-container" class="space-y-4">
                             <!-- Orders will be injected here -->
-                            <p id="no-orders-msg" class="text-gray-500">No active orders.</p>
+                            <div id="no-orders-msg" class="text-gray-500">No active orders.</div>
                         </div>
                     </div>
                     <!-- Staff Calls -->
@@ -210,7 +210,7 @@
                         <h2 class="text-2xl font-bold text-gray-800">Live Staff Calls</h2>
                         <div id="staff-calls-container" class="space-y-4">
                             <!-- Staff calls will be injected here -->
-                            <p id="no-calls-msg" class="text-gray-500">No pending staff calls.</p>
+                            <div id="no-calls-msg" class="text-gray-500">No pending staff calls.</div>
                         </div>
                     </div>
                 </div>
@@ -383,7 +383,7 @@
                 // Now that supabase is initialized, check auth state
                 auth.checkSession();
             } catch (e) {
-                console.error("CRITICAL: SupABASE initialization failed.", e);
+                console.error("CRITICAL: SUPABASE initialization failed.", e);
                 renderError(`CRITICAL: App failed to start. ${e.message}`, false);
             }
         });
@@ -577,11 +577,13 @@
             dashboard() {
                 // Render Live Orders
                 const ordersContainer = $('live-orders-container');
+                const noOrdersMsg = $('no-orders-msg');
+                
                 if (state.liveOrders.length === 0) {
-                    $('no-orders-msg').classList.remove('hidden');
-                    ordersContainer.innerHTML = '';
+                    if(noOrdersMsg) noOrdersMsg.classList.remove('hidden');
+                    ordersContainer.innerHTML = ''; // Clear orders
                 } else {
-                    $('no-orders-msg').classList.add('hidden');
+                    if(noOrdersMsg) noOrdersMsg.classList.add('hidden');
                     // Sort: received (newest first) then preparing (newest first)
                     state.liveOrders.sort((a, b) => {
                         if (a.status === 'received' && b.status !== 'received') return -1;
@@ -639,11 +641,13 @@
 
                 // Render Staff Calls
                 const callsContainer = $('staff-calls-container');
+                const noCallsMsg = $('no-calls-msg');
+                
                 if (state.staffCalls.length === 0) {
-                    $('no-calls-msg').classList.remove('hidden');
+                    if(noCallsMsg) noCallsMsg.classList.remove('hidden');
                     callsContainer.innerHTML = '';
                 } else {
-                    $('no-calls-msg').classList.add('hidden');
+                    if(noCallsMsg) noCallsMsg.classList.add('hidden');
                     state.staffCalls.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     
                     callsContainer.innerHTML = state.staffCalls.map(call => {
