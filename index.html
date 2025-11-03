@@ -58,6 +58,9 @@
             transition: all 0.2s ease;
             cursor: pointer;
             border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         .btn-primary {
             background-color: var(--brand-blue);
@@ -87,6 +90,10 @@
         }
         .btn-success:hover {
             background-color: #16a34a;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
         }
         .modal-overlay {
             position: fixed;
@@ -139,6 +146,18 @@
             0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
         }
+        
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -149,6 +168,11 @@
     <!-- Global Error Toast -->
     <div id="error-toast" class="hidden fixed top-4 right-4 z-[100] bg-red-600 text-white p-4 rounded-lg shadow-lg">
         <p id="error-message"></p>
+    </div>
+    
+    <!-- Global Success Toast -->
+    <div id="success-toast" class="hidden fixed top-4 right-4 z-[100] bg-green-600 text-white p-4 rounded-lg shadow-lg">
+        <p id="success-message"></p>
     </div>
 
     <!-- Login Screen -->
@@ -182,7 +206,7 @@
             </div>
             <nav id="nav-links" class="flex flex-col space-y-2 p-4">
                 <button class="nav-link active" data-tab="dashboard">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18M3 6h18M3 18h18"></path></svg>
+                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
                     Dashboard
                 </button>
                 <button class="nav-link" data-tab="history">
@@ -202,10 +226,26 @@
                     Tables
                 </button>
                 <button class="nav-link" data-tab="qr">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.5v15h15V18m-15-3.75h15m-15-3.75h15M3.75 4.5h15v3.75m-15 9V4.5m0 15h3.75m-3.75 0V18m0 0h3.75m0 0v3.75m0-3.75h3.75m0 0v3.75M7.5 18h3.75m0 0v3.75m0-3.75h3.75M11.25 18v3.75m0-3.75h3.75m0 0v3.75m0-3.75h3.75m0 0v3.75M15 18h3.75m0 0v3.75m0-3.75h3.75m0 0V18m0 0h-3.75m0 0V18m0 0h-3.75m0 0V18m0 0h-3.75m0 0V18m0 0h-3.75M15 18h-3.75m0 0v-3.75m0 0h-3.75m0 0V18m0 0H7.5m0 0v-3.75m0 0h3.75M11.25 14.25h3.75m0 0v-3.75m0 0h-3.75m0 0v3.75m0 0H11.25m0 0V10.5M7.5 10.5v3.75m0 0h3.75m0 0V10.5m0 0H7.5m0 0V6.75m0 0h3.75M11.25 6.75h3.75m0 0v3.75m0 0h-3.75m0 0V6.75m0 0H11.25m3.75 3.75h3.75m0 0v3.75m0 0h-3.75m0 0v-3.75m0 0h3.75M15 14.25v-3.75" /></svg>
                     QR Generator
                 </button>
+                <!-- NEW TABS -->
+                <button class="nav-link" data-tab="analytics">
+                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m1-3 1 3m0 0-1 3m1-3 1 3m0 0h-3.75m6.75-3h-3.75z" /></svg>
+                    Analytics
+                </button>
+                <button class="nav-link" data-tab="reports">
+                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                    Reports
+                </button>
+                <button class="nav-link" data-tab="settings">
+                    <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-1.007 1.11-1.226m-2.22 0a2.25 2.25 0 0 0-2.22 2.22v.946c0 .329-.055.658-.168.975a.75.75 0 0 1-1.472.235A2.25 2.25 0 0 0 5.25 6.75H3.75a2.25 2.25 0 0 0-2.25 2.25v.946c0 .329.055.658.168.975a.75.75 0 0 1-1.472.235A2.25 2.25 0 0 0 .75 13.25v1.5c0 .621.504 1.125 1.125 1.125h1.5a2.25 2.25 0 0 0 2.25-2.25v-.946c0-.329.055-.658.168-.975a.75.75 0 0 1 1.472-.235A2.25 2.25 0 0 0 9.75 13.25h4.5a2.25 2.25 0 0 0 2.25-2.25v-.946c0-.329-.055-.658-.168-.975a.75.75 0 0 1 1.472-.235A2.25 2.25 0 0 0 18.75 11.25h1.5a2.25 2.25 0 0 0 2.25-2.25v-1.5a2.25 2.25 0 0 0-2.25-2.25h-1.5a2.25 2.25 0 0 0-2.25 2.25v.946c0 .329-.055.658-.168.975a.75.75 0 0 1-1.472-.235A2.25 2.25 0 0 0 14.25 6.75h-4.5a2.25 2.25 0 0 0-2.25 2.25v.946c0 .329.055.658.168.975a.75.75 0 0 1-1.472.235A2.25 2.25 0 0 0 5.25 11.25H3.75a2.25 2.25 0 0 0-2.25 2.25v1.5c0 .621.504 1.125 1.125 1.125h1.5a2.25 2.25 0 0 0 2.25-2.25v-.946a.75.75 0 0 1 .168-.975.75.75 0 0 1 1.472-.235a2.25 2.25 0 0 0 2.25 2.25h4.5a2.25 2.25 0 0 0 2.25-2.25v-.946a.75.75 0 0 1 .168-.975.75.75 0 0 1 1.472-.235a2.25 2.25 0 0 0 2.25 2.25h1.5a2.25 2.25 0 0 0 2.25-2.25v-1.5a2.25 2.25 0 0 0-2.25-2.25h-1.5a2.25 2.25 0 0 0-2.25 2.25v.946c0 .329-.055.658-.168.975a.75.75 0 0 1-1.472-.235A2.25 2.25 0 0 0 14.25 13.25h-4.5a2.25 2.25 0 0 0-2.25-2.25v-.946a.75.75 0 0 1-.168-.975.75.75 0 0 1-1.472.235A2.25 2.25 0 0 0 5.25 6.75H3.75a2.25 2.25 0 0 0-2.25 2.25v.946c0 .329.055.658.168.975a.75.75 0 0 1-1.472.235A2.25 2.25 0 0 0 .75 11.25v-1.5a2.25 2.25 0 0 0 2.25-2.25h1.5A2.25 2.25 0 0 0 6.75 9v-.946a2.25 2.25 0 0 0-2.25-2.25H3.75z" /></svg>
+                    Settings
+                </button>
             </nav>
+            <div class="mt-auto p-4">
+                <button id="logout-button" class="btn btn-secondary w-full">Logout</button>
+            </div>
         </aside>
 
         <!-- Main Content Area -->
@@ -214,7 +254,7 @@
             <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
                 <div class="flex justify-end items-center h-16 px-4 sm:px-6 lg:px-8">
                     <span id="admin-email" class="text-gray-700 font-medium mr-4"></span>
-                    <button id="logout-button" class="btn btn-secondary">Logout</button>
+                    <!-- Logout button moved to sidebar -->
                 </div>
             </header>
 
@@ -253,7 +293,7 @@
                                     <th class="p-2 text-left font-semibold text-gray-600">Table</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Total</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Status</th>
-                                    <th class="p-2 text-right font-semibold text-gray-600">Actions</th> <!-- New Header -->
+                                    <th class="p-2 text-right font-semibold text-gray-600">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="history-table-body">
@@ -340,6 +380,52 @@
                         <!-- QR codes will be injected here -->
                     </div>
                 </div>
+                
+                <!-- NEW: Analytics -->
+                <div id="analytics-tab" class="tab-content space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Analytics</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="analytics-stats-container">
+                        <!-- Analytics stats will be injected here -->
+                    </div>
+                    <div class="card p-4">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Top 5 Selling Items</h3>
+                        <div id="analytics-top-items-container">
+                            <!-- Top items will be injected here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- NEW: Reports -->
+                <div id="reports-tab" class="tab-content space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Reports</h2>
+                    <div class="card p-6 space-y-4">
+                        <p class="text-gray-600">Download your store data in CSV format.</p>
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <button class="btn btn-primary" onclick="actions.exportOrderHistoryCSV()">
+                                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                Export Order History
+                            </button>
+                            <button class="btn btn-primary" onclick="actions.exportCustomerListCSV()">
+                                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                Export Customer List
+                            </button>
+                            <button class="btn btn-primary" onclick="actions.exportMenuCSV()">
+                                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                Export Menu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- NEW: Settings -->
+                <div id="settings-tab" class="tab-content space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-800">App Settings</h2>
+                    <div class="card p-6">
+                        <div id="settings-container" class="space-y-6">
+                            <!-- Settings will be injected here -->
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
@@ -390,32 +476,43 @@
         const state = {
             user: null,
             liveOrders: [],
-            pastOrders: [], // <-- NEW
+            pastOrders: [],
             staffCalls: [],
             menu: [],
             customers: [],
             tables: [],
+            appSettings: [], // NEW
             orderSubscription: null,
             callSubscription: null,
+            menuSubscription: null, // NEW
+            customerSubscription: null, // NEW
+            tableSubscription: null, // NEW
+            settingsSubscription: null, // NEW
+            orderItemsSubscription: null, // NEW: Listener for items
         };
 
         // --- DOM SELECTORS ---
         const $ = (id) => document.getElementById(id);
         const $$ = (sel) => document.querySelectorAll(sel);
 
-        // --- ERROR HANDLING ---
-        function renderError(message, autoHide = true) {
-            console.error(message);
-            const toast = $('error-toast');
-            const msgEl = $('error-message');
+        // --- TOAST/ERROR HANDLING ---
+        function showToast(message, type = 'success') {
+            const toast = type === 'success' ? $('success-toast') : $('error-toast');
+            const msgEl = type === 'success' ? $('success-message') : $('error-message');
+            
+            if (!toast || !msgEl) return;
+            
             msgEl.textContent = message;
             toast.classList.remove('hidden');
 
-            if (autoHide) {
-                setTimeout(() => {
-                    toast.classList.add('hidden');
-                }, 5000);
-            }
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function renderError(message, autoHide = true) {
+            console.error(message);
+            showToast(message, 'error');
         }
 
         // --- INITIALIZATION ---
@@ -428,7 +525,6 @@
                 supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 console.log("Supabase client initialized.");
                 
-                // Now that supabase is initialized, check auth state
                 auth.checkSession();
             } catch (e) {
                 console.error("CRITICAL: SUPABASE initialization failed.", e);
@@ -447,7 +543,6 @@
                     if (data.session) {
                         state.user = data.session.user;
                         this.showApp();
-                        // Initialize audio context on first interaction
                         document.body.addEventListener('click', () => {
                             if (!hasInteracted) {
                                 initAudio();
@@ -463,19 +558,28 @@
                 }
             },
             async login(email, password) {
+                const btn = $('login-button');
+                btn.disabled = true;
+                btn.innerHTML = '<div class="spinner"></div>';
+                
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                
+                btn.disabled = false;
+                btn.innerHTML = 'Sign In';
+                
                 if (error) {
                     renderError(error.message);
                 } else {
                     state.user = data.user;
                     this.showApp();
-                    // Initialize audio context on first interaction
                     document.body.addEventListener('click', initAudio, { once: true });
                 }
             },
             async logout() {
                 await supabase.auth.signOut();
                 state.user = null;
+                // Stop all listeners
+                listeners.stopAll();
                 this.showLogin();
             },
             showLogin() {
@@ -487,25 +591,23 @@
                 $('app').classList.remove('hidden');
                 $('admin-email').textContent = state.user.email;
                 
-                // Initial data load
                 await loadInitialData();
                 
-                // Start real-time listeners
-                listeners.startOrderListener();
-                listeners.startCallListener();
+                // Start all real-time listeners
+                listeners.startAll();
             }
         };
 
         // --- DATA LOADING ---
         async function loadInitialData() {
             try {
-                // Fetch ALL orders, not just live ones
-                const [ordersRes, callsRes, menuRes, customersRes, tablesRes] = await Promise.all([
-                    supabase.from('orders').select('*, tables(table_number), customers(name), order_items(product_name, quantity)').order('created_at', { ascending: false }), // Get all, newest first
+                const [ordersRes, callsRes, menuRes, customersRes, tablesRes, settingsRes] = await Promise.all([
+                    supabase.from('orders').select('*, tables(table_number), customers(name), order_items(product_name, quantity)').order('created_at', { ascending: false }),
                     supabase.from('staff_calls').select('*').eq('status', 'pending').order('created_at', { ascending: true }),
                     supabase.from('products').select('*').order('name', { ascending: true }),
                     supabase.from('customers').select('*').order('name', { ascending: true }),
-                    supabase.from('tables').select('*').order('table_number', { ascending: true })
+                    supabase.from('tables').select('*').order('table_number', { ascending: true }),
+                    supabase.from('app_settings').select('*').order('key', { ascending: true }) // NEW
                 ]);
 
                 if (ordersRes.error) throw ordersRes.error;
@@ -513,15 +615,15 @@
                 if (menuRes.error) throw menuRes.error;
                 if (customersRes.error) throw customersRes.error;
                 if (tablesRes.error) throw tablesRes.error;
+                if (settingsRes.error) throw settingsRes.error; // NEW
 
-                // Split orders into live and past
                 state.liveOrders = ordersRes.data.filter(o => o.status === 'received' || o.status === 'preparing');
                 state.pastOrders = ordersRes.data.filter(o => o.status === 'delivered' || o.status === 'cancelled');
-                
                 state.staffCalls = callsRes.data;
                 state.menu = menuRes.data;
                 state.customers = customersRes.data;
                 state.tables = tablesRes.data;
+                state.appSettings = settingsRes.data; // NEW
 
                 render.all();
 
@@ -533,47 +635,95 @@
 
         // --- REAL-TIME LISTENERS ---
         const listeners = {
+            startAll() {
+                this.startOrderListener();
+                this.startCallListener();
+                this.startMenuListener();
+                this.startCustomerListener();
+                this.startTableListener();
+                this.startSettingsListener();
+                this.startOrderItemsListener(); // ADDED
+            },
+            
+            stopAll() {
+                if (state.orderSubscription) supabase.removeChannel(state.orderSubscription);
+                if (state.callSubscription) supabase.removeChannel(state.callSubscription);
+                if (state.menuSubscription) supabase.removeChannel(state.menuSubscription);
+                if (state.customerSubscription) supabase.removeChannel(state.customerSubscription);
+                if (state.tableSubscription) supabase.removeChannel(state.tableSubscription);
+                if (state.settingsSubscription) supabase.removeChannel(state.settingsSubscription);
+                if (state.orderItemsSubscription) supabase.removeChannel(state.orderItemsSubscription); // ADDED
+            },
+            
             startOrderListener() {
                 if (state.orderSubscription) return;
                 state.orderSubscription = supabase.channel('public:orders')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async (payload) => { // Made async
                         console.log('Order change received:', payload);
                         
-                        // New order
-                        if (payload.eventType === 'INSERT' && (payload.new.status === 'received' || payload.new.status === 'preparing')) {
-                            // Fetch full order details to include relations
-                            fetchOrderDetails(payload.new.id);
+                        if (payload.eventType === 'INSERT' && payload.new.status === 'received') {
+                            // MODIFICATION START: Show blocking modal
                             playNotification();
+                            // Fetch full details first
+                            const { data, error } = await supabase.from('orders')
+                                .select('*, tables(table_number), customers(name), order_items(product_name, quantity)')
+                                .eq('id', payload.new.id)
+                                .single();
+                            
+                            if (data) {
+                                // Add to live orders
+                                if (!state.liveOrders.some(o => o.id === data.id)) {
+                                    state.liveOrders.push(data);
+                                }
+                                render.dashboard(); // Render it on the dashboard (so it's there if modal is missed)
+                                
+                                // NOW, check if we should show the modal
+                                if (!$('modal-container').classList.contains('hidden')) {
+                                    // A modal is already open, don't show another one over it.
+                                    console.log("New order received, but modal is already open.");
+                                } else {
+                                    // No modal is open, show the new order modal.
+                                    actions.showNewOrderModal(data);
+                                }
+                            }
+                            // MODIFICATION END
                         }
-                        // Updated order
                         else if (payload.eventType === 'UPDATE') {
                             const updatedOrder = payload.new;
                             const index = state.liveOrders.findIndex(o => o.id === updatedOrder.id);
                             
-                            // If it's a live order
                             if (index > -1) {
-                                // If order is finished (delivered or cancelled)
                                 if (updatedOrder.status !== 'received' && updatedOrder.status !== 'preparing') {
-                                    // Remove from live, add to past
-                                    const finishedOrder = state.liveOrders.splice(index, 1)[0]; // Get full object
-                                    finishedOrder.status = updatedOrder.status; // Update status
-                                    state.pastOrders.unshift(finishedOrder); // Add to start of history
-                                    render.history(); // Re-render history
+                                    const finishedOrder = state.liveOrders.splice(index, 1)[0];
+                                    // Manually update fields from payload
+                                    Object.assign(finishedOrder, updatedOrder);
+                                    state.pastOrders.unshift(finishedOrder);
+                                    render.history();
+                                    render.analytics(); // Update analytics
                                 } else {
-                                    // Update the existing order in the list (e.g., received -> preparing)
                                     fetchOrderDetails(updatedOrder.id, index);
                                 }
                             }
-                            // If a non-live order was updated TO be live (e.g., from cancelled)
                             else if (updatedOrder.status === 'received' || updatedOrder.status === 'preparing') {
                                 fetchOrderDetails(updatedOrder.id);
-                                // Also remove from past orders if it was there
                                 const pastIndex = state.pastOrders.findIndex(o => o.id === updatedOrder.id);
                                 if (pastIndex > -1) {
                                     state.pastOrders.splice(pastIndex, 1);
                                     render.history();
+                                    render.analytics(); // Update analytics
                                 }
                             }
+                        }
+                        else if (payload.eventType === 'DELETE') {
+                            // Handle deletion from both lists
+                            const liveIndex = state.liveOrders.findIndex(o => o.id === payload.old.id);
+                            if (liveIndex > -1) state.liveOrders.splice(liveIndex, 1);
+                            
+                            const pastIndex = state.pastOrders.findIndex(o => o.id === payload.old.id);
+                            if (pastIndex > -1) state.pastOrders.splice(pastIndex, 1);
+                            
+                            render.history();
+                            render.analytics(); // Update analytics
                         }
                         render.dashboard();
                     })
@@ -598,10 +748,127 @@
                                 state.staffCalls.push(payload.new);
                             }
                         }
+                        else if (payload.eventType === 'DELETE') {
+                            const index = state.staffCalls.findIndex(c => c.id === payload.old.id);
+                            if (index > -1) state.staffCalls.splice(index, 1);
+                        }
                         render.dashboard();
                     })
                     .subscribe();
             },
+            
+            // NEW REALTIME LISTENERS
+            startMenuListener() {
+                if (state.menuSubscription) return;
+                state.menuSubscription = supabase.channel('public:products')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
+                        console.log('Menu change received:', payload);
+                        if (payload.eventType === 'INSERT') {
+                            state.menu.push(payload.new);
+                        }
+                        else if (payload.eventType === 'UPDATE') {
+                            const index = state.menu.findIndex(i => i.id === payload.new.id);
+                            if (index > -1) state.menu[index] = payload.new;
+                        }
+                        else if (payload.eventType === 'DELETE') {
+                            state.menu = state.menu.filter(i => i.id !== payload.old.id);
+                        }
+                        state.menu.sort((a, b) => a.name.localeCompare(b.name));
+                        render.menu();
+                    })
+                    .subscribe();
+            },
+            
+            // NEW: Listener to catch incoming order items and fix race condition
+            startOrderItemsListener() {
+                if (state.orderItemsSubscription) return;
+                state.orderItemsSubscription = supabase.channel('public:order_items')
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'order_items' }, (payload) => {
+                        console.log('Order item change received:', payload);
+                        const orderId = payload.new.order_id;
+                        
+                        // Find the order index
+                        const orderIndex = state.liveOrders.findIndex(o => o.id === orderId);
+                        
+                        if (orderIndex > -1) {
+                            const liveOrder = state.liveOrders[orderIndex];
+                            
+                            // Clear existing timer to debounce
+                            if (liveOrder.fetchTimer) clearTimeout(liveOrder.fetchTimer);
+                            
+                            // Set a new timer to re-fetch after 500ms
+                            liveOrder.fetchTimer = setTimeout(() => {
+                                console.log(`Refetching order ${orderId} due to new items.`);
+                                fetchOrderDetails(orderId, orderIndex);
+                                liveOrder.fetchTimer = null; // Clear timer after execution
+                            }, 500); // 500ms debounce
+                        }
+                    })
+                    .subscribe();
+            },
+
+            startCustomerListener() {
+                if (state.customerSubscription) return;
+                state.customerSubscription = supabase.channel('public:customers')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, (payload) => {
+                        console.log('Customer change received:', payload);
+                        if (payload.eventType === 'INSERT') {
+                            state.customers.push(payload.new);
+                        }
+                        else if (payload.eventType === 'UPDATE') {
+                            const index = state.customers.findIndex(c => c.id === payload.new.id);
+                            if (index > -1) state.customers[index] = payload.new;
+                        }
+                        else if (payload.eventType === 'DELETE') {
+                            state.customers = state.customers.filter(c => c.id !== payload.old.id);
+                        }
+                        state.customers.sort((a, b) => a.name.localeCompare(b.name));
+                        render.customers();
+                    })
+                    .subscribe();
+            },
+            
+            startTableListener() {
+                if (state.tableSubscription) return;
+                state.tableSubscription = supabase.channel('public:tables')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'tables' }, (payload) => {
+                        console.log('Table change received:', payload);
+                        if (payload.eventType === 'INSERT') {
+                            state.tables.push(payload.new);
+                        }
+                        else if (payload.eventType === 'UPDATE') {
+                            const index = state.tables.findIndex(t => t.id === payload.new.id);
+                            if (index > -1) state.tables[index] = payload.new;
+                        }
+                        else if (payload.eventType === 'DELETE') {
+                            state.tables = state.tables.filter(t => t.id !== payload.old.id);
+                        }
+                        state.tables.sort((a, b) => a.table_number - b.table_number);
+                        render.tables();
+                    })
+                    .subscribe();
+            },
+            
+            startSettingsListener() {
+                if (state.settingsSubscription) return;
+                state.settingsSubscription = supabase.channel('public:app_settings')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, (payload) => {
+                        console.log('Settings change received:', payload);
+                        if (payload.eventType === 'INSERT') {
+                            state.appSettings.push(payload.new);
+                        }
+                        else if (payload.eventType === 'UPDATE') {
+                            const index = state.appSettings.findIndex(s => s.key === payload.new.key);
+                            if (index > -1) state.appSettings[index] = payload.new;
+                        }
+                        else if (payload.eventType === 'DELETE') {
+                            state.appSettings = state.appSettings.filter(s => s.key !== payload.old.key);
+                        }
+                        state.appSettings.sort((a, b) => a.key.localeCompare(b.key));
+                        render.settings();
+                    })
+                    .subscribe();
+            }
         };
 
         // Helper to fetch full order details
@@ -613,11 +880,13 @@
                     .single();
                 
                 if (error) throw error;
+                if (!data) return; // Order might have been deleted
 
                 if (updateIndex > -1) {
+                    // Preserve the fetchTimer property if it exists
+                    data.fetchTimer = state.liveOrders[updateIndex]?.fetchTimer;
                     state.liveOrders[updateIndex] = data; // Replace existing
                 } else {
-                    // Add new, but check for duplicates first
                     if (!state.liveOrders.some(o => o.id === data.id)) {
                         state.liveOrders.push(data);
                     }
@@ -636,24 +905,27 @@
         const render = {
             all() {
                 this.dashboard();
-                this.history(); // <-- NEW
+                this.history();
                 this.menu();
                 this.customers();
                 this.tables();
                 this.qr();
+                this.analytics(); // NEW
+                this.reports(); // NEW
+                this.settings(); // NEW
             },
 
             dashboard() {
-                // Render Live Orders
                 const ordersContainer = $('live-orders-container');
                 const noOrdersMsg = $('no-orders-msg');
                 
+                if (!ordersContainer || !noOrdersMsg) return; // Tab not active
+                
                 if (state.liveOrders.length === 0) {
-                    ordersContainer.innerHTML = ''; // Clear old orders
-                    if(noOrdersMsg) noOrdersMsg.classList.remove('hidden');
+                    ordersContainer.innerHTML = '';
+                    noOrdersMsg.classList.remove('hidden');
                 } else {
-                    if(noOrdersMsg) noOrdersMsg.classList.add('hidden');
-                    // Sort: received (newest first) then preparing (newest first)
+                    noOrdersMsg.classList.add('hidden');
                     state.liveOrders.sort((a, b) => {
                         if (a.status === 'received' && b.status !== 'received') return -1;
                         if (a.status !== 'received' && b.status === 'received') return 1;
@@ -708,15 +980,16 @@
                     }).join('');
                 }
 
-                // Render Staff Calls
                 const callsContainer = $('staff-calls-container');
                 const noCallsMsg = $('no-calls-msg');
                 
+                if (!callsContainer || !noCallsMsg) return; // Tab not active
+                
                 if (state.staffCalls.length === 0) {
-                    callsContainer.innerHTML = ''; // Clear old calls
-                    if(noCallsMsg) noCallsMsg.classList.remove('hidden');
+                    callsContainer.innerHTML = '';
+                    noCallsMsg.classList.remove('hidden');
                 } else {
-                    if(noCallsMsg) noCallsMsg.classList.add('hidden');
+                    noCallsMsg.classList.add('hidden');
                     state.staffCalls.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     
                     callsContainer.innerHTML = state.staffCalls.map(call => {
@@ -737,9 +1010,10 @@
                 }
             },
 
-            // NEW Render Function for Order History
             history() {
                 const historyBody = $('history-table-body');
+                if (!historyBody) return; // Tab not active
+                
                 if (state.pastOrders.length === 0) {
                     historyBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No past orders found.</td></tr>';
                     return;
@@ -748,7 +1022,7 @@
                     const time = new Date(order.created_at).toLocaleString();
                     const statusColor = order.status === 'delivered' ? 'text-green-600' : 'text-red-600';
                     return `
-                        <tr class="border-b border-gray-100">
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
                             <td class="p-2">${time}</td>
                             <td class="p-2">${order.customers?.name || 'Guest'}</td>
                             <td class="p-2">${order.tables?.table_number || 'N/A'}</td>
@@ -766,8 +1040,10 @@
 
             menu() {
                 const menuBody = $('menu-table-body');
+                if (!menuBody) return; // Tab not active
+                
                 menuBody.innerHTML = state.menu.map(item => `
-                    <tr class="border-b border-gray-100">
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
                         <td class="p-2">${item.name}</td>
                         <td class="p-2">₹${item.price}</td>
                         <td class="p-2">${item.category}</td>
@@ -787,8 +1063,10 @@
 
             customers() {
                 const customersBody = $('customers-table-body');
+                if (!customersBody) return; // Tab not active
+                
                 customersBody.innerHTML = state.customers.map(cust => `
-                    <tr class="border-b border-gray-100">
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
                         <td class="p-2">${cust.name}</td>
                         <td class="p-2">${cust.whatsapp_number || 'N/A'}</td>
                         <td class="p-2">${cust.loyalty_points || 0}</td>
@@ -803,8 +1081,10 @@
 
             tables() {
                 const tablesBody = $('tables-table-body');
+                if (!tablesBody) return; // Tab not active
+                
                 tablesBody.innerHTML = state.tables.map(table => `
-                    <tr class="border-b border-gray-100">
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
                         <td class="p-2 font-bold">${table.table_number}</td>
                         <td class="p-2">${table.description || 'N/A'}</td>
                         <td class="p-2 text-right">
@@ -816,6 +1096,8 @@
 
             qr() {
                 const container = $('qr-code-container');
+                if (!container) return; // Tab not active
+                
                 const customerAppUrl = 'https://bulb-77jm.onrender.com/';
                 container.innerHTML = ''; // Clear
                 for (let i = 1; i <= 10; i++) {
@@ -842,6 +1124,86 @@
                         level: 'H'
                     });
                 }
+            },
+            
+            // NEW RENDER FUNCTIONS
+            analytics() {
+                const statsContainer = $('analytics-stats-container');
+                const topItemsContainer = $('analytics-top-items-container');
+                if (!statsContainer || !topItemsContainer) return; // Tab not active
+
+                const deliveredOrders = state.pastOrders.filter(o => o.status === 'delivered');
+                const totalRevenue = deliveredOrders.reduce((sum, order) => sum + (order.final_amount || 0), 0);
+                const totalOrders = deliveredOrders.length;
+                const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+                statsContainer.innerHTML = `
+                    <div class="card p-6">
+                        <h3 class="text-sm font-medium text-gray-500">Total Revenue</h3>
+                        <p class="text-3xl font-bold text-gray-900 mt-1">₹${totalRevenue.toFixed(2)}</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-sm font-medium text-gray-500">Total Delivered Orders</h3>
+                        <p class="text-3xl font-bold text-gray-900 mt-1">${totalOrders}</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-sm font-medium text-gray-500">Avg. Order Value</h3>
+                        <p class="text-3xl font-bold text-gray-900 mt-1">₹${avgOrderValue.toFixed(2)}</p>
+                    </div>
+                `;
+
+                const itemCounts = {};
+                deliveredOrders.forEach(order => {
+                    (order.order_items || []).forEach(item => {
+                        const name = item.product_name || 'Unknown Item';
+                        itemCounts[name] = (itemCounts[name] || 0) + item.quantity;
+                    });
+                });
+                
+                const topItems = Object.entries(itemCounts)
+                                     .sort(([,a], [,b]) => b - a)
+                                     .slice(0, 5);
+                
+                if (topItems.length === 0) {
+                    topItemsContainer.innerHTML = '<p class="text-gray-500">No item data from delivered orders yet.</p>';
+                } else {
+                    topItemsContainer.innerHTML = `
+                        <ol class="list-decimal list-inside space-y-2">
+                            ${topItems.map(([name, count]) => `
+                                <li class="text-gray-700">
+                                    <span class="font-semibold">${name}</span> (${count} sold)
+                                </li>
+                            `).join('')}
+                        </ol>
+                    `;
+                }
+            },
+            
+            reports() {
+                // This tab is static HTML, no render logic needed
+            },
+            
+            settings() {
+                const container = $('settings-container');
+                if (!container) return; // Tab not active
+
+                if (state.appSettings.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500">No application settings found.</p>';
+                    return;
+                }
+                
+                container.innerHTML = state.appSettings.map(setting => `
+                    <div class="flex flex-col md:flex-row md:items-center justify-between">
+                        <div>
+                            <label for="setting-${setting.key}" class="form-label capitalize">${setting.key.replace(/_/g, ' ')}</label>
+                            <p class="text-sm text-gray-500 -mt-2 mb-2">Key: ${setting.key}</p>
+                        </div>
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <input type="text" id="setting-${setting.key}" class="form-input w-full md:w-40" value="${setting.value}">
+                            <button class="btn btn-primary" onclick="actions.saveSetting('${setting.key}')">Save</button>
+                        </div>
+                    </div>
+                `).join('');
             }
         };
 
@@ -851,6 +1213,7 @@
                 try {
                     const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
                     if (error) throw error;
+                    showToast(`Order marked as ${status}.`);
                     // Real-time listener will handle the UI update
                 } catch (e) {
                     renderError(`Error updating order: ${e.message}`);
@@ -861,6 +1224,7 @@
                 try {
                     const { error } = await supabase.from('staff_calls').update({ status: 'resolved' }).eq('id', callId);
                     if (error) throw error;
+                    showToast('Staff call resolved.');
                     // Real-time listener will handle the UI update
                 } catch (e) {
                     renderError(`Error resolving call: ${e.message}`);
@@ -871,8 +1235,8 @@
                 try {
                     const { error } = await supabase.from('products').update({ is_available: isAvailable }).eq('id', itemId);
                     if (error) throw error;
-                    const item = state.menu.find(i => i.id === itemId);
-                    if (item) item.is_available = isAvailable;
+                    showToast(`Item availability updated.`);
+                    // Real-time listener will handle the UI update
                 } catch (e) {
                     renderError(`Error updating item: ${e.message}`);
                     // Revert checkbox on failure
@@ -934,12 +1298,13 @@
                         error = updateError;
                     } else { // Insert
                         delete itemData.id;
-                        const { error: insertError } = await supabase.from('products').insert(itemData);
+                        const { error: insertError } = await supabase.from('products').insert([itemData]); // Insert expects an array
                         error = insertError;
                     }
                     if (error) throw error;
                     
-                    await loadInitialData(); // Reload all data
+                    // REAL-TIME FIX: No reload needed, listener will catch it
+                    showToast(itemData.id ? 'Item updated!' : 'Item created!');
                     closeModal();
                 } catch (e) {
                     renderError(`Error saving item: ${e.message}`);
@@ -981,12 +1346,11 @@
                 };
 
                 try {
-                    const { data, error } = await supabase.from('customers').update(updateData).eq('id', customerId).select().single();
+                    const { data, error } = await supabase.from('customers').update(updateData).eq('id', customerId);
                     if (error) throw error;
                     
-                    const index = state.customers.findIndex(c => c.id === customerId);
-                    state.customers[index] = data;
-                    render.customers();
+                    // REAL-TIME FIX: No reload needed
+                    showToast('Customer updated!');
                     closeModal();
                 } catch (e) {
                     renderError(`Error updating customer: ${e.message}`);
@@ -1003,7 +1367,7 @@
                         <input type="hidden" name="id" value="${table?.id || ''}">
                         <div>
                             <label class="form-label">Table Number</label>
-                            <input type="number" name="table_number" class="form-input" value="${table?.table_number || ''}" required ${!isNew ? 'readonly' : ''} ${!isNew ? 'bg-gray-300' : ''}>
+                            <input type="number" name="table_number" class="form-input" value="${table?.table_number || ''}" required ${!isNew ? 'readonly class="bg-gray-200"' : ''}>
                         </div>
                         <div>
                             <label class="form-label">Description</label>
@@ -1034,12 +1398,13 @@
                         const { error: updateError } = await supabase.from('tables').update({ description: tableData.description }).eq('id', tableId);
                         error = updateError;
                     } else { // Insert
-                        const { error: insertError } = await supabase.from('tables').insert(tableData);
+                        const { error: insertError } = await supabase.from('tables').insert([tableData]); // Insert expects an array
                         error = insertError;
                     }
                     if (error) throw error;
                     
-                    await loadInitialData(); // Reload all data
+                    // REAL-TIME FIX: No reload needed
+                    showToast(tableId ? 'Table updated!' : 'Table created!');
                     closeModal();
                 } catch (e) {
                     renderError(`Error saving table: ${e.message}`);
@@ -1053,7 +1418,6 @@
                     <p class="text-gray-600 mb-6">For: <span class="font-semibold">${customerName}</span> (Current: ${currentPoints})</p>
                     <form id="loyalty-form" class="space-y-4">
                         <input type="hidden" name="id" value="${customerId}">
-                        <input type="hidden" name="current_points" value="${currentPoints}">
                         <div>
                             <label class="form-label">Points to Add / Redeem</label>
                             <input type="number" name="adjustment" class="form-input" placeholder="e.g., 50 to add, -20 to redeem" required>
@@ -1079,54 +1443,170 @@
                 }
 
                 try {
-                    // Use the RPC function 'adjust_loyalty_points'
                     const { data, error } = await supabase.rpc('adjust_loyalty_points', { customer_id_input: customerId, points_change: adjustment });
-                    
                     if (error) throw error;
                     
-                    // FIX: Re-fetch customer list to guarantee update
-                    const { data: updatedCustomers, error: fetchError } = await supabase.from('customers').select('*').order('name', { ascending: true });
-                    if (fetchError) throw fetchError;
-                    
-                    state.customers = updatedCustomers;
-                    render.customers();
+                    // REAL-TIME FIX: No reload needed
+                    showToast('Loyalty points adjusted!');
                     closeModal();
-
                 } catch (e) {
                     renderError(`Error adjusting points: ${e.message}`);
                 }
             },
 
-            // --- DELETE CUSTOMER ---
+            // --- DELETE ACTIONS ---
             async deleteCustomer(customerId, customerName) {
                 if (confirm(`Are you sure you want to delete ${customerName} (ID: ${customerId})?\nTHIS ACTION CANNOT BE UNDONE.`)) {
                     try {
                         const { error } = await supabase.from('customers').delete().eq('id', customerId);
                         if (error) throw error;
                         
-                        state.customers = state.customers.filter(c => c.id !== customerId);
-                        render.customers();
+                        // REAL-TIME FIX: No reload needed
+                        showToast('Customer deleted.');
                     } catch (e) {
                          renderError(`Error deleting customer: ${e.message}. (Note: Cannot delete customers with existing orders)`);
                     }
                 }
             },
 
-            // --- NEW: DELETE ORDER ---
             async deleteOrder(orderId, customerName) {
                 if (confirm(`Are you sure you want to delete this order from ${customerName} (ID: ${orderId})?\nThis will also delete all associated order items.\nTHIS ACTION CANNOT BE UNDONE.`)) {
                     try {
-                        // 'ON DELETE CASCADE' in the SQL schema will handle deleting order_items
                         const { error } = await supabase.from('orders').delete().eq('id', orderId);
                         if (error) throw error;
                         
-                        // Remove from local state and re-render
-                        state.pastOrders = state.pastOrders.filter(o => o.id !== orderId);
-                        render.history();
+                        // REAL-TIME FIX: No reload needed
+                        showToast('Order deleted.');
                     } catch (e) {
                          renderError(`Error deleting order: ${e.message}.`);
                     }
                 }
+            },
+            
+            // --- NEW ACTIONS ---
+            async saveSetting(key) {
+                const input = $(`setting-${key}`);
+                const value = input.value;
+                
+                try {
+                    const { error } = await supabase.from('app_settings').update({ value }).eq('key', key);
+                    if (error) throw error;
+                    showToast('Setting saved!');
+                    // Real-time listener will update the state
+                } catch (e) {
+                    renderError(`Error saving setting: ${e.message}`);
+                }
+            },
+            
+            // --- NEW MODAL ACTIONS for blocking order screen ---
+            showNewOrderModal(order) {
+                const items = order.order_items || [];
+                const modalHTML = `
+                    <div class="text-center">
+                        <h1 class="text-4xl font-bold text-yellow-500 mb-4 animate-pulse">!! NEW ORDER !!</h1>
+                        <h2 class="text-3xl font-bold">Table #${order.tables?.table_number || 'N/A'}</h2>
+                        <p class="text-xl text-gray-600 mb-6">By: ${order.customers?.name || 'Guest'}</p>
+                        
+                        <div class="text-left my-4 border-y border-gray-200 py-4 max-h-40 overflow-y-auto">
+                            <h3 class="font-bold text-lg mb-2">Items:</h3>
+                            <ul class="space-y-1 list-decimal list-inside">
+                                ${items.map(item => `<li><span class="font-semibold">${item.product_name}</span> x${item.quantity}</li>`).join('')}
+                            </ul>
+                            ${order.special_instructions ? `<p class="mt-3 text-sm italic text-yellow-800 bg-yellow-100 p-2 rounded-md"><strong>Note:</strong> ${order.special_instructions}</p>` : ''}
+                        </div>
+
+                        <div class="flex gap-4 mt-8">
+                            <button class="btn btn-success flex-1 py-4 text-lg" onclick="actions.acceptOrderFromModal('${order.id}')">
+                                Accept Order
+                            </button>
+                            <button class="btn btn-danger flex-1 py-4 text-lg" onclick="actions.cancelOrderFromModal('${order.id}')">
+                                Cancel Order
+                            </button>
+                        </div>
+                    </div>
+                `;
+                showBlockingModal(modalHTML);
+            },
+
+            async acceptOrderFromModal(orderId) {
+                await this.updateOrderStatus(orderId, 'preparing');
+                closeModal();
+            },
+
+            async cancelOrderFromModal(orderId) {
+                await this.updateOrderStatus(orderId, 'cancelled');
+                closeModal();
+            },
+
+            // --- CSV EXPORT ACTIONS ---
+            exportOrderHistoryCSV() {
+                const headers = ["Order ID", "Date", "Customer", "Table", "Status", "Subtotal", "Discount", "GST", "Final Total", "Items"];
+                const rows = state.pastOrders.map(order => {
+                    const items = (order.order_items || []).map(i => `${i.product_name} (x${i.quantity})`).join(' | ');
+                    const subtotal = (order.final_amount - (order.final_amount * 0.05) + (order.discount_amount || 0));
+                    const gst = order.final_amount - (order.final_amount / 1.05); // Approx
+                    
+                    return [
+                        order.id,
+                        new Date(order.created_at).toLocaleString(),
+                        order.customers?.name || 'Guest',
+                        order.tables?.table_number || 'N/A',
+                        order.status,
+                        subtotal.toFixed(2),
+                        (order.discount_amount || 0).toFixed(2),
+                        gst.toFixed(2),
+                        (order.final_amount || 0).toFixed(2),
+                        `"${items}"` // Enclose items in quotes
+                    ].join(',');
+                });
+                
+                this.downloadCSV([headers.join(','), ...rows].join('\n'), 'order-history.csv');
+            },
+            
+            exportCustomerListCSV() {
+                const headers = ["ID", "Name", "Phone", "Loyalty Points"];
+                const rows = state.customers.map(cust => {
+                    return [
+                        cust.id,
+                        `"${cust.name}"`,
+                        cust.whatsapp_number || '',
+                        cust.loyalty_points || 0
+                    ].join(',');
+                });
+                
+                this.downloadCSV([headers.join(','), ...rows].join('\n'), 'customer-list.csv');
+            },
+            
+            exportMenuCSV() {
+                const headers = ["ID", "Name", "Price", "Category", "Brand", "Is Available"];
+                const rows = state.menu.map(item => {
+                    return [
+                        item.id,
+                        `"${item.name}"`,
+                        item.price,
+                        item.category,
+                        item.brand,
+                        item.is_available
+                    ].join(',');
+                });
+                
+                this.downloadCSV([headers.join(','), ...rows].join('\n'), 'menu.csv');
+            },
+            
+            downloadCSV(csvContent, fileName) {
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', fileName);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showToast(`Report "${fileName}" downloaded.`);
             }
         };
 
@@ -1134,6 +1614,13 @@
         function showModal(html) {
             const container = $('modal-container');
             container.innerHTML = `<div class="modal-overlay" onclick="closeModal()"><div class="modal-content" onclick="event.stopPropagation();">${html}</div></div>`;
+            container.classList.remove('hidden');
+        }
+        // NEW BLOCKING MODAL FUNCTION
+        function showBlockingModal(html) {
+            const container = $('modal-container');
+            // Note: No onclick="closeModal()" on the overlay
+            container.innerHTML = `<div class="modal-overlay"><div class="modal-content" onclick="event.stopPropagation();">${html}</div></div>`;
             container.classList.remove('hidden');
         }
         function closeModal() {
@@ -1146,11 +1633,11 @@
         $('login-form').onsubmit = (e) => {
             e.preventDefault();
             const email = $('email').value;
-            const password = $('password').value; // <-- FIX was here
+            const password = $('password').value;
             auth.login(email, password);
         };
 
-        $('logout-button').onclick = () => auth.logout();
+        $$('#logout-button').forEach(btn => btn.onclick = () => auth.logout());
 
         $('nav-links').onclick = (e) => {
             const navLink = e.target.closest('.nav-link');
@@ -1162,6 +1649,11 @@
                 
                 $$('.tab-content').forEach(content => content.classList.remove('active'));
                 $(`${tab}-tab`).classList.add('active');
+                
+                // Re-render analytics if tab is clicked (data might have changed)
+                if (tab === 'analytics') {
+                    render.analytics();
+                }
             }
         };
 
