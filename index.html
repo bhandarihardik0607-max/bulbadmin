@@ -1163,15 +1163,20 @@
 
             // --- DELETE CUSTOMER ---
             async deleteCustomer(customerId, customerName) {
-                if (confirm(`Are you sure you want to delete ${customerName} (ID: ${customerId})?\nTHIS ACTION CANNOT BE UNDONE.`)) {
+                if (confirm(`Are you sure you want to delete ${customerName} (ID: ${customerId})?\nThis will also delete ALL of their past orders.\nTHIS ACTION CANNOT BE UNDONE.`)) {
                     try {
+                        // 1. First, delete all associated orders (order_items will cascade delete)
+                        const { error: orderError } = await supabase.from('orders').delete().eq('customer_id', customerId);
+                        if (orderError) throw new Error(`Could not delete associated orders: ${orderError.message}`);
+
+                        // 2. Now, delete the customer
                         const { error } = await supabase.from('customers').delete().eq('id', customerId);
                         if (error) throw error;
                         
                         state.customers = state.customers.filter(c => c.id !== customerId);
                         render.customers();
                     } catch (e) {
-                         renderError(`Error deleting customer: ${e.message}. (Note: Cannot delete customers with existing orders)`);
+                         renderError(`Error deleting customer: ${e.message}.`);
                     }
                 }
             },
