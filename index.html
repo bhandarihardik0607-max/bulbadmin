@@ -140,15 +140,43 @@
             50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
         }
         
-        .spinner-small {
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-top: 2px solid #ffffff;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 1s linear infinite;
+        /* Custom toggle switch */
+        .toggle-label {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .toggle-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            width: 44px; /* w-11 */
+            height: 24px; /* h-6 */
+            background-color: #d1d5db; /* bg-gray-200 */
+            border-radius: 9999px; /* rounded-full */
+            transition: all 0.2s ease;
+        }
+        .toggle-slider:before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px; /* h-5 */
+            height: 20px; /* w-5 */
+            background-color: white;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .toggle-input:checked + .toggle-slider {
+            background-color: #22c55e; /* bg-green-600 */
+        }
+        .toggle-input:checked + .toggle-slider:before {
+            transform: translateX(20px); /* peer-checked:after:translate-x-full */
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -190,12 +218,8 @@
             <div class="p-4 h-16 flex items-center border-b border-gray-200">
                 <span class="text-2xl font-bold" style="color: var(--brand-yellow);">💡 BULB ADMIN</span>
             </div>
-            <nav id="nav-links" class="flex flex-col space-y-2 p-4 flex-grow">
-                <button class="nav-link active" data-tab="livekitchen">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                    Live Kitchen
-                </button>
-                <button class="nav-link" data-tab="dashboard">
+            <nav id="nav-links" class="flex flex-col space-y-2 p-4">
+                <button class="nav-link active" data-tab="dashboard">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18M3 6h18M3 18h18"></path></svg>
                     Dashboard
                 </button>
@@ -219,25 +243,7 @@
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     QR Generator
                 </button>
-                <button class="nav-link" data-tab="analytics">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 6-6M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    Analytics
-                </button>
-                 <button class="nav-link" data-tab="reports">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m-6-8h6m4-2h2a2 2 0 012 2v12a2 2 0 01-2 2h-2m-7-14h-2a2 2 0 00-2 2v12a2 2 0 002 2h2m7-16v16"></path></svg>
-                    Reports
-                </button>
-                <button class="nav-link" data-tab="settings">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.526.32.12.97.038 1.066z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    Settings
-                </button>
             </nav>
-             <div class="p-4 border-t border-gray-200">
-                <button id="logout-button" class="nav-link w-full text-red-500 hover:bg-red-50 hover:text-red-700">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    Logout
-                </button>
-            </div>
         </aside>
 
         <!-- Main Content Area -->
@@ -246,61 +252,29 @@
             <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
                 <div class="flex justify-end items-center h-16 px-4 sm:px-6 lg:px-8">
                     <span id="admin-email" class="text-gray-700 font-medium mr-4"></span>
+                    <button id="logout-button" class="btn btn-secondary">Logout</button>
                 </div>
             </header>
 
             <main class="p-4 sm:p-6 lg:p-8">
-
-                <!-- Live Kitchen -->
-                <div id="livekitchen-tab" class="tab-content active">
-                     <h2 class="text-2xl font-bold text-gray-800 mb-6">Live Kitchen</h2>
-                    <div id="staff-calls-container-kitchen" class="card p-4 mb-6">
-                        <div class="flex justify-between items-center mb-3">
-                            <h3 class="text-xl font-bold text-gray-800">Live Staff Calls <span id="calls-count" class="ml-2 inline-block bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">0</span></h3>
-                            <button onclick="actions.resolveAllStaffCalls()" class="btn btn-secondary text-sm">Resolve All</button>
-                        </div>
-                        <div id="staff-calls-list" class="space-y-3">
-                            <!-- Staff calls will be injected here -->
-                            <p id="no-calls-msg" class="text-gray-500">No pending staff calls.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Received Column -->
-                        <div class="flex flex-col space-y-4">
-                            <h3 class="text-xl font-bold text-gray-800 border-b pb-2">Orders Received <span id="received-count" class="ml-2 inline-block bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">0</span></h3>
-                            <div id="live-orders-received-container" class="space-y-4 min-h-[100px]">
-                                <!-- Received orders here -->
-                                <p id="no-received-msg" class="text-gray-500 card p-4">Waiting for new orders...</p>
-                            </div>
-                        </div>
-
-                        <!-- Preparing Column -->
-                        <div class="flex flex-col space-y-4">
-                            <h3 class="text-xl font-bold text-gray-800 border-b pb-2">Preparing <span id="preparing-count" class="ml-2 inline-block bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">0</span></h3>
-                            <div id="live-orders-preparing-container" class="space-y-4 min-h-[100px]">
-                                <!-- Preparing orders here -->
-                                <p id="no-preparing-msg" class="text-gray-500 card p-4">No orders in preparation.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Dashboard -->
-                <div id="dashboard-tab" class="tab-content space-y-6">
-                    <h2 class="text-2xl font-bold text-gray-800">Today's Dashboard</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div class="card p-4 text-center">
-                            <p class="text-gray-500 font-semibold text-sm">Total Orders</p>
-                            <p id="stat-total-orders" class="text-4xl font-bold mt-1 text-blue-600">0</p>
+                <div id="dashboard-tab" class="tab-content active">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Live Orders -->
+                        <div class="lg:col-span-2 space-y-4">
+                            <h2 class="text-2xl font-bold text-gray-800">Live Orders</h2>
+                            <div id="live-orders-container" class="space-y-4">
+                                <!-- Orders will be injected here -->
+                                <div id="no-orders-msg" class="text-gray-500 card p-4">No active orders.</div>
+                            </div>
                         </div>
-                        <div class="card p-4 text-center">
-                            <p class="text-gray-500 font-semibold text-sm">Gross Revenue</p>
-                            <p id="stat-gross-revenue" class="text-4xl font-bold mt-1 text-green-600">₹0.00</p>
-                        </div>
-                        <div class="card p-4 text-center">
-                            <p class="text-gray-500 font-semibold text-sm">Net Revenue</p>
-                            <p id="stat-net-revenue" class="text-4xl font-bold mt-1 text-green-700">₹0.00</p>
+                        <!-- Staff Calls -->
+                        <div class="lg:col-span-1 space-y-4">
+                            <h2 class="text-2xl font-bold text-gray-800">Live Staff Calls</h2>
+                            <div id="staff-calls-container" class="space-y-4">
+                                <!-- Staff calls will be injected here -->
+                                <div id="no-calls-msg" class="text-gray-500 card p-4">No pending staff calls.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -342,6 +316,7 @@
                                     <th class="p-2 text-left font-semibold text-gray-600">Category</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Brand</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Available</th>
+                                    <th class="p-2 text-left font-semibold text-gray-600">Orderable (Dine-in)</th> <!-- NEW -->
                                     <th class="p-2 text-right font-semibold text-gray-600">Actions</th>
                                 </tr>
                             </thead>
@@ -404,83 +379,6 @@
                         <!-- QR codes will be injected here -->
                     </div>
                 </div>
-
-                <!-- Analytics -->
-                <div id="analytics-tab" class="tab-content space-y-6">
-                    <h2 class="text-2xl font-bold text-gray-800">All-Time Analytics</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div class="card p-4 text-center">
-                            <p class="text-gray-500 font-semibold text-sm">Total Revenue</p>
-                            <p id="analytics-total-revenue" class="text-4xl font-bold mt-1 text-green-600">₹0.00</p>
-                        </div>
-                        <div class="card p-4 text-center">
-                            <p class="text-gray-500 font-semibold text-sm">Total Orders</p>
-                            <p id="analytics-total-orders" class="text-4xl font-bold mt-1 text-blue-600">0</p>
-                        </div>
-                        <div class="card p-4 text-center">
-                            <p class="text-gray-500 font-semibold text-sm">Avg. Order Value</p>
-                            <p id="analytics-avg-order" class="text-4xl font-bold mt-1 text-purple-600">₹0.00</p>
-                        </div>
-                    </div>
-
-                    <h3 class="text-xl font-bold text-gray-800 pt-4">Top 5 Selling Items (All Time)</h3>
-                    <div class="card p-4 overflow-x-auto">
-                        <ul id="top-selling-list" class="space-y-2">
-                             <li class="text-gray-500">Loading top sellers...</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <!-- Reports -->
-                <div id="reports-tab" class="tab-content space-y-6">
-                     <h2 class="text-2xl font-bold text-gray-800">Data Export & Reports</h2>
-                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="card p-4">
-                            <h3 class="font-bold mb-3">Order History</h3>
-                            <p class="text-gray-600 mb-4 text-sm">Download all delivered and cancelled orders.</p>
-                            <button onclick="actions.exportToCSV('orders')" class="btn btn-secondary w-full">Export Orders</button>
-                        </div>
-                        <div class="card p-4">
-                            <h3 class="font-bold mb-3">Customer List</h3>
-                            <p class="text-gray-600 mb-4 text-sm">Download customer names and loyalty points.</p>
-                            <button onclick="actions.exportToCSV('customers')" class="btn btn-secondary w-full">Export Customers</button>
-                        </div>
-                         <div class="card p-4">
-                            <h3 class="font-bold mb-3">Full Menu</h3>
-                            <p class="text-gray-600 mb-4 text-sm">Download all menu items and their details.</p>
-                            <button onclick="actions.exportToCSV('menu')" class="btn btn-secondary w-full">Export Menu</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Settings -->
-                <div id="settings-tab" class="tab-content space-y-6">
-                    <h2 class="text-2xl font-bold text-gray-800">App Settings</h2>
-                    <div class="card p-6">
-                        <form id="settings-form" class="space-y-4">
-                            <h3 class="text-xl font-bold mb-4">Loyalty Rules</h3>
-                            <div>
-                                <label class="form-label">Earning Threshold (₹)</label>
-                                <input type="number" id="loyalty_threshold" name="loyalty_threshold" class="form-input" required>
-                                <p class="text-xs text-gray-500 mt-1">Order must be above this amount to earn points.</p>
-                            </div>
-                            <div>
-                                <label class="form-label">Earning Rate (%)</label>
-                                <input type="number" id="loyalty_earning_rate" name="loyalty_earning_rate" class="form-input" required max="100">
-                                <p class="text-xs text-gray-500 mt-1">Percentage of subtotal earned in points (e.g., 10 for 10%).</p>
-                            </div>
-                            <div>
-                                <label class="form-label">Redeem Max Rate (%)</label>
-                                <input type="number" id="loyalty_redeem_max" name="loyalty_redeem_max" class="form-input" required max="100">
-                                <p class="text-xs text-gray-500 mt-1">Max percentage of available points a user can redeem.</p>
-                            </div>
-                            <div class="flex justify-end pt-4">
-                                <button type="submit" id="save-settings-btn" class="btn btn-primary">Save Settings</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
             </main>
         </div>
     </div>
@@ -507,6 +405,7 @@
                 const response = await fetch(NOTIFICATION_URL);
                 const arrayBuffer = await response.arrayBuffer();
                 audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                console.log("Audio initialized");
             } catch (e) {
                 console.error("Error initializing audio:", e);
             }
@@ -535,15 +434,8 @@
             menu: [],
             customers: [],
             tables: [],
-            settings: {},
             orderSubscription: null,
             callSubscription: null,
-            menuSubscription: null,
-            customerSubscription: null,
-            tableSubscription: null,
-            settingsSubscription: null,
-            dashboardStats: { totalOrders: 0, grossRevenue: 0, netRevenue: 0 },
-            analyticsStats: { totalRevenue: 0, totalOrders: 0, avgOrder: 0, topSelling: [] }
         };
 
         // --- DOM SELECTORS ---
@@ -555,12 +447,12 @@
             console.error(message);
             const toast = $('error-toast');
             const msgEl = $('error-message');
-            if(msgEl) msgEl.textContent = message;
-            if(toast) toast.classList.remove('hidden');
+            msgEl.textContent = message;
+            toast.classList.remove('hidden');
 
             if (autoHide) {
                 setTimeout(() => {
-                    if(toast) toast.classList.add('hidden');
+                    toast.classList.add('hidden');
                 }, 5000);
             }
         }
@@ -573,8 +465,8 @@
                     throw new Error("Supabase client library not found on window.supabase.");
                 }
                 supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log("Supabase client initialized.");
                 
-                // Now that supabase is initialized, check auth state
                 auth.checkSession();
             } catch (e) {
                 console.error("CRITICAL: SUPABASE initialization failed.", e);
@@ -608,68 +500,45 @@
                 }
             },
             async login(email, password) {
-                const button = $('login-button');
-                button.innerHTML = `<span class="spinner-small mr-2"></span> Signing In...`;
-                button.disabled = true;
-
-                try {
-                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                    if (error) {
-                        renderError(error.message);
-                    } else {
-                        state.user = data.user;
-                        this.showApp();
-                        document.body.addEventListener('click', initAudio, { once: true });
-                    }
-                } catch(e) {
-                     renderError(`Login Failed: ${e.message}`);
-                } finally {
-                    button.innerHTML = `Sign In`;
-                    button.disabled = false;
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                    renderError(error.message);
+                } else {
+                    state.user = data.user;
+                    this.showApp();
+                    document.body.addEventListener('click', initAudio, { once: true });
                 }
             },
             async logout() {
                 await supabase.auth.signOut();
                 state.user = null;
-                // Stop all listeners on logout
-                listeners.stopAll();
                 this.showLogin();
             },
             showLogin() {
-                const loginScreen = $('login-screen');
-                const appScreen = $('app');
-                if(loginScreen) loginScreen.classList.remove('hidden');
-                if(appScreen) appScreen.classList.add('hidden');
+                $('login-screen').classList.remove('hidden');
+                $('app').classList.add('hidden');
             },
             async showApp() {
-                const loginScreen = $('login-screen');
-                const appScreen = $('app');
-                if(loginScreen) loginScreen.classList.add('hidden');
-                if(appScreen) appScreen.classList.remove('hidden');
-                if($('admin-email')) $('admin-email').textContent = state.user.email;
+                $('login-screen').classList.add('hidden');
+                $('app').classList.remove('hidden');
+                $('admin-email').textContent = state.user.email;
                 
-                // Initial data load
                 await loadInitialData();
                 
-                // Start real-time listeners
-                listeners.startAll();
-                // Initial render to live kitchen
-                render.switchTab('livekitchen');
-                render.dashboard();
+                listeners.startOrderListener();
+                listeners.startCallListener();
             }
         };
 
-        // --- DATA LOADING & FETCHING ---
+        // --- DATA LOADING ---
         async function loadInitialData() {
             try {
-                // Fetch ALL orders, not just live ones
-                const [ordersRes, callsRes, menuRes, customersRes, tablesRes, settingsRes] = await Promise.all([
-                    supabase.from('orders').select('*, tables(table_number), customers(name), order_items(product_name, quantity, price_at_time_of_order)').order('created_at', { ascending: false }),
+                const [ordersRes, callsRes, menuRes, customersRes, tablesRes] = await Promise.all([
+                    supabase.from('orders').select('*, tables(table_number), customers(name), order_items(product_name, quantity)').order('created_at', { ascending: false }),
                     supabase.from('staff_calls').select('*').eq('status', 'pending').order('created_at', { ascending: true }),
                     supabase.from('products').select('*').order('name', { ascending: true }),
                     supabase.from('customers').select('*').order('name', { ascending: true }),
-                    supabase.from('tables').select('*').order('table_number', { ascending: true }),
-                    supabase.from('app_settings').select('key, value')
+                    supabase.from('tables').select('*').order('table_number', { ascending: true })
                 ]);
 
                 if (ordersRes.error) throw ordersRes.error;
@@ -677,9 +546,7 @@
                 if (menuRes.error) throw menuRes.error;
                 if (customersRes.error) throw customersRes.error;
                 if (tablesRes.error) throw tablesRes.error;
-                if (settingsRes.error) throw settingsRes.error;
 
-                // Split orders into live and past
                 state.liveOrders = ordersRes.data.filter(o => o.status === 'received' || o.status === 'preparing');
                 state.pastOrders = ordersRes.data.filter(o => o.status === 'delivered' || o.status === 'cancelled');
                 
@@ -687,119 +554,51 @@
                 state.menu = menuRes.data;
                 state.customers = customersRes.data;
                 state.tables = tablesRes.data;
-                state.settings = settingsRes.data.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {});
-
-                await actions.updateDashboardStats(); // Calculate today's dashboard stats
-                await actions.updateAnalyticsStats(); // Calculate all-time analytics
 
                 render.all();
 
             } catch (error) {
                 renderError(`Error Loading Data: ${error.message}\nThis is likely an RLS (Row Level Security) issue.\nYour RLS policies are probably blocking this admin account from viewing all data. You must update your policies in the Supabase dashboard to grant full access to this logged-in user.`);
+                console.error("Detailed Load Error:", error);
             }
         }
-        
-        // Helper to fetch full order details (used for new orders/updates)
-        async function fetchOrderDetails(orderId) {
-            try {
-                const { data, error } = await supabase.from('orders')
-                    .select('*, tables(table_number), customers(name), order_items(product_name, quantity, price_at_time_of_order)')
-                    .eq('id', orderId)
-                    .single();
-                
-                if (error) throw error;
-                return data;
-            } catch (e) {
-                console.error("Failed to fetch order details:", e);
-                return null;
-            }
-        }
-
 
         // --- REAL-TIME LISTENERS ---
         const listeners = {
-            startAll() {
-                this.startOrderListener();
-                this.startCallListener();
-                this.startMenuListener();
-                this.startCustomerListener();
-                this.startTableListener();
-                this.startSettingsListener();
-            },
-            stopAll() {
-                if (state.orderSubscription) supabase.removeChannel(state.orderSubscription);
-                if (state.callSubscription) supabase.removeChannel(state.callSubscription);
-                if (state.menuSubscription) supabase.removeChannel(state.menuSubscription);
-                if (state.customerSubscription) supabase.removeChannel(state.customerSubscription);
-                if (state.tableSubscription) supabase.removeChannel(state.tableSubscription);
-                if (state.settingsSubscription) supabase.removeChannel(state.settingsSubscription);
-            },
-
             startOrderListener() {
                 if (state.orderSubscription) return;
-                state.orderSubscription = supabase.channel('public:orders_channel')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async (payload) => {
-                        const newOrderData = payload.new;
-                        let needsRender = false;
-
-                        // INSERT: New order arrived
-                        if (payload.eventType === 'INSERT') {
-                            const fullOrder = await fetchOrderDetails(newOrderData.id);
-                            if (fullOrder && (fullOrder.status === 'received' || fullOrder.status === 'preparing')) {
-                                state.liveOrders.push(fullOrder);
-                                needsRender = true;
-                                if (fullOrder.status === 'received') {
-                                    playNotification();
-                                    actions.showNewOrderModal(fullOrder);
-                                }
-                            }
-                        } 
-                        // UPDATE: Status change
+                state.orderSubscription = supabase.channel('public:orders')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+                        console.log('Order change received:', payload);
+                        
+                        if (payload.eventType === 'INSERT' && (payload.new.status === 'received' || payload.new.status === 'preparing')) {
+                            fetchOrderDetails(payload.new.id);
+                            playNotification();
+                        }
                         else if (payload.eventType === 'UPDATE') {
-                            const index = state.liveOrders.findIndex(o => o.id === newOrderData.id);
+                            const updatedOrder = payload.new;
+                            const index = state.liveOrders.findIndex(o => o.id === updatedOrder.id);
                             
-                            // Order moved to history (delivered/cancelled)
-                            if (newOrderData.status === 'delivered' || newOrderData.status === 'cancelled') {
-                                if (index > -1) {
-                                    const deliveredOrder = state.liveOrders.splice(index, 1)[0] || payload.old; // Remove from live
-                                    deliveredOrder.status = newOrderData.status;
-                                    state.pastOrders.unshift(deliveredOrder); // Add to history
-                                    needsRender = true;
-                                    actions.updateDashboardStats(); // Update dashboard immediately
+                            if (index > -1) {
+                                if (updatedOrder.status !== 'received' && updatedOrder.status !== 'preparing') {
+                                    const finishedOrder = state.liveOrders.splice(index, 1)[0];
+                                    finishedOrder.status = updatedOrder.status;
+                                    state.pastOrders.unshift(finishedOrder);
+                                    render.history();
+                                } else {
+                                    fetchOrderDetails(updatedOrder.id, index);
                                 }
                             }
-                            // Status change within live (received -> preparing)
-                            else if (index > -1) {
-                                // Fetch full details to get updated customer/table info if needed
-                                const fullOrder = await fetchOrderDetails(newOrderData.id);
-                                if (fullOrder) state.liveOrders[index] = fullOrder;
-                                needsRender = true;
-                            }
-                        }
-
-                        if (needsRender) {
-                            render.kitchen();
-                            render.history();
-                        }
-                    })
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, async (payload) => {
-                        // Debounce item updates to prevent excessive re-fetches
-                        setTimeout(async () => {
-                            const orderId = payload.new.order_id || payload.old.order_id;
-                            const orderIndex = state.liveOrders.findIndex(o => o.id === orderId);
-                            
-                            if (orderIndex > -1) {
-                                const fullOrder = await fetchOrderDetails(orderId);
-                                if (fullOrder) {
-                                    state.liveOrders[orderIndex] = fullOrder;
-                                    render.kitchen();
-                                    // Also force modal refresh if it's open
-                                    if ($('new-order-modal') && $('new-order-modal').dataset.orderId === orderId) {
-                                        $('new-order-modal-content').innerHTML = actions.generateNewOrderModalHTML(fullOrder);
-                                    }
+                            else if (updatedOrder.status === 'received' || updatedOrder.status === 'preparing') {
+                                fetchOrderDetails(updatedOrder.id);
+                                const pastIndex = state.pastOrders.findIndex(o => o.id === updatedOrder.id);
+                                if (pastIndex > -1) {
+                                    state.pastOrders.splice(pastIndex, 1);
+                                    render.history();
                                 }
                             }
-                        }, 500); // 500ms debounce
+                        }
+                        render.dashboard();
                     })
                     .subscribe();
             },
@@ -807,8 +606,10 @@
             startCallListener() {
                 if (state.callSubscription) return;
                 state.callSubscription = supabase.channel('public:staff_calls')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'staff_calls', filter: `status=eq.pending` }, (payload) => {
-                        if (payload.eventType === 'INSERT') {
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'staff_calls' }, (payload) => {
+                        console.log('Staff call change received:', payload);
+                        
+                        if (payload.eventType === 'INSERT' && payload.new.status === 'pending') {
                             state.staffCalls.push(payload.new);
                             playNotification();
                         }
@@ -816,226 +617,272 @@
                             const index = state.staffCalls.findIndex(c => c.id === payload.new.id);
                             if (payload.new.status !== 'pending' && index > -1) {
                                 state.staffCalls.splice(index, 1);
+                            } else if (payload.new.status === 'pending' && index === -1) {
+                                state.staffCalls.push(payload.new);
                             }
                         }
-                        render.kitchen();
+                        render.dashboard();
                     })
                     .subscribe();
             },
-
-            startMenuListener() {
-                 if (state.menuSubscription) return;
-                 state.menuSubscription = supabase.channel('public:products')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
-                        const { data, error } = await supabase.from('products').select('*').order('name', { ascending: true });
-                        if (!error) {
-                            state.menu = data;
-                            render.menu();
-                        }
-                    })
-                    .subscribe();
-            },
-            
-            startCustomerListener() {
-                 if (state.customerSubscription) return;
-                 state.customerSubscription = supabase.channel('public:customers')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, async () => {
-                        const { data, error } = await supabase.from('customers').select('*').order('name', { ascending: true });
-                        if (!error) {
-                            state.customers = data;
-                            render.customers();
-                        }
-                    })
-                    .subscribe();
-            },
-            
-            startTableListener() {
-                 if (state.tableSubscription) return;
-                 state.tableSubscription = supabase.channel('public:tables')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'tables' }, async () => {
-                        const { data, error } = await supabase.from('tables').select('*').order('table_number', { ascending: true });
-                        if (!error) {
-                            state.tables = data;
-                            render.tables();
-                            render.qr();
-                        }
-                    })
-                    .subscribe();
-            },
-
-            startSettingsListener() {
-                 if (state.settingsSubscription) return;
-                 state.settingsSubscription = supabase.channel('public:app_settings')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, async () => {
-                        const { data, error } = await supabase.from('app_settings').select('key, value');
-                        if (!error) {
-                            state.settings = data.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {});
-                            render.settings();
-                        }
-                    })
-                    .subscribe();
-            }
         };
-        
-        // --- ACTIONS & EVENT HANDLERS ---
-        const actions = {
-            // New Dashboard Stats Calculation
-            async updateDashboardStats() {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const isoStart = today.toISOString();
 
-                // Fetch only today's delivered orders
-                const { data: orders, error } = await supabase.from('orders')
-                    .select('id, final_amount, discount_amount, total_amount')
-                    .eq('status', 'delivered')
-                    .gte('created_at', isoStart);
+        // Helper to fetch full order details
+        async function fetchOrderDetails(orderId, updateIndex = -1) {
+            try {
+                const { data, error } = await supabase.from('orders')
+                    .select('*, tables(table_number), customers(name), order_items(product_name, quantity)')
+                    .eq('id', orderId)
+                    .single();
+                
+                if (error) throw error;
 
-                if (error) {
-                    console.error("Error fetching dashboard stats:", error);
+                if (updateIndex > -1) {
+                    state.liveOrders[updateIndex] = data; // Replace existing
+                } else {
+                    if (!state.liveOrders.some(o => o.id === data.id)) {
+                        state.liveOrders.push(data);
+                    }
+                }
+                render.dashboard();
+            } catch (e) {
+                console.error("Failed to fetch order details:", e);
+                if (e && e.message && e.message.includes("Cannot read properties of null (reading 'classList')")) {
+                    renderError("Dashboard render error: " + e.message);
+                }
+            }
+        }
+
+
+        // --- RENDERING ---
+        const render = {
+            all() {
+                this.dashboard();
+                this.history();
+                this.menu();
+                this.customers();
+                this.tables();
+                this.qr();
+            },
+
+            dashboard() {
+                const ordersContainer = $('live-orders-container');
+                const noOrdersMsg = $('no-orders-msg');
+                
+                if (state.liveOrders.length === 0) {
+                    ordersContainer.innerHTML = '';
+                    if(noOrdersMsg) noOrdersMsg.classList.remove('hidden');
+                } else {
+                    if(noOrdersMsg) noOrdersMsg.classList.add('hidden');
+                    state.liveOrders.sort((a, b) => {
+                        if (a.status === 'received' && b.status !== 'received') return -1;
+                        if (a.status !== 'received' && b.status === 'received') return 1;
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+                    
+                    ordersContainer.innerHTML = state.liveOrders.map(order => {
+                        const isNew = order.status === 'received';
+                        const items = order.order_items || [];
+                        const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        
+                        return `
+                            <div class="card p-4 ${isNew ? 'order-card-new' : ''} border-2 ${isNew ? 'border-yellow-500' : 'border-transparent'}">
+                                <div class="flex justify-between items-center mb-3">
+                                    <div>
+                                        <h3 class="text-xl font-bold">Table #${order.tables?.table_number || 'N/A'}</h3>
+                                        <p class="text-gray-600">by ${order.customers?.name || 'Guest'} at ${time}</p>
+                                    </div>
+                                    <span class="text-lg font-bold ${isNew ? 'text-yellow-600' : 'text-blue-600'} capitalize">${order.status}</span>
+                                </div>
+                                <div class="border-t border-gray-100 pt-3 mb-4">
+                                    <ul class="space-y-1">
+                                        ${items.map(item => `
+                                            <li class="flex justify-between">
+                                                <span class="text-gray-800">${item.product_name || 'Item'}</span>
+                                                <span class="font-medium text-gray-600">x${item.quantity}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                    ${order.special_instructions ? `
+                                        <p class="mt-3 text-sm italic text-yellow-800 bg-yellow-100 p-2 rounded-md">
+                                            <strong>Note:</strong> ${order.special_instructions}
+                                        </p>
+                                    ` : ''}
+                                </div>
+                                <div class="flex gap-2">
+                                    ${isNew ? `
+                                        <button class="btn btn-primary flex-1" onclick="actions.updateOrderStatus('${order.id}', 'preparing')">
+                                            Mark as Preparing
+                                        </button>
+                                    ` : `
+                                        <button class="btn btn-success flex-1" onclick="actions.updateOrderStatus('${order.id}', 'delivered')">
+                                            Mark as Delivered
+                                        </button>
+                                    `}
+                                    <button class="btn btn-secondary" onclick="actions.updateOrderStatus('${order.id}', 'cancelled')">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // Render Staff Calls
+                const callsContainer = $('staff-calls-container');
+                const noCallsMsg = $('no-calls-msg');
+                
+                if (state.staffCalls.length === 0) {
+                    callsContainer.innerHTML = '';
+                    if(noCallsMsg) noCallsMsg.classList.remove('hidden');
+                } else {
+                    if(noCallsMsg) noCallsMsg.classList.add('hidden');
+                    state.staffCalls.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    
+                    callsContainer.innerHTML = state.staffCalls.map(call => {
+                        const time = new Date(call.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        return `
+                            <div class="card p-4 call-card-new border-2 border-red-500">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-xl font-bold">Table #${call.table_number}</h3>
+                                    <span class="text-sm text-gray-500">${time}</span>
+                                </div>
+                                <p class="text-lg text-red-700 font-semibold capitalize mb-3">${call.call_type === 'payment' ? 'Needs Payment' : 'Needs Assistance'}</p>
+                                <button class="btn btn-danger w-full" onclick="actions.resolveStaffCall('${call.id}')">
+                                    Resolve
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            },
+
+            history() {
+                const historyBody = $('history-table-body');
+                if (state.pastOrders.length === 0) {
+                    historyBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No past orders found.</td></tr>';
                     return;
                 }
-
-                const stats = { totalOrders: 0, grossRevenue: 0, netRevenue: 0 };
-                
-                stats.totalOrders = orders.length;
-                stats.netRevenue = orders.reduce((sum, order) => sum + (order.final_amount || 0), 0);
-                stats.grossRevenue = orders.reduce((sum, order) => sum + ((order.total_amount || 0) + (order.discount_amount || 0)), 0);
-
-                state.dashboardStats = stats;
-                render.dashboard();
+                historyBody.innerHTML = state.pastOrders.map(order => {
+                    const time = new Date(order.created_at).toLocaleString();
+                    const statusColor = order.status === 'delivered' ? 'text-green-600' : 'text-red-600';
+                    return `
+                        <tr class="border-b border-gray-100">
+                            <td class="p-2">${time}</td>
+                            <td class="p-2">${order.customers?.name || 'Guest'}</td>
+                            <td class="p-2">${order.tables?.table_number || 'N/A'}</td>
+                            <td class="p-2">₹${(order.final_amount || 0).toFixed(2)}</td>
+                            <td class="p-2 font-semibold ${statusColor} capitalize">${order.status}</td>
+                            <td class="p-2 text-right">
+                                <button class="btn btn-danger btn-sm" onclick="actions.deleteOrder('${order.id}', '${order.customers?.name || 'Guest'}')">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
             },
-            
-             async updateAnalyticsStats() {
-                try {
-                    const [statsRes, topSellingRes] = await Promise.all([
-                        supabase.rpc('get_all_time_stats'),
-                        supabase.rpc('get_top_selling_items')
-                    ]);
 
-                    if (statsRes.error) throw statsRes.error;
-                    if (topSellingRes.error) throw topSellingRes.error;
+            menu() {
+                const menuBody = $('menu-table-body');
+                menuBody.innerHTML = state.menu.map(item => `
+                    <tr class="border-b border-gray-100">
+                        <td class="p-2">${item.name}</td>
+                        <td class="p-2">₹${item.price}</td>
+                        <td class="p-2">${item.category}</td>
+                        <td class="p-2">${item.brand}</td>
+                        <td class="p-2">
+                            <label class="toggle-label">
+                                <input type="checkbox" ${item.is_available ? 'checked' : ''} class="toggle-input" onchange="actions.toggleItemAvailability('${item.id}', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </td>
+                        <td class="p-2">
+                            ${item.brand === 'Gulabi Thali' ? `
+                                <label class="toggle-label">
+                                    <input type="checkbox" ${item.is_dine_in_orderable ? 'checked' : ''} class="toggle-input" onchange="actions.toggleItemOrderable('${item.id}', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            ` : '<span class="text-gray-400">N/A</span>'}
+                        </td>
+                        <td class="p-2 text-right">
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showMenuModal('${item.id}')">Edit</button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
 
-                    const stats = statsRes.data[0] || {};
+            customers() {
+                const customersBody = $('customers-table-body');
+                customersBody.innerHTML = state.customers.map(cust => `
+                    <tr class="border-b border-gray-100">
+                        <td class="p-2">${cust.name}</td>
+                        <td class="p-2">${cust.whatsapp_number || 'N/A'}</td>
+                        <td class="p-2">${cust.loyalty_points || 0}</td>
+                        <td class="p-2 text-right space-x-2">
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showLoyaltyModal('${cust.id}', '${cust.name}', ${cust.loyalty_points || 0})">Adjust Points</button>
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showCustomerModal('${cust.id}')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="actions.deleteCustomer('${cust.id}', '${cust.name}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            tables() {
+                const tablesBody = $('tables-table-body');
+                tablesBody.innerHTML = state.tables.map(table => `
+                    <tr class="border-b border-gray-100">
+                        <td class="p-2 font-bold">${table.table_number}</td>
+                        <td class="p-2">${table.description || 'N/A'}</td>
+                        <td class="p-2 text-right">
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showTableModal('${table.id}')">Edit</button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            qr() {
+                const container = $('qr-code-container');
+                const customerAppUrl = 'https://bulb-77jm.onrender.com/';
+                container.innerHTML = ''; // Clear
+                for (let i = 1; i <= 10; i++) {
+                    const url = `${customerAppUrl}?table=${i}`;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'card p-4 flex flex-col items-center';
                     
-                    state.analyticsStats.totalRevenue = stats.all_time_revenue || 0;
-                    state.analyticsStats.totalOrders = stats.all_time_orders || 0;
-                    state.analyticsStats.avgOrder = stats.all_time_avg_order || 0;
-                    state.analyticsStats.topSelling = topSellingRes.data || [];
-
-                } catch (error) {
-                    console.error("Error loading analytics:", error);
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `qr-canvas-${i}`;
+                    
+                    const label = document.createElement('h3');
+                    label.className = 'text-lg font-bold mt-3';
+                    label.textContent = `Table ${i}`;
+                    
+                    wrapper.appendChild(canvas);
+                    wrapper.appendChild(label);
+                    container.appendChild(wrapper);
+                    
+                    new QRious({
+                        element: canvas,
+                        value: url,
+                        size: 200,
+                        padding: 10,
+                        level: 'H'
+                    });
                 }
-                render.analytics();
-            },
+            }
+        };
 
-            // --- ORDER MANAGEMENT ---
+        // --- ACTIONS & EVENT HANDLERS ---
+        const actions = {
             async updateOrderStatus(orderId, status) {
-                // Optimistic Update: Update local state immediately
-                const orderIndex = state.liveOrders.findIndex(o => o.id === orderId);
-                const orderToUpdate = orderIndex > -1 ? state.liveOrders[orderIndex] : null;
-
-                if (orderToUpdate) {
-                    orderToUpdate.status = status;
-                    render.kitchen();
-                } else {
-                    // Fallback to re-fetch if not found (shouldn't happen)
-                    await loadInitialData();
-                }
-                
                 try {
                     const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
                     if (error) throw error;
-                    
-                    // If successfully marked delivered, update stats instantly
-                    if (status === 'delivered') {
-                        actions.updateDashboardStats();
-                    }
-                    
-                    // Real-time listener handles final UI cleanup for liveOrders and history/analytics update
                 } catch (e) {
-                    // Rollback optimistic update on error
-                    if (orderToUpdate) {
-                         // Find the order in the database to see its actual current status
-                         const currentDbOrder = await fetchOrderDetails(orderId);
-                         orderToUpdate.status = currentDbOrder?.status || 'received';
-                         render.kitchen();
-                    }
                     renderError(`Error updating order: ${e.message}`);
                 }
             },
 
-            generateNewOrderModalHTML(order) {
-                const items = order.order_items || [];
-                const itemsHTML = items.length > 0 ? items.map(item => `
-                    <li class="flex justify-between border-b border-gray-100 py-1">
-                        <span class="font-semibold text-gray-800">${item.product_name}</span>
-                        <span class="text-gray-600">x${item.quantity} (₹${item.price_at_time_of_order.toFixed(2)})</span>
-                    </li>
-                `).join('') : '<li class="text-gray-500">Loading items...</li>';
-                
-                const discount = order.discount_amount || 0;
-                
-                return `
-                    <h2 class="text-4xl font-extrabold text-center mb-2 text-yellow-600">!! NEW ORDER !!</h2>
-                    <h3 class="text-2xl font-bold text-center">Table #${order.tables?.table_number || 'N/A'}</h3>
-                    <p class="text-center text-gray-700 mb-6">By: ${order.customers?.name || 'Guest'}</p>
-                    
-                    <div class="space-y-4">
-                        <div class="card p-3">
-                            <h4 class="font-bold text-lg mb-2">Items:</h4>
-                            <ul id="new-order-modal-items" class="list-none space-y-1">${itemsHTML}</ul>
-                        </div>
-                        
-                        ${discount > 0 ? `
-                        <div class="card p-3 bg-green-50 border border-green-200">
-                             <h4 class="font-bold text-lg text-green-700">Loyalty Discount Applied:</h4>
-                             <p class="font-bold text-xl text-green-700">₹${discount.toFixed(2)}</p>
-                             <p class="text-sm text-green-600">${order.discount_points_redeemed || 0} points redeemed</p>
-                        </div>
-                        ` : ''}
-
-                        <div class="card p-3 bg-blue-50 border border-blue-200">
-                            <h4 class="font-bold text-lg">Total to Pay:</h4>
-                            <p class="font-extrabold text-3xl text-blue-700">₹${(order.final_amount || 0).toFixed(2)}</p>
-                        </div>
-                        
-                        ${order.special_instructions ? `
-                        <div class="card p-3 bg-yellow-50 border border-yellow-200">
-                            <h4 class="font-bold text-lg text-yellow-800">Special Instructions:</h4>
-                            <p class="text-sm text-yellow-700">${order.special_instructions}</p>
-                        </div>
-                        ` : ''}
-                    </div>
-
-                    <div class="flex gap-4 mt-8">
-                        <button class="btn btn-success flex-1 py-3" onclick="actions.acceptOrderFromModal('${order.id}')">Accept Order</button>
-                        <button class="btn btn-danger flex-1 py-3" onclick="actions.cancelOrderFromModal('${order.id}')">Cancel Order</button>
-                    </div>
-                `;
-            },
-            
-            showNewOrderModal(order) {
-                const modalHTML = `
-                    <div id="new-order-modal-content">
-                        ${actions.generateNewOrderModalHTML(order)}
-                    </div>
-                `;
-                // Use showBlockingModal to prevent interaction with the rest of the app
-                showBlockingModal(modalHTML, order.id);
-            },
-            
-            async acceptOrderFromModal(orderId) {
-                await actions.updateOrderStatus(orderId, 'preparing');
-                closeModal();
-            },
-
-            async cancelOrderFromModal(orderId) {
-                await actions.updateOrderStatus(orderId, 'cancelled');
-                closeModal();
-            },
-
-            // --- STAFF CALLS ---
             async resolveStaffCall(callId) {
                 try {
                     const { error } = await supabase.from('staff_calls').update({ status: 'resolved' }).eq('id', callId);
@@ -1044,43 +891,38 @@
                     renderError(`Error resolving call: ${e.message}`);
                 }
             },
-            
-            async resolveAllStaffCalls() {
-                 if (state.staffCalls.length === 0) return;
-                 
-                 try {
-                    // Update all pending calls to resolved
-                    const { error } = await supabase.from('staff_calls')
-                        .update({ status: 'resolved' })
-                        .eq('status', 'pending');
-                        
-                    if (error) throw error;
-                    
-                    // Optimistically clear the local list
-                    state.staffCalls = [];
-                    render.kitchen();
-                    
-                 } catch (e) {
-                     renderError(`Error resolving all calls: ${e.message}`);
-                     // On failure, rely on real-time listener to restore state
-                     loadInitialData();
-                 }
-            },
 
-
-            // --- MENU MANAGEMENT ---
             async toggleItemAvailability(itemId, isAvailable) {
                 try {
                     const { error } = await supabase.from('products').update({ is_available: isAvailable }).eq('id', itemId);
                     if (error) throw error;
+                    const item = state.menu.find(i => i.id === itemId);
+                    if (item) item.is_available = isAvailable;
                 } catch (e) {
                     renderError(`Error updating item: ${e.message}`);
+                    render.menu();
                 }
             },
 
+            // --- NEW ACTION ---
+            async toggleItemOrderable(itemId, isOrderable) {
+                try {
+                    const { error } = await supabase.from('products').update({ is_dine_in_orderable: isOrderable }).eq('id', itemId);
+                    if (error) throw error;
+                    const item = state.menu.find(i => i.id === itemId);
+                    if (item) item.is_dine_in_orderable = isOrderable;
+                } catch (e) {
+                    renderError(`Error updating item orderable status: ${e.message}`);
+                    render.menu();
+                }
+            },
+
+            // --- MODAL: MENU ITEM ---
             showMenuModal(itemId = null) {
                 const item = itemId ? state.menu.find(i => i.id === itemId) : {};
                 const isNew = !itemId;
+                const isGulabi = item?.brand === 'Gulabi Thali';
+                
                 const modalHTML = `
                     <h2 class="text-2xl font-bold mb-6">${isNew ? 'Add New Item' : 'Edit Menu Item'}</h2>
                     <form id="menu-form" class="space-y-4">
@@ -1099,7 +941,7 @@
                         </div>
                         <div>
                             <label class="form-label">Brand</label>
-                            <select name="brand" class="form-input">
+                            <select name="brand" id="brand-select" class="form-input" onchange="actions.toggleOrderableCheckbox(this.value)">
                                 <option value="Bulb Cafe" ${item?.brand === 'Bulb Cafe' ? 'selected' : ''}>Bulb Cafe</option>
                                 <option value="Gulabi Thali" ${item?.brand === 'Gulabi Thali' ? 'selected' : ''}>Gulabi Thali</option>
                             </select>
@@ -1108,6 +950,15 @@
                             <label class="form-label">Description</label>
                             <textarea name="description" class="form-input">${item?.description || ''}</textarea>
                         </div>
+                        
+                        <!-- NEW Checkbox, hidden by default -->
+                        <div id="orderable-checkbox-container" class="${isGulabi ? '' : 'hidden'}">
+                            <label class="form-label flex items-center space-x-2">
+                                <input type="checkbox" name="is_dine_in_orderable" class="h-5 w-5 rounded" ${item?.is_dine_in_orderable ? 'checked' : ''}>
+                                <span>Dine-in Orderable (for Gulabi Thali)</span>
+                            </label>
+                        </div>
+
                         <div class="flex justify-end gap-4 pt-4">
                             <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                             <button type="submit" class="btn btn-primary">${isNew ? 'Create Item' : 'Save Changes'}</button>
@@ -1115,7 +966,17 @@
                     </form>
                 `;
                 showModal(modalHTML);
-                $('menu-form').onsubmit = actions.saveMenuItem;
+                $('menu-form').onsubmit = this.saveMenuItem;
+            },
+            
+            // --- NEW HELPER for modal ---
+            toggleOrderableCheckbox(brand) {
+                const container = $('orderable-checkbox-container');
+                if (brand === 'Gulabi Thali') {
+                    container.classList.remove('hidden');
+                } else {
+                    container.classList.add('hidden');
+                }
             },
 
             async saveMenuItem(e) {
@@ -1124,6 +985,14 @@
                 const itemData = Object.fromEntries(formData.entries());
                 itemData.price = parseFloat(itemData.price);
                 
+                // Convert checkbox value
+                itemData.is_dine_in_orderable = formData.get('is_dine_in_orderable') === 'on';
+                
+                // If brand is not Gulabi, always set orderable to false
+                if (itemData.brand !== 'Gulabi Thali') {
+                    itemData.is_dine_in_orderable = false;
+                }
+
                 try {
                     let error;
                     if (itemData.id) { // Update
@@ -1136,354 +1005,188 @@
                     }
                     if (error) throw error;
                     
+                    await loadInitialData(); // Reload all data
                     closeModal();
                 } catch (e) {
                     renderError(`Error saving item: ${e.message}`);
                 }
             },
-
-            // --- EXPORT ---
-            async exportToCSV(tableName) {
-                try {
-                    const { data, error } = await supabase.from(tableName).select('*');
-                    if (error) throw error;
-
-                    if (data.length === 0) return renderError(`No data found for ${tableName}.`);
-
-                    const fields = Object.keys(data[0]);
-                    const csvContent = [
-                        fields.join(','),
-                        ...data.map(row => fields.map(fieldName => JSON.stringify(row[fieldName] || '')).join(','))
-                    ].join('\n');
-
-                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `${tableName}_export_${new Date().toISOString().slice(0, 10)}.csv`;
-                    link.click();
-
-                } catch (e) {
-                    renderError(`Export failed: ${e.message}`);
-                }
-            },
             
-            // --- SETTINGS ---
-            async loadSettingsForm() {
-                if ($('loyalty_threshold')) $('loyalty_threshold').value = state.settings.loyalty_threshold?.value || 350;
-                if ($('loyalty_earning_rate')) $('loyalty_earning_rate').value = state.settings.loyalty_earning_rate?.value || 10;
-                if ($('loyalty_redeem_max')) $('loyalty_redeem_max').value = state.settings.loyalty_redeem_max?.value || 70;
-            },
-            
-            async saveSettings(e) {
-                e.preventDefault();
-                const button = $('save-settings-btn');
-                button.innerHTML = `<span class="spinner-small mr-2"></span> Saving...`;
-                button.disabled = true;
-
-                const form = e.target;
-                const keys = ['loyalty_threshold', 'loyalty_earning_rate', 'loyalty_redeem_max'];
-                
-                try {
-                    const updates = keys.map(key => ({
-                        key: key,
-                        value: { value: parseFloat(form[key].value) } // Store as JSONB object
-                    }));
-
-                    const { error } = await supabase.from('app_settings')
-                        .upsert(updates, { onConflict: 'key' }); // Use upsert to handle inserts/updates
-
-                    if (error) throw error;
-                    renderError('Settings saved successfully!', 3000);
-                    // Real-time listener handles the state update
-                } catch (e) {
-                    renderError(`Error saving settings: ${e.message}`);
-                } finally {
-                    button.innerHTML = `Save Settings`;
-                    button.disabled = false;
-                }
-            }
-        };
-
-        // --- RENDERING ---
-        const render = {
-            all() {
-                this.kitchen();
-                this.history();
-                this.menu();
-                this.customers();
-                this.tables();
-                this.qr();
-                this.analytics();
-                this.settings();
-            },
-            
-            switchTab(tab) {
-                $$('.nav-link').forEach(link => link.classList.remove('active'));
-                $$(`.nav-link[data-tab="${tab}"]`).forEach(link => link.classList.add('active'));
-                
-                $$('.tab-content').forEach(content => content.classList.remove('active'));
-                $(`${tab}-tab`).classList.add('active');
-            },
-
-            dashboard() {
-                if(!$('stat-total-orders')) return; // Exit if elements aren't loaded
-
-                const { totalOrders, grossRevenue, netRevenue } = state.dashboardStats;
-
-                $('stat-total-orders').textContent = totalOrders.toLocaleString();
-                $('stat-gross-revenue').textContent = `₹${grossRevenue.toFixed(2).toLocaleString()}`;
-                $('stat-net-revenue').textContent = `₹${netRevenue.toFixed(2).toLocaleString()}`;
-            },
-
-            kitchen() {
-                const receivedContainer = $('live-orders-received-container');
-                const preparingContainer = $('live-orders-preparing-container');
-                
-                if (!receivedContainer || !preparingContainer) return; // FIX: Ensure elements exist
-
-                const received = state.liveOrders.filter(o => o.status === 'received');
-                const preparing = state.liveOrders.filter(o => o.status === 'preparing');
-                
-                // Sort by time (newest first)
-                received.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                preparing.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-                // Order Cards Renderer
-                const renderOrderCard = (order) => {
-                    const isNew = order.status === 'received';
-                    const items = order.order_items || [];
-                    const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const discount = order.discount_amount || 0;
-
-                    const itemsListHTML = items.length > 0 ? items.map(item => `
-                        <li class="text-gray-800 text-sm flex justify-between">
-                            <span>${item.product_name}</span>
-                            <span class="font-medium text-gray-600">x${item.quantity}</span>
-                        </li>
-                    `).join('') : '<li class="text-gray-500 text-sm">Loading items...</li>';
-
-                    return `
-                        <div id="order-${order.id}" class="card p-4 ${isNew ? 'order-card-new' : ''} border-2 ${isNew ? 'border-yellow-500' : 'border-blue-500'}">
-                            <div class="flex justify-between items-center mb-3">
-                                <div>
-                                    <h3 class="text-xl font-bold">Table #${order.tables?.table_number || 'N/A'}</h3>
-                                    <p class="text-gray-600">by ${order.customers?.name || 'Guest'} at ${time}</p>
-                                </div>
-                                <p class="text-3xl font-extrabold text-green-700">
-                                    ₹${(order.final_amount || 0).toFixed(2)}
-                                </p>
-                            </div>
-                            <div class="border-t border-gray-100 pt-3 mb-4">
-                                <ul class="space-y-1 list-none">
-                                    ${itemsListHTML}
-                                </ul>
-                                ${discount > 0 ? `
-                                    <p class="mt-2 text-sm font-semibold text-green-600">
-                                        Discount: -₹${discount.toFixed(2)}
-                                    </p>
-                                ` : ''}
-                                ${order.special_instructions ? `
-                                    <p class="mt-3 text-sm italic text-yellow-800 bg-yellow-100 p-2 rounded-md">
-                                        <strong>Note:</strong> ${order.special_instructions}
-                                    </p>
-                                ` : ''}
-                            </div>
-                            <div class="flex gap-2">
-                                ${isNew ? `
-                                    <button class="btn btn-primary flex-1" onclick="actions.updateOrderStatus('${order.id}', 'preparing')">
-                                        Mark as Preparing
-                                    </button>
-                                ` : `
-                                    <button class="btn btn-success flex-1" onclick="actions.updateOrderStatus('${order.id}', 'delivered')">
-                                        Mark as Delivered
-                                    </button>
-                                `}
-                                <button class="btn btn-danger" onclick="actions.updateOrderStatus('${order.id}', 'cancelled')">
-                                    Cancel
-                                </button>
-                            </div>
+            // --- MODAL: CUSTOMER ---
+            showCustomerModal(customerId) {
+                const cust = state.customers.find(c => c.id === customerId);
+                const modalHTML = `
+                    <h2 class="text-2xl font-bold mb-6">Edit Customer</h2>
+                    <form id="customer-form" class="space-y-4">
+                        <input type="hidden" name="id" value="${cust.id}">
+                        <div>
+                            <label class="form-label">Name</label>
+                            <input type="text" name="name" class="form-input" value="${cust.name || ''}" required>
                         </div>
-                    `;
+                        <div>
+                            <label class="form-label">Phone (10 digits)</label>
+                            <input type="tel" name="whatsapp_number" class="form-input" value="${cust.whatsapp_number || ''}" pattern="[0-9]{10}">
+                        </div>
+                        <div class="flex justify-end gap-4 pt-4">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                `;
+                showModal(modalHTML);
+                $('customer-form').onsubmit = this.saveCustomer;
+            },
+
+            async saveCustomer(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const customerId = formData.get('id');
+                const updateData = {
+                    name: formData.get('name'),
+                    whatsapp_number: formData.get('whatsapp_number')
                 };
 
-                // Render Received
-                receivedContainer.innerHTML = received.map(renderOrderCard).join('');
-                if (received.length > 0) $('no-received-msg')?.classList.add('hidden');
-                else $('no-received-msg')?.classList.remove('hidden');
-                $('received-count').textContent = received.length;
-
-
-                // Render Preparing
-                preparingContainer.innerHTML = preparing.map(renderOrderCard).join('');
-                if (preparing.length > 0) $('no-preparing-msg')?.classList.add('hidden');
-                else $('no-preparing-msg')?.classList.remove('hidden');
-                $('preparing-count').textContent = preparing.length;
-                
-                
-                // Render Staff Calls
-                const callsList = $('staff-calls-list');
-                const noCallsMsg = $('no-calls-msg');
-                callsList.innerHTML = state.staffCalls.map(call => {
-                    const time = new Date(call.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    return `
-                        <div class="p-3 border-b border-gray-100 flex justify-between items-center call-card-new">
-                            <h3 class="text-lg font-bold">Table #${call.table_number} <span class="text-sm text-red-500 capitalize ml-2">${call.call_type === 'payment' ? 'Payment' : 'Assistance'}</span></h3>
-                            <button class="btn btn-danger btn-sm" onclick="actions.resolveStaffCall('${call.id}')">
-                                Resolve
-                            </button>
-                        </div>
-                    `;
-                }).join('');
-                
-                if (state.staffCalls.length > 0) noCallsMsg?.classList.add('hidden');
-                else noCallsMsg?.classList.remove('hidden');
-                $('calls-count').textContent = state.staffCalls.length;
-            },
-
-            history() {
-                const historyBody = $('history-table-body');
-                if (!historyBody) return;
-
-                if (state.pastOrders.length === 0) {
-                    historyBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No past orders found.</td></tr>';
-                    return;
+                try {
+                    const { data, error } = await supabase.from('customers').update(updateData).eq('id', customerId).select().single();
+                    if (error) throw error;
+                    
+                    const index = state.customers.findIndex(c => c.id === customerId);
+                    state.customers[index] = data;
+                    render.customers();
+                    closeModal();
+                } catch (e) {
+                    renderError(`Error updating customer: ${e.message}`);
                 }
-                historyBody.innerHTML = state.pastOrders.map(order => {
-                    const time = new Date(order.created_at).toLocaleString();
-                    const statusColor = order.status === 'delivered' ? 'text-green-600' : 'text-red-600';
-                    return `
-                        <tr class="border-b border-gray-100">
-                            <td class="p-2 text-sm">${time}</td>
-                            <td class="p-2 text-sm">${order.customers?.name || 'Guest'}</td>
-                            <td class="p-2 text-sm">${order.tables?.table_number || 'N/A'}</td>
-                            <td class="p-2 text-sm">₹${(order.final_amount || 0).toFixed(2)}</td>
-                            <td class="p-2 text-sm font-semibold ${statusColor} capitalize">${order.status}</td>
-                            <td class="p-2 text-right">
-                                <button class="btn btn-danger btn-sm" onclick="actions.deleteOrder('${order.id}', '${order.customers?.name || 'Guest'}')">
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
             },
 
-            menu() {
-                const menuBody = $('menu-table-body');
-                if (!menuBody) return;
-
-                menuBody.innerHTML = state.menu.map(item => `
-                    <tr class="border-b border-gray-100">
-                        <td class="p-2">${item.name}</td>
-                        <td class="p-2">₹${item.price}</td>
-                        <td class="p-2">${item.category}</td>
-                        <td class="p-2"><span class="font-semibold" style="color: var(--brand-${item.brand === 'Bulb Cafe' ? 'yellow' : 'pink'});">${item.brand}</span></td>
-                        <td class="p-2">
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" ${item.is_available ? 'checked' : ''} class="sr-only peer" onchange="actions.toggleItemAvailability('${item.id}', this.checked)">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                            </label>
-                        </td>
-                        <td class="p-2 text-right">
-                            <button class="btn btn-secondary btn-sm" onclick="actions.showMenuModal('${item.id}')">Edit</button>
-                        </td>
-                    </tr>
-                `).join('');
+            // --- MODAL: TABLE ---
+            showTableModal(tableId = null) {
+                const table = tableId ? state.tables.find(t => t.id === tableId) : {};
+                const isNew = !tableId;
+                const modalHTML = `
+                    <h2 class="text-2xl font-bold mb-6">${isNew ? 'Add New Table' : 'Edit Table'}</h2>
+                    <form id="table-form" class="space-y-4">
+                        <input type="hidden" name="id" value="${table?.id || ''}">
+                        <div>
+                            <label class="form-label">Table Number</label>
+                            <input type="number" name="table_number" class="form-input" value="${table?.table_number || ''}" required ${!isNew ? 'readonly' : ''} ${!isNew ? 'bg-gray-300' : ''}>
+                        </div>
+                        <div>
+                            <label class="form-label">Description</label>
+                            <input type="text" name="description" class="form-input" value="${table?.description || ''}">
+                        </div>
+                        <div class="flex justify-end gap-4 pt-4">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">${isNew ? 'Create Table' : 'Save Changes'}</button>
+                        </div>
+                    </form>
+                `;
+                showModal(modalHTML);
+                $('table-form').onsubmit = this.saveTable;
             },
 
-            customers() {
-                const customersBody = $('customers-table-body');
-                if (!customersBody) return;
+            async saveTable(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const tableId = formData.get('id');
+                const tableData = {
+                    table_number: parseInt(formData.get('table_number')),
+                    description: formData.get('description')
+                };
 
-                customersBody.innerHTML = state.customers.map(cust => `
-                    <tr class="border-b border-gray-100">
-                        <td class="p-2">${cust.name}</td>
-                        <td class="p-2">${cust.whatsapp_number || 'N/A'}</td>
-                        <td class="p-2">${cust.loyalty_points || 0}</td>
-                        <td class="p-2 text-right space-x-2">
-                            <button class="btn btn-secondary btn-sm" onclick="actions.showLoyaltyModal('${cust.id}', '${cust.name}', ${cust.loyalty_points || 0})">Adjust Points</button>
-                            <button class="btn btn-secondary btn-sm" onclick="actions.showCustomerModal('${cust.id}')">Edit</button>
-                            <button class="btn btn-danger btn-sm" onclick="actions.deleteCustomer('${cust.id}', '${cust.name}')">Delete</button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            tables() {
-                const tablesBody = $('tables-table-body');
-                if (!tablesBody) return;
-
-                tablesBody.innerHTML = state.tables.map(table => `
-                    <tr class="border-b border-gray-100">
-                        <td class="p-2 font-bold">${table.table_number}</td>
-                        <td class="p-2">${table.description || 'N/A'}</td>
-                        <td class="p-2 text-right">
-                            <button class="btn btn-secondary btn-sm" onclick="actions.showTableModal('${table.id}')">Edit</button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            qr() {
-                const container = $('qr-code-container');
-                if (!container) return;
-
-                // FIX: Use the actual customer app URL
-                const customerAppUrl = 'https://bulb-77jm.onrender.com/'; 
-                container.innerHTML = '';
-                
-                // Sort tables by number
-                const sortedTables = [...state.tables].sort((a, b) => a.table_number - b.table_number);
-
-                sortedTables.forEach(table => {
-                    const url = `${customerAppUrl}?table=${table.table_number}`;
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'card p-4 flex flex-col items-center print:break-inside-avoid';
+                try {
+                    let error;
+                    if (tableId) { // Update
+                        const { error: updateError } = await supabase.from('tables').update({ description: tableData.description }).eq('id', tableId);
+                        error = updateError;
+                    } else { // Insert
+                        const { error: insertError } = await supabase.from('tables').insert(tableData);
+                        error = insertError;
+                    }
+                    if (error) throw error;
                     
-                    const canvas = document.createElement('canvas');
-                    canvas.id = `qr-canvas-${table.table_number}`;
-                    
-                    const label = document.createElement('h3');
-                    label.className = 'text-lg font-bold mt-3';
-                    label.textContent = `Table ${table.table_number}`;
-                    
-                    wrapper.appendChild(canvas);
-                    wrapper.appendChild(label);
-                    container.appendChild(wrapper);
-                    
-                    new QRious({
-                        element: canvas,
-                        value: url,
-                        size: 200,
-                        padding: 10,
-                        level: 'H'
-                    });
-                });
+                    await loadInitialData(); // Reload all data
+                    closeModal();
+                } catch (e) {
+                    renderError(`Error saving table: ${e.message}`);
+                }
             },
 
-            analytics() {
-                if (!$('analytics-total-revenue')) return; // Exit if elements aren't loaded
-
-                const { totalRevenue, totalOrders, avgOrder, topSelling } = state.analyticsStats;
-
-                $('analytics-total-revenue').textContent = `₹${totalRevenue.toFixed(2).toLocaleString()}`;
-                $('analytics-total-orders').textContent = totalOrders.toLocaleString();
-                $('analytics-avg-order').textContent = `₹${avgOrder.toFixed(2).toLocaleString()}`;
-
-                const topSellingList = $('top-selling-list');
-                topSellingList.innerHTML = topSelling.length > 0 ? topSelling.map((item, index) => `
-                    <li class="flex justify-between p-2 bg-gray-50 rounded-lg">
-                        <span class="font-semibold text-gray-800">${index + 1}. ${item.product_name}</span>
-                        <span class="font-bold text-blue-600">${item.total_sold.toLocaleString()} sold</span>
-                    </li>
-                `).join('') : '<li class="text-gray-500">No delivered orders yet.</li>';
-
+            // --- MODAL: LOYALTY ---
+            showLoyaltyModal(customerId, customerName, currentPoints) {
+                const modalHTML = `
+                    <h2 class="text-2xl font-bold mb-2">Adjust Points</h2>
+                    <p class="text-gray-600 mb-6">For: <span class="font-semibold">${customerName}</span> (Current: ${currentPoints})</p>
+                    <form id="loyalty-form" class="space-y-4">
+                        <input type="hidden" name="id" value="${customerId}">
+                        <input type="hidden" name="current_points" value="${currentPoints}">
+                        <div>
+                            <label class="form-label">Points to Add / Redeem</label>
+                            <input type="number" name="adjustment" class="form-input" placeholder="e.g., 50 to add, -20 to redeem" required>
+                        </div>
+                        <div class="flex justify-end gap-4 pt-4">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Adjust Points</button>
+                        </div>
+                    </form>
+                `;
+                showModal(modalHTML);
+                $('loyalty-form').onsubmit = this.saveLoyaltyAdjustment;
             },
-            
-            settings() {
-                actions.loadSettingsForm();
-                if ($('settings-form')) {
-                    $('settings-form').onsubmit = actions.saveSettings;
+
+            async saveLoyaltyAdjustment(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const customerId = formData.get('id');
+                const adjustment = parseInt(formData.get('adjustment'));
+
+                if (isNaN(adjustment)) {
+                    return renderError("Invalid number for points.");
+                }
+
+                try {
+                    const { data, error } = await supabase.rpc('adjust_loyalty_points', { customer_id_input: customerId, points_change: adjustment });
+                    
+                    if (error) throw error;
+                    
+                    const { data: updatedCustomers, error: fetchError } = await supabase.from('customers').select('*').order('name', { ascending: true });
+                    if (fetchError) throw fetchError;
+                    
+                    state.customers = updatedCustomers;
+                    render.customers();
+                    closeModal();
+
+                } catch (e) {
+                    renderError(`Error adjusting points: ${e.message}`);
+                }
+            },
+
+            // --- DELETE CUSTOMER ---
+            async deleteCustomer(customerId, customerName) {
+                if (confirm(`Are you sure you want to delete ${customerName} (ID: ${customerId})?\nTHIS ACTION CANNOT BE UNDONE.`)) {
+                    try {
+                        const { error } = await supabase.from('customers').delete().eq('id', customerId);
+                        if (error) throw error;
+                        
+                        state.customers = state.customers.filter(c => c.id !== customerId);
+                        render.customers();
+                    } catch (e) {
+                         renderError(`Error deleting customer: ${e.message}. (Note: Cannot delete customers with existing orders)`);
+                    }
+                }
+            },
+
+            async deleteOrder(orderId, customerName) {
+                if (confirm(`Are you sure you want to delete this order from ${customerName} (ID: ${orderId})?\nThis will also delete all associated order items.\nTHIS ACTION CANNOT BE UNDONE.`)) {
+                    try {
+                        const { error } = await supabase.from('orders').delete().eq('id', orderId);
+                        if (error) throw error;
+                        
+                        state.pastOrders = state.pastOrders.filter(o => o.id !== orderId);
+                        render.history();
+                    } catch (e) {
+                         renderError(`Error deleting order: ${e.message}.`);
+                    }
                 }
             }
         };
@@ -1494,14 +1197,6 @@
             container.innerHTML = `<div class="modal-overlay" onclick="closeModal()"><div class="modal-content" onclick="event.stopPropagation();">${html}</div></div>`;
             container.classList.remove('hidden');
         }
-        
-        function showBlockingModal(html, orderId) {
-             const container = $('modal-container');
-             // Add data-order-id for item listener to target
-             container.innerHTML = `<div id="new-order-modal" data-order-id="${orderId}" class="modal-overlay"><div class="modal-content" onclick="event.stopPropagation();">${html}</div></div>`;
-             container.classList.remove('hidden');
-        }
-
         function closeModal() {
             const container = $('modal-container');
             container.classList.add('hidden');
@@ -1516,22 +1211,27 @@
             auth.login(email, password);
         };
 
+        $('logout-button').onclick = () => auth.logout();
+
         $('nav-links').onclick = (e) => {
             const navLink = e.target.closest('.nav-link');
             if (navLink) {
-                render.switchTab(navLink.dataset.tab);
+                const tab = navLink.dataset.tab;
+                
+                $$('.nav-link').forEach(link => link.classList.remove('active'));
+                navLink.classList.add('active');
+                
+                $$('.tab-content').forEach(content => content.classList.remove('active'));
+                $(`${tab}-tab`).classList.add('active');
             }
         };
 
-        const addItemBtn = $('add-item-btn');
-        if (addItemBtn) addItemBtn.onclick = () => actions.showMenuModal();
+        $('add-item-btn').onclick = () => actions.showMenuModal();
+        $('add-table-btn').onclick = () => actions.showTableModal();
 
-        const addTableBtn = $('add-table-btn');
-        if (addTableBtn) addTableBtn.onclick = () => actions.showTableModal();
-
-        // Make actions globally accessible for inline onclicks
         window.actions = actions;
         window.closeModal = closeModal;
     </script>
 </body>
 </html>
+
