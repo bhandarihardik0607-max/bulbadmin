@@ -187,8 +187,8 @@
              background-color: var(--brand-pink); /* Pink when checked */
         }
         
-        /* NEW: Drag and Drop Styles */
-        .menu-item-row.dragging {
+        /* Drag and Drop Styles */
+        .draggable-row.dragging {
             opacity: 0.5;
             background: #f0f8ff; /* Light alice blue */
         }
@@ -241,6 +241,7 @@
             <div class="p-4 h-16 flex items-center border-b border-gray-200">
                 <span class="text-2xl font-bold" style="color: var(--brand-yellow);">💡 BULB ADMIN</span>
             </div>
+            <!-- UPDATED: Added Categories Tab, renamed Menu -->
             <nav id="nav-links" class="flex flex-col space-y-2 p-4">
                 <button class="nav-link active" data-tab="dashboard">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18M3 6h18M3 18h18"></path></svg>
@@ -250,9 +251,14 @@
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     Order History
                 </button>
+                <!-- NEW: Categories Tab -->
+                <button class="nav-link" data-tab="categories">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    Categories
+                </button>
                 <button class="nav-link" data-tab="menu">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                    Menu
+                    Menu Items
                 </button>
                 <button class="nav-link" data-tab="customers">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
@@ -323,12 +329,43 @@
                         </table>
                     </div>
                 </div>
+                
+                <!-- NEW: Categories Tab -->
+                <div id="categories-tab" class="tab-content space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-gray-800">Category Management</h2>
+                        <button id="add-category-btn" class="btn btn-primary">Add New Category</button>
+                    </div>
+                    <div class="card p-4 overflow-x-auto">
+                        <p class="text-sm text-gray-500 mb-4">Click and drag any row to change the category order.</p>
+                        <table class="w-full min-w-max">
+                            <thead class="border-b border-gray-200">
+                                <tr>
+                                    <th class="p-2 text-left font-semibold text-gray-600">Seq.</th>
+                                    <th class="p-2 text-left font-semibold text-gray-600">Emoji</th>
+                                    <th class="p-2 text-left font-semibold text-gray-600">Name</th>
+                                    <th class="p-2 text-left font-semibold text-gray-600">Brand</th>
+                                    <th class="p-2 text-right font-semibold text-gray-600">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categories-table-body">
+                                <!-- Categories will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-                <!-- Menu Management -->
+
+                <!-- UPDATED: Menu Management (Items) -->
                 <div id="menu-tab" class="tab-content space-y-6">
                     
+                    <!-- This header will be dynamic -->
+                    <div id="menu-header" class="flex justify-between items-center">
+                        <h2 id="menu-title" class="text-2xl font-bold text-gray-800">Menu Items</h2>
+                        <button id="add-item-btn" class="btn btn-primary hidden">Add New Item</button>
+                    </div>
+                    
                     <!-- App Settings Toggle -->
-                    <h2 class="text-2xl font-bold text-gray-800">App Settings</h2>
                     <div class="card p-6">
                         <div class="flex justify-between items-center">
                             <div>
@@ -342,31 +379,31 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-2xl font-bold text-gray-800">Menu Management</h2>
-                        <button id="add-item-btn" class="btn btn-primary">Add New Item</button>
+                    <!-- NEW: Category Selector View -->
+                    <div id="menu-category-selector" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Category cards will be injected here -->
                     </div>
-                    <div class="card p-4 overflow-x-auto">
-                        <p class="text-sm text-gray-500 mb-4">Click and drag any row to change the menu order.</p> <!-- NEW: Hint text -->
-                        <table class="w-full min-w-max">
-                            <thead class="border-b border-gray-200">
-                                <tr>
-                                    <th class="p-2 text-left font-semibold text-gray-600">Seq.</th>
-                                    <th class="p-2 text-left font-semibold text-gray-600">Emoji</th>
-                                    <th class="p-2 text-left font-semibold text-gray-600">Name</th>
-                                    <th class="p-2 text-left font-semibold text-gray-600">Price</th>
-                                    <th class="p-2 text-left font-semibold text-gray-600">Category</th>
-                                    <th class="p-2 text-left font-semibold text-gray-600">Brand</th>
-                                    <th class="p-2 text-left font-semibold text-gray-600">Available</th>
-                                    <th class="p-2 text-left font-semibold text-gray-600">Orderable (Dine-in)</th>
-                                    <th class="p-2 text-right font-semibold text-gray-600">Actions</th>
-                                </tr>
-                            </thead>
-                            <!-- UPDATED: Added id for drag-and-drop -->
-                            <tbody id="menu-table-body">
-                                <!-- Menu items will be injected here -->
-                            </tbody>
-                        </table>
+
+                    <!-- NEW: Item Table View (hidden by default) -->
+                    <div id="menu-item-list-container" class="hidden">
+                        <button id="back-to-categories-btn" class="btn btn-secondary mb-4">&larr; Back to Categories</button>
+                        <div class="card p-4 overflow-x-auto">
+                            <table class="w-full min-w-max">
+                                <thead class="border-b border-gray-200">
+                                    <tr>
+                                        <!-- REMOVED: Seq. and Emoji -->
+                                        <th class="p-2 text-left font-semibold text-gray-600">Name</th>
+                                        <th class="p-2 text-left font-semibold text-gray-600">Price</th>
+                                        <th class="p-2 text-left font-semibold text-gray-600">Available</th>
+                                        <th class="p-2 text-left font-semibold text-gray-600">Orderable (Dine-in)</th>
+                                        <th class="p-2 text-right font-semibold text-gray-600">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="menu-table-body">
+                                    <!-- Menu items will be injected here -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -475,11 +512,13 @@
             pastOrders: [],
             staffCalls: [],
             menu: [],
+            categories: [], // NEW
             customers: [],
             tables: [],
             orderSubscription: null,
             callSubscription: null,
-            appSettings: {} 
+            appSettings: {},
+            currentMenuCategory: null, // NEW: Tracks which category is being viewed
         };
 
         // --- DOM SELECTORS ---
@@ -487,7 +526,6 @@
         const $$ = (sel) => document.querySelectorAll(sel);
 
         // --- TOAST NOTIFICATION ---
-        // UPDATED: Renamed from renderError to renderToast, added 'type'
         function renderToast(message, autoHide = true, type = 'error') {
             if (type === 'error') {
                 console.error(message); // Log as error
@@ -595,11 +633,12 @@
         // --- DATA LOADING ---
         async function loadInitialData() {
             try {
-                // Fetch products ordered by sequence_id, then name
-                const [ordersRes, callsRes, menuRes, customersRes, tablesRes, settingsRes] = await Promise.all([ 
+                // Fetch products and categories ordered by sequence_id
+                const [ordersRes, callsRes, menuRes, categoriesRes, customersRes, tablesRes, settingsRes] = await Promise.all([ 
                     supabase.from('orders').select('*, tables(table_number), customers(name), order_items(product_name, quantity)').order('created_at', { ascending: false }),
                     supabase.from('staff_calls').select('*').eq('status', 'pending').order('created_at', { ascending: true }),
-                    supabase.from('products').select('*').order('sequence_id', { ascending: true }).order('name', { ascending: true }), // <-- UPDATED
+                    supabase.from('products').select('*').order('name', { ascending: true }), // Items sorted by name
+                    supabase.from('categories').select('*').order('sequence_id', { ascending: true }).order('name', { ascending: true }), // Categories sorted by sequence
                     supabase.from('customers').select('*').order('name', { ascending: true }),
                     supabase.from('tables').select('*').order('table_number', { ascending: true }),
                     supabase.from('app_settings').select('key, value') 
@@ -608,6 +647,7 @@
                 if (ordersRes.error) throw ordersRes.error;
                 if (callsRes.error) throw callsRes.error;
                 if (menuRes.error) throw menuRes.error;
+                if (categoriesRes.error) throw categoriesRes.error;
                 if (customersRes.error) throw customersRes.error;
                 if (tablesRes.error) throw tablesRes.error;
                 if (settingsRes.error) throw settingsRes.error; 
@@ -617,6 +657,7 @@
                 
                 state.staffCalls = callsRes.data;
                 state.menu = menuRes.data;
+                state.categories = categoriesRes.data; // NEW
                 state.customers = customersRes.data;
                 state.tables = tablesRes.data;
                 
@@ -726,7 +767,8 @@
             all() {
                 this.dashboard();
                 this.history();
-                this.menu();
+                this.categories(); // NEW
+                this.menu(); // This will now render categories first
                 this.customers();
                 this.tables();
                 this.qr();
@@ -850,22 +892,12 @@
                 }).join('');
             },
 
-            menu() {
-                // Update App Settings Toggle
-                const toggle = $('gulabi-ordering-toggle');
-                const isEnabled = state.appSettings.gulabi_ordering_enabled === 'true';
-                if (toggle) {
-                    toggle.checked = isEnabled;
-                }
-                const slider = $('gulabi-ordering-slider');
-                if (slider) {
-                    slider.classList.toggle('checked', isEnabled);
-                }
-
-                // Render Menu Table
-                const menuBody = $('menu-table-body');
+            // NEW: Render Categories
+            categories() {
+                const categoriesBody = $('categories-table-body');
+                
                 // Sort by sequence_id, then by name
-                const sortedMenu = state.menu.sort((a, b) => {
+                const sortedCategories = state.categories.sort((a, b) => {
                     const seqA = a.sequence_id ?? 99;
                     const seqB = b.sequence_id ?? 99;
                     if (seqA < seqB) return -1;
@@ -873,34 +905,102 @@
                     return a.name.localeCompare(b.name);
                 });
                 
-                // UPDATED: Added `menu-item-row`, `draggable`, `data-item-id`, and `cursor-move`
-                menuBody.innerHTML = sortedMenu.map(item => `
-                    <tr class="border-b border-gray-100 menu-item-row bg-white cursor-move" draggable="true" data-item-id="${item.id}">
-                        <td class="p-2 font-bold text-gray-500">${item.sequence_id ?? 99}</td>
-                        <td class="p-2 text-lg">${item.emoji || ''}</td>
-                        <td class="p-2">${item.name}</td>
-                        <td class="p-2">₹${item.price}</td>
-                        <td class="p-2">${item.category}</td>
-                        <td class="p-2">${item.brand}</td>
-                        <td class="p-2">
-                            <label class="toggle-label">
-                                <input type="checkbox" ${item.is_available ? 'checked' : ''} class="toggle-input" onchange="actions.toggleItemAvailability('${item.id}', this.checked)">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </td>
-                        <td class="p-2">
-                            ${item.brand === 'Gulabi Thali' ? `
-                                <label class="toggle-label">
-                                    <input type="checkbox" ${item.is_dine_in_orderable ? 'checked' : ''} class="toggle-input" onchange="actions.toggleItemOrderable('${item.id}', this.checked)">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            ` : '<span class="text-gray-400">N/A</span>'}
-                        </td>
+                categoriesBody.innerHTML = sortedCategories.map(cat => `
+                    <tr class="border-b border-gray-100 draggable-row bg-white cursor-move" draggable="true" data-item-id="${cat.id}">
+                        <td class="p-2 font-bold text-gray-500">${cat.sequence_id ?? 99}</td>
+                        <td class="p-2 text-lg">${cat.emoji || ''}</td>
+                        <td class="p-2">${cat.name}</td>
+                        <td class="p-2">${cat.brand}</td>
                         <td class="p-2 text-right">
-                            <button class="btn btn-secondary btn-sm" onclick="actions.showMenuModal('${item.id}')">Edit</button>
+                            <button class="btn btn-secondary btn-sm" onclick="actions.showCategoryModal('${cat.id}')">Edit</button>
                         </td>
                     </tr>
                 `).join('');
+            },
+
+            // UPDATED: Render Menu
+            menu() {
+                // Update App Settings Toggle
+                const toggle = $('gulabi-ordering-toggle');
+                const isEnabled = state.appSettings.gulabi_ordering_enabled === 'true';
+                if (toggle) toggle.checked = isEnabled;
+                
+                const slider = $('gulabi-ordering-slider');
+                if (slider) slider.classList.toggle('checked', isEnabled);
+
+                const categorySelector = $('menu-category-selector');
+                const itemListContainer = $('menu-item-list-container');
+                const menuTitle = $('menu-title');
+                const addItemBtn = $('add-item-btn');
+
+                if (state.currentMenuCategory === null) {
+                    // --- Show Category Selector ---
+                    menuTitle.textContent = 'Menu Items';
+                    addItemBtn.classList.add('hidden');
+                    categorySelector.classList.remove('hidden');
+                    itemListContainer.classList.add('hidden');
+                    
+                    const sortedCategories = state.categories.sort((a, b) => {
+                        const seqA = a.sequence_id ?? 99;
+                        const seqB = b.sequence_id ?? 99;
+                        if (seqA < seqB) return -1;
+                        if (seqA > seqB) return 1;
+                        return a.name.localeCompare(b.name);
+                    });
+
+                    categorySelector.innerHTML = sortedCategories.map(cat => {
+                        const itemCount = state.menu.filter(item => item.category === cat.name && item.brand === cat.brand).length;
+                        const brandColor = cat.brand === 'Bulb Cafe' ? 'border-l-brand-yellow' : 'border-l-brand-pink';
+                        return `
+                            <div class="card p-4 flex justify-between items-center cursor-pointer hover:shadow-md transition-shadow ${brandColor} border-l-4"
+                                 onclick="actions.viewItemsForCategory('${cat.name}', '${cat.brand}')">
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                                        <span class="text-xl mr-2">${cat.emoji || '🍽️'}</span>
+                                        ${cat.name}
+                                    </h3>
+                                    <p class="text-sm text-gray-500">${itemCount} items</p>
+                                </div>
+                                <span class="text-2xl text-gray-400">&rarr;</span>
+                            </div>
+                        `;
+                    }).join('');
+
+                } else {
+                    // --- Show Item List ---
+                    const { name, brand } = state.currentMenuCategory;
+                    menuTitle.textContent = `${name} (Items)`;
+                    addItemBtn.classList.remove('hidden');
+                    categorySelector.classList.add('hidden');
+                    itemListContainer.classList.remove('hidden');
+
+                    const menuBody = $('menu-table-body');
+                    const itemsForCategory = state.menu.filter(item => item.category === name && item.brand === brand);
+                    
+                    menuBody.innerHTML = itemsForCategory.map(item => `
+                        <tr class="border-b border-gray-100 bg-white">
+                            <td class="p-2">${item.name}</td>
+                            <td class="p-2">₹${item.price}</td>
+                            <td class="p-2">
+                                <label class="toggle-label">
+                                    <input type="checkbox" ${item.is_available ? 'checked' : ''} class="toggle-input" onchange="actions.toggleItemAvailability('${item.id}', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </td>
+                            <td class="p-2">
+                                ${item.brand === 'Gulabi Thali' ? `
+                                    <label class="toggle-label">
+                                        <input type="checkbox" ${item.is_dine_in_orderable ? 'checked' : ''} class="toggle-input" onchange="actions.toggleItemOrderable('${item.id}', this.checked)">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                ` : '<span class="text-gray-400">N/A</span>'}
+                            </td>
+                            <td class="p-2 text-right">
+                                <button class="btn btn-secondary btn-sm" onclick="actions.showMenuModal('${item.id}')">Edit</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
             },
 
             customers() {
@@ -963,23 +1063,24 @@
             }
         };
 
-        // --- NEW: DRAG & DROP LOGIC ---
+        // --- DRAG & DROP LOGIC (Now for Categories) ---
         const dragDrop = {
             draggedItem: null,
+            tableName: 'categories', // Target table for drag/drop
+            
             init() {
-                const menuTableBody = $('menu-table-body');
+                const categoriesTableBody = $('categories-table-body');
                 
-                menuTableBody.addEventListener('dragstart', this.handleDragStart.bind(this));
-                menuTableBody.addEventListener('dragover', this.handleDragOver.bind(this));
-                menuTableBody.addEventListener('dragleave', this.handleDragLeave.bind(this));
-                menuTableBody.addEventListener('dragend', this.handleDragEnd.bind(this));
-                menuTableBody.addEventListener('drop', this.handleDrop.bind(this));
+                categoriesTableBody.addEventListener('dragstart', this.handleDragStart.bind(this));
+                categoriesTableBody.addEventListener('dragover', this.handleDragOver.bind(this));
+                categoriesTableBody.addEventListener('dragleave', this.handleDragLeave.bind(this));
+                categoriesTableBody.addEventListener('dragend', this.handleDragEnd.bind(this));
+                categoriesTableBody.addEventListener('drop', this.handleDrop.bind(this));
             },
             handleDragStart(e) {
-                this.draggedItem = e.target.closest('tr');
+                this.draggedItem = e.target.closest('tr.draggable-row');
                 if (!this.draggedItem) return;
                 
-                // Needs a slight delay for the browser to capture the drag image
                 setTimeout(() => {
                     if (this.draggedItem) this.draggedItem.classList.add('dragging');
                 }, 0);
@@ -990,27 +1091,27 @@
             handleDragOver(e) {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
-                const targetRow = e.target.closest('tr.menu-item-row');
+                const targetRow = e.target.closest('tr.draggable-row');
                 
                 $$('.drag-over-indicator').forEach(el => el.remove());
 
                 if (targetRow && targetRow !== this.draggedItem) {
                     const indicator = document.createElement('tr');
                     indicator.classList.add('drag-over-indicator');
-                    indicator.innerHTML = `<td colspan="9"><div></div></td>`;
+                    // Colspan 5 for categories table
+                    indicator.innerHTML = `<td colspan="5"><div></div></td>`; 
                     
                     const rect = targetRow.getBoundingClientRect();
                     const offsetY = e.clientY - rect.top;
                     
                     if (offsetY < rect.height / 2) {
-                        targetRow.before(indicator); // Insert before
+                        targetRow.before(indicator);
                     } else {
-                        targetRow.after(indicator); // Insert after
+                        targetRow.after(indicator);
                     }
                 }
             },
             handleDragLeave(e) {
-                // Only remove if leaving the entire table body
                 if (e.currentTarget.contains(e.relatedTarget)) return;
                 $$('.drag-over-indicator').forEach(el => el.remove());
             },
@@ -1025,10 +1126,9 @@
                 e.preventDefault();
                 if (!this.draggedItem) return this.handleDragEnd();
                 
-                const targetRow = e.target.closest('tr.menu-item-row');
+                const targetRow = e.target.closest('tr.draggable-row');
                 $$('.drag-over-indicator').forEach(el => el.remove());
 
-                // Manually move the dragged item in the DOM
                 if (targetRow && targetRow !== this.draggedItem) {
                     const rect = targetRow.getBoundingClientRect();
                     const offsetY = e.clientY - rect.top;
@@ -1038,43 +1138,39 @@
                         targetRow.after(this.draggedItem);
                     }
                 } else if (!targetRow && e.target.closest('tbody')) {
-                    // Dropped in empty space, move to end
-                    $('menu-table-body').appendChild(this.draggedItem);
+                    e.target.closest('tbody').appendChild(this.draggedItem);
                 }
                 
                 this.draggedItem.classList.remove('dragging');
                 this.draggedItem = null;
 
-                // Get all rows in the new DOM order and update their sequence_id
-                const rows = $('menu-table-body').querySelectorAll('tr.menu-item-row');
+                // Get all rows and update sequence_id
+                const rows = $('categories-table-body').querySelectorAll('tr.draggable-row');
                 const updatePromises = [];
                 
                 rows.forEach((row, index) => {
                     const itemId = row.dataset.itemId;
                     const newSequenceId = index + 1; // 1-based indexing
                     
-                    // Update local state first for responsiveness
-                    const itemInState = state.menu.find(i => i.id == itemId); // Use == for type coercion
+                    const itemInState = state.categories.find(i => i.id == itemId);
                     if (itemInState) itemInState.sequence_id = newSequenceId;
                     
-                    // Add to promise list
                     updatePromises.push(
-                        supabase.from('products').update({ sequence_id: newSequenceId }).eq('id', itemId)
+                        supabase.from(this.tableName).update({ sequence_id: newSequenceId }).eq('id', itemId)
                     );
                 });
 
                 try {
-                    renderToast("Saving new sequence...", true, 'info'); // UPDATED
+                    renderToast("Saving new sequence...", true, 'info');
                     const results = await Promise.all(updatePromises);
                     const firstError = results.find(res => res.error);
                     if (firstError) throw firstError.error;
                     
-                    // Re-render from the (now sorted) local state
-                    render.menu(); 
-                    renderToast("New order saved!", true, 'info'); // UPDATED
+                    render.categories(); 
+                    renderToast("New order saved!", true, 'info');
 
                 } catch (error) {
-                    renderToast(`Error saving sequence: ${error.message}`); // UPDATED
+                    renderToast(`Error saving sequence: ${error.message}`);
                     await loadInitialData(); // Hard reload from DB on error
                 }
             }
@@ -1082,6 +1178,18 @@
 
         // --- ACTIONS & EVENT HANDLERS ---
         const actions = {
+            // --- Menu Tab Actions ---
+            viewItemsForCategory(categoryName, brand) {
+                state.currentMenuCategory = { name: categoryName, brand: brand };
+                render.menu();
+            },
+            
+            backToCategories() {
+                state.currentMenuCategory = null;
+                render.menu();
+            },
+
+            // --- Order Actions ---
             async updateOrderStatus(orderId, status) {
                 try {
                     const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
@@ -1095,11 +1203,12 @@
                 try {
                     const { error } = await supabase.from('staff_calls').update({ status: 'resolved' }).eq('id', callId);
                     if (error) throw error;
-                } catch (e) {
+                } catch (e) { // <-- FIX: Added )
                     renderToast(`Error resolving call: ${e.message}`);
                 }
             },
 
+            // --- App Settings Actions ---
             async toggleGulabiOrdering(isEnabled) {
                 const newValue = isEnabled ? 'true' : 'false';
                 try {
@@ -1119,7 +1228,7 @@
                     
                     state.appSettings.gulabi_ordering_enabled = newValue;
                     render.menu();
-                    renderToast(`Gulabi Thali ordering successfully set to: ${isEnabled ? 'ON' : 'OFF'}`, true, 'info'); // UPDATED
+                    renderToast(`Gulabi Thali ordering successfully set to: ${isEnabled ? 'ON' : 'OFF'}`, true, 'info');
                     
                 } catch (e) {
                     renderToast(`Error setting Gulabi Thali ordering status: ${e.message}`);
@@ -1127,6 +1236,7 @@
                 }
             },
 
+            // --- Item Actions ---
             async toggleItemAvailability(itemId, isAvailable) {
                 try {
                     const { error } = await supabase.from('products').update({ is_available: isAvailable }).eq('id', itemId);
@@ -1145,9 +1255,84 @@
                     if (error) throw error;
                     const item = state.menu.find(i => i.id == itemId);
                     if (item) item.is_dine_in_orderable = isOrderable;
-                } catch (e) {
+                } catch (e) { // <-- FIX: Added )
                     renderToast(`Error updating item orderable status: ${e.message}`);
                     render.menu();
+                }
+            },
+
+            // --- MODAL: CATEGORY ---
+            showCategoryModal(categoryId = null) {
+                const category = categoryId ? state.categories.find(c => c.id == categoryId) : {};
+                const isNew = !categoryId;
+
+                const modalHTML = `
+                    <h2 class="text-2xl font-bold mb-6">${isNew ? 'Add New Category' : 'Edit Category'}</h2>
+                    <form id="category-form" class="space-y-4">
+                        <input type="hidden" name="id" value="${category?.id || ''}">
+                        
+                        <div>
+                            <label class="form-label">Category Name</label>
+                            <input type="text" name="name" class="form-input" value="${category?.name || ''}" required>
+                        </div>
+                        
+                        <div>
+                            <label class="form-label">Emoji</label>
+                            <input type="text" name="emoji" class="form-input" value="${category?.emoji || ''}" placeholder="e.g., ☕️">
+                        </div>
+
+                        <div>
+                            <label class="form-label">Brand</label>
+                            <select name="brand" class="form-input" ${!isNew ? 'disabled' : ''}>
+                                <option value="Bulb Cafe" ${category?.brand === 'Bulb Cafe' ? 'selected' : ''}>Bulb Cafe</option>
+                                <option value="Gulabi Thali" ${category?.brand === 'Gulabi Thali' ? 'selected' : ''}>Gulabi Thali</option>
+                            </select>
+                            ${!isNew ? '<p class="text-xs text-gray-500 mt-1">Brand cannot be changed after creation.</p>' : ''}
+                        </div>
+
+                        <div class="flex justify-end gap-4 pt-4">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">${isNew ? 'Create Category' : 'Save Changes'}</button>
+                        </div>
+                    </form>
+                `;
+                showModal(modalHTML);
+                $('category-form').onsubmit = this.saveCategory;
+            },
+
+            async saveCategory(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const catId = formData.get('id');
+                const catData = {
+                    name: formData.get('name'),
+                    emoji: formData.get('emoji') || null,
+                    brand: formData.get('brand'),
+                };
+
+                try {
+                    let error;
+                    if (catId) { // Update
+                        // Don't update brand
+                        const { error: updateError } = await supabase.from('categories')
+                            .update({ name: catData.name, emoji: catData.emoji })
+                            .eq('id', catId);
+                        error = updateError;
+                    } else { // Insert
+                        // Get max sequence_id and add 1
+                        const { data: maxSeqData, error: maxSeqError } = await supabase.from('categories').select('sequence_id').order('sequence_id', { ascending: false }).limit(1).single();
+                        if (maxSeqError) console.warn("Could not get max sequence, defaulting to 99.");
+                        catData.sequence_id = (maxSeqData?.sequence_id || 98) + 1;
+
+                        const { error: insertError } = await supabase.from('categories').insert(catData);
+                        error = insertError;
+                    }
+                    if (error) throw error;
+                    
+                    await loadInitialData();
+                    closeModal();
+                } catch (e) {
+                    renderToast(`Error saving category: ${e.message}`);
                 }
             },
 
@@ -1155,19 +1340,19 @@
             showMenuModal(itemId = null) {
                 const item = itemId ? state.menu.find(i => i.id == itemId) : {};
                 const isNew = !itemId;
-                const isGulabi = item?.brand === 'Gulabi Thali';
-                
-                // UPDATED: Removed Sequence ID field
+                const currentCategory = state.currentMenuCategory;
+
+                // Create category options filtered by the current brand
+                const categoryOptions = state.categories
+                    .filter(c => c.brand === currentCategory.brand)
+                    .map(c => `<option value="${c.name}" ${item?.category === c.name ? 'selected' : ''}>${c.name}</option>`)
+                    .join('');
+
                 const modalHTML = `
                     <h2 class="text-2xl font-bold mb-6">${isNew ? 'Add New Item' : 'Edit Menu Item'}</h2>
                     <form id="menu-form" class="space-y-4">
                         <input type="hidden" name="id" value="${item?.id || ''}">
                         
-                        <div>
-                            <label class="form-label">Emoji</label>
-                            <input type="text" name="emoji" class="form-input" value="${item?.emoji || ''}" placeholder="e.g., ☕️">
-                        </div>
-
                         <div>
                             <label class="form-label">Name</label>
                             <input type="text" name="name" class="form-input" value="${item?.name || ''}" required>
@@ -1178,13 +1363,9 @@
                         </div>
                         <div>
                             <label class="form-label">Category</label>
-                            <input type="text" name="category" class="form-input" value="${item?.category || ''}" required>
-                        </div>
-                        <div>
-                            <label class="form-label">Brand</label>
-                            <select name="brand" id="brand-select" class="form-input" onchange="actions.toggleOrderableCheckbox(this.value)">
-                                <option value="Bulb Cafe" ${item?.brand === 'Bulb Cafe' ? 'selected' : ''}>Bulb Cafe</option>
-                                <option value="Gulabi Thali" ${item?.brand === 'Gulabi Thali' ? 'selected' : ''}>Gulabi Thali</option>
+                            <select name="category" class="form-input" required>
+                                <option value="">Select a category</option>
+                                ${categoryOptions}
                             </select>
                         </div>
                         <div>
@@ -1192,7 +1373,8 @@
                             <textarea name="description" class="form-input">${item?.description || ''}</textarea>
                         </div>
                         
-                        <div id="orderable-checkbox-container" class="${isGulabi ? '' : 'hidden'}">
+                        <!-- This is only shown for Gulabi Thali items -->
+                        <div id="orderable-checkbox-container" class="${currentCategory.brand === 'Gulabi Thali' ? '' : 'hidden'}">
                             <label class="form-label flex items-center space-x-2">
                                 <input type="checkbox" name="is_dine_in_orderable" class="h-5 w-5 rounded" ${item?.is_dine_in_orderable ? 'checked' : ''}>
                                 <span>Dine-in Orderable (for Gulabi Thali)</span>
@@ -1209,26 +1391,18 @@
                 $('menu-form').onsubmit = this.saveMenuItem;
             },
             
-            toggleOrderableCheckbox(brand) {
-                const container = $('orderable-checkbox-container');
-                if (brand === 'Gulabi Thali') {
-                    container.classList.remove('hidden');
-                } else {
-                    container.classList.add('hidden');
-                }
-            },
-
-            // UPDATED: Save Menu Item
             async saveMenuItem(e) {
                 e.preventDefault();
                 const formData = new FormData(e.target);
                 const itemData = Object.fromEntries(formData.entries());
+                const currentCategory = state.currentMenuCategory;
                 
                 // Process form data
                 itemData.price = parseFloat(itemData.price);
-                // itemData.sequence_id = parseInt(itemData.sequence_id, 10) || 99; // REMOVED
-                itemData.emoji = itemData.emoji || null; 
                 itemData.is_dine_in_orderable = formData.get('is_dine_in_orderable') === 'on';
+                
+                // Set brand from the current viewed category
+                itemData.brand = currentCategory.brand;
                 
                 if (itemData.brand !== 'Gulabi Thali') {
                     itemData.is_dine_in_orderable = false;
@@ -1241,17 +1415,13 @@
                         error = updateError;
                     } else { // Insert
                         delete itemData.id;
-                        // NEW: Get max sequence_id and add 1 for new items
-                        const { data: maxSeqData, error: maxSeqError } = await supabase.from('products').select('sequence_id').order('sequence_id', { ascending: false }).limit(1).single();
-                        if (maxSeqError) console.warn("Could not get max sequence, defaulting to 99.");
-                        itemData.sequence_id = (maxSeqData?.sequence_id || 98) + 1;
-
                         const { error: insertError } = await supabase.from('products').insert(itemData);
                         error = insertError;
                     }
                     if (error) throw error;
                     
-                    await loadInitialData(); // Reload all data
+                    await loadInitialData(); 
+                    render.menu(); // Re-render menu to show new item
                     closeModal();
                 } catch (e) {
                     renderToast(`Error saving item: ${e.message}`);
@@ -1474,10 +1644,18 @@
                 
                 $$('.tab-content').forEach(content => content.classList.remove('active'));
                 $(`${tab}-tab`).classList.add('active');
+
+                // Reset menu view when clicking menu tab
+                if (tab === 'menu') {
+                    actions.backToCategories();
+                }
             }
         };
 
+        // Updated Add Item button
         $('add-item-btn').onclick = () => actions.showMenuModal();
+        $('back-to-categories-btn').onclick = () => actions.backToCategories();
+        $('add-category-btn').onclick = () => actions.showCategoryModal();
         $('add-table-btn').onclick = () => actions.showTableModal();
 
         window.actions = actions;
