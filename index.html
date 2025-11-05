@@ -104,6 +104,8 @@
             width: 90%;
             max-width: 500px;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+            max-height: 90vh; /* Allow modal to scroll */
+            overflow-y: auto; /* Allow modal to scroll */
         }
         .form-input {
             width: 100%;
@@ -179,10 +181,10 @@
         }
 
         .toggle-slider-pink {
-            background-color: var(--brand-pink);
+            background-color: #d1d5db; /* Start gray */
         }
-        .toggle-slider-pink.checked {
-            background-color: var(--accent-green);
+        .toggle-input:checked + .toggle-slider-pink {
+             background-color: var(--brand-pink); /* Pink when checked */
         }
 
     </style>
@@ -316,13 +318,15 @@
                     <h2 class="text-2xl font-bold text-gray-800">App Settings</h2>
                     <div class="card p-6">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-bold text-gray-800">Gulabi Thali Ordering Status</h3>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">Gulabi Thali Ordering Status</h3>
+                                <p class="text-sm text-gray-500 mt-1">When **On**, customers viewing the Gulabi Thali menu can place orders. When **Off**, it is **View Only**.</p>
+                            </div>
                             <label class="toggle-label">
                                 <input type="checkbox" id="gulabi-ordering-toggle" class="toggle-input" onchange="actions.toggleGulabiOrdering(this.checked)">
                                 <span class="toggle-slider toggle-slider-pink" id="gulabi-ordering-slider"></span>
                             </label>
                         </div>
-                        <p class="text-sm text-gray-500 mt-1">When **On**, customers viewing the Gulabi Thali menu can place orders. When **Off**, it is **View Only**.</p>
                     </div>
 
                     <div class="flex justify-between items-center">
@@ -333,12 +337,15 @@
                         <table class="w-full min-w-max">
                             <thead class="border-b border-gray-200">
                                 <tr>
+                                    <!-- NEW: Sequence and Emoji columns -->
+                                    <th class="p-2 text-left font-semibold text-gray-600">Seq.</th>
+                                    <th class="p-2 text-left font-semibold text-gray-600">Emoji</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Name</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Price</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Category</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Brand</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Available</th>
-                                    <th class="p-2 text-left font-semibold text-gray-600">Orderable (Dine-in)</th> <!-- NEW -->
+                                    <th class="p-2 text-left font-semibold text-gray-600">Orderable (Dine-in)</th>
                                     <th class="p-2 text-right font-semibold text-gray-600">Actions</th>
                                 </tr>
                             </thead>
@@ -556,13 +563,14 @@
         // --- DATA LOADING ---
         async function loadInitialData() {
             try {
-                const [ordersRes, callsRes, menuRes, customersRes, tablesRes, settingsRes] = await Promise.all([ // Added settingsRes
+                // UPDATE: Fetch products ordered by sequence_id, then name
+                const [ordersRes, callsRes, menuRes, customersRes, tablesRes, settingsRes] = await Promise.all([ 
                     supabase.from('orders').select('*, tables(table_number), customers(name), order_items(product_name, quantity)').order('created_at', { ascending: false }),
                     supabase.from('staff_calls').select('*').eq('status', 'pending').order('created_at', { ascending: true }),
-                    supabase.from('products').select('*').order('name', { ascending: true }),
+                    supabase.from('products').select('*').order('sequence_id', { ascending: true }).order('name', { ascending: true }), // <-- UPDATED
                     supabase.from('customers').select('*').order('name', { ascending: true }),
                     supabase.from('tables').select('*').order('table_number', { ascending: true }),
-                    supabase.from('app_settings').select('key, value') // Fetch app settings
+                    supabase.from('app_settings').select('key, value') 
                 ]);
 
                 if (ordersRes.error) throw ordersRes.error;
@@ -570,7 +578,7 @@
                 if (menuRes.error) throw menuRes.error;
                 if (customersRes.error) throw customersRes.error;
                 if (tablesRes.error) throw tablesRes.error;
-                if (settingsRes.error) throw settingsRes.error; // Check for settings error
+                if (settingsRes.error) throw settingsRes.error; 
 
                 state.liveOrders = ordersRes.data.filter(o => o.status === 'received' || o.status === 'preparing');
                 state.pastOrders = ordersRes.data.filter(o => o.status === 'delivered' || o.status === 'cancelled');
@@ -580,7 +588,6 @@
                 state.customers = customersRes.data;
                 state.tables = tablesRes.data;
                 
-                // Process app settings into a key/value object
                 state.appSettings = settingsRes.data.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {});
 
                 render.all();
@@ -823,9 +830,23 @@
                     slider.classList.toggle('checked', isEnabled);
                 }
 
+                // Render Menu Table
                 const menuBody = $('menu-table-body');
-                menuBody.innerHTML = state.menu.map(item => `
+                // Sort by sequence_id, then by name
+                const sortedMenu = state.menu.sort((a, b) => {
+                    const seqA = a.sequence_id ?? 99;
+                    const seqB = b.sequence_id ?? 99;
+                    if (seqA < seqB) return -1;
+                    if (seqA > seqB) return 1;
+                    return a.name.localeCompare(b.name);
+                });
+                
+                menuBody.innerHTML = sortedMenu.map(item => `
                     <tr class="border-b border-gray-100">
+                        <!-- NEW: Sequence ID -->
+                        <td class="p-2 font-bold text-gray-500">${item.sequence_id ?? 99}</td>
+                        <!-- NEW: Emoji -->
+                        <td class="p-2 text-lg">${item.emoji || ''}</td>
                         <td class="p-2">${item.name}</td>
                         <td class="p-2">₹${item.price}</td>
                         <td class="p-2">${item.category}</td>
@@ -946,7 +967,8 @@
                         error = updateError;
                     } else {
                         // Insert new setting
-                        const { error: insertError } = await supabase.from('app_settings').insert({ key: 'gulabi_ordering_enabled', value: newValue });
+                        // FIX: Use double quotes for the outer JS string to avoid conflict with inner single quotes
+                        const { error: insertError } = await supabase.from('app_settings').insert({ key: 'gulabi_ordering_enabled', value: newValue, description: "Set to 'true' or 'false' to globally enable/disable Gulabi Thali ordering in the customer app." });
                         error = insertError;
                     }
 
@@ -974,7 +996,6 @@
                 }
             },
 
-            // --- NEW ACTION ---
             async toggleItemOrderable(itemId, isOrderable) {
                 try {
                     const { error } = await supabase.from('products').update({ is_dine_in_orderable: isOrderable }).eq('id', itemId);
@@ -987,7 +1008,7 @@
                 }
             },
 
-            // --- MODAL: MENU ITEM ---
+            // --- MODAL: MENU ITEM (UPDATED) ---
             showMenuModal(itemId = null) {
                 const item = itemId ? state.menu.find(i => i.id === itemId) : {};
                 const isNew = !itemId;
@@ -997,6 +1018,20 @@
                     <h2 class="text-2xl font-bold mb-6">${isNew ? 'Add New Item' : 'Edit Menu Item'}</h2>
                     <form id="menu-form" class="space-y-4">
                         <input type="hidden" name="id" value="${item?.id || ''}">
+                        
+                        <div class="grid grid-cols-3 gap-4">
+                            <!-- NEW: Sequence ID -->
+                            <div class="col-span-1">
+                                <label class="form-label">Sequence</label>
+                                <input type="number" name="sequence_id" class="form-input" value="${item?.sequence_id || 99}" required>
+                            </div>
+                            <!-- NEW: Emoji -->
+                            <div class="col-span-2">
+                                <label class="form-label">Emoji</label>
+                                <input type="text" name="emoji" class="form-input" value="${item?.emoji || ''}" placeholder="e.g., ☕️">
+                            </div>
+                        </div>
+
                         <div>
                             <label class="form-label">Name</label>
                             <input type="text" name="name" class="form-input" value="${item?.name || ''}" required>
@@ -1021,7 +1056,6 @@
                             <textarea name="description" class="form-input">${item?.description || ''}</textarea>
                         </div>
                         
-                        <!-- NEW Checkbox, hidden by default -->
                         <div id="orderable-checkbox-container" class="${isGulabi ? '' : 'hidden'}">
                             <label class="form-label flex items-center space-x-2">
                                 <input type="checkbox" name="is_dine_in_orderable" class="h-5 w-5 rounded" ${item?.is_dine_in_orderable ? 'checked' : ''}>
@@ -1039,7 +1073,6 @@
                 $('menu-form').onsubmit = this.saveMenuItem;
             },
             
-            // --- NEW HELPER for modal ---
             toggleOrderableCheckbox(brand) {
                 const container = $('orderable-checkbox-container');
                 if (brand === 'Gulabi Thali') {
@@ -1049,16 +1082,18 @@
                 }
             },
 
+            // UPDATED: Save Menu Item
             async saveMenuItem(e) {
                 e.preventDefault();
                 const formData = new FormData(e.target);
                 const itemData = Object.fromEntries(formData.entries());
-                itemData.price = parseFloat(itemData.price);
                 
-                // Convert checkbox value
+                // Process form data
+                itemData.price = parseFloat(itemData.price);
+                itemData.sequence_id = parseInt(itemData.sequence_id, 10) || 99; // NEW
+                itemData.emoji = itemData.emoji || null; // NEW, set to null if empty
                 itemData.is_dine_in_orderable = formData.get('is_dine_in_orderable') === 'on';
                 
-                // If brand is not Gulabi, always set orderable to false
                 if (itemData.brand !== 'Gulabi Thali') {
                     itemData.is_dine_in_orderable = false;
                 }
