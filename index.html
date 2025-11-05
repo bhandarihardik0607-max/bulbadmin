@@ -186,6 +186,19 @@
         .toggle-input:checked + .toggle-slider-pink {
              background-color: var(--brand-pink); /* Pink when checked */
         }
+        
+        /* NEW: Drag and Drop Styles */
+        .menu-item-row.dragging {
+            opacity: 0.5;
+            background: #f0f8ff; /* Light alice blue */
+        }
+        .drag-over-indicator td {
+            padding: 0 !important;
+        }
+        .drag-over-indicator div {
+            height: 2px;
+            background-color: var(--brand-blue);
+        }
 
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -314,7 +327,7 @@
                 <!-- Menu Management -->
                 <div id="menu-tab" class="tab-content space-y-6">
                     
-                    <!-- NEW: App Settings Toggle -->
+                    <!-- App Settings Toggle -->
                     <h2 class="text-2xl font-bold text-gray-800">App Settings</h2>
                     <div class="card p-6">
                         <div class="flex justify-between items-center">
@@ -334,10 +347,10 @@
                         <button id="add-item-btn" class="btn btn-primary">Add New Item</button>
                     </div>
                     <div class="card p-4 overflow-x-auto">
+                        <p class="text-sm text-gray-500 mb-4">Click and drag any row to change the menu order.</p> <!-- NEW: Hint text -->
                         <table class="w-full min-w-max">
                             <thead class="border-b border-gray-200">
                                 <tr>
-                                    <!-- NEW: Sequence and Emoji columns -->
                                     <th class="p-2 text-left font-semibold text-gray-600">Seq.</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Emoji</th>
                                     <th class="p-2 text-left font-semibold text-gray-600">Name</th>
@@ -349,6 +362,7 @@
                                     <th class="p-2 text-right font-semibold text-gray-600">Actions</th>
                                 </tr>
                             </thead>
+                            <!-- UPDATED: Added id for drag-and-drop -->
                             <tbody id="menu-table-body">
                                 <!-- Menu items will be injected here -->
                             </tbody>
@@ -465,7 +479,7 @@
             tables: [],
             orderSubscription: null,
             callSubscription: null,
-            appSettings: {} // NEW: To store app settings
+            appSettings: {} 
         };
 
         // --- DOM SELECTORS ---
@@ -480,10 +494,19 @@
             msgEl.textContent = message;
             toast.classList.remove('hidden');
 
+            // Change color based on message
+            if (message.toLowerCase().includes('saved') || message.toLowerCase().includes('saving')) {
+                toast.classList.remove('bg-red-600');
+                toast.classList.add('bg-blue-600');
+            } else {
+                toast.classList.remove('bg-blue-600');
+                toast.classList.add('bg-red-600');
+            }
+
             if (autoHide) {
                 setTimeout(() => {
                     toast.classList.add('hidden');
-                }, 5000);
+                }, 3000); // Shortened duration for success messages
             }
         }
 
@@ -557,13 +580,16 @@
                 
                 listeners.startOrderListener();
                 listeners.startCallListener();
+                
+                // NEW: Initialize drag-and-drop listeners
+                dragDrop.init();
             }
         };
 
         // --- DATA LOADING ---
         async function loadInitialData() {
             try {
-                // UPDATE: Fetch products ordered by sequence_id, then name
+                // Fetch products ordered by sequence_id, then name
                 const [ordersRes, callsRes, menuRes, customersRes, tablesRes, settingsRes] = await Promise.all([ 
                     supabase.from('orders').select('*, tables(table_number), customers(name), order_items(product_name, quantity)').order('created_at', { ascending: false }),
                     supabase.from('staff_calls').select('*').eq('status', 'pending').order('created_at', { ascending: true }),
@@ -841,11 +867,10 @@
                     return a.name.localeCompare(b.name);
                 });
                 
+                // UPDATED: Added `menu-item-row`, `draggable`, `data-item-id`, and `cursor-move`
                 menuBody.innerHTML = sortedMenu.map(item => `
-                    <tr class="border-b border-gray-100">
-                        <!-- NEW: Sequence ID -->
+                    <tr class="border-b border-gray-100 menu-item-row bg-white cursor-move" draggable="true" data-item-id="${item.id}">
                         <td class="p-2 font-bold text-gray-500">${item.sequence_id ?? 99}</td>
-                        <!-- NEW: Emoji -->
                         <td class="p-2 text-lg">${item.emoji || ''}</td>
                         <td class="p-2">${item.name}</td>
                         <td class="p-2">₹${item.price}</td>
@@ -932,6 +957,123 @@
             }
         };
 
+        // --- NEW: DRAG & DROP LOGIC ---
+        const dragDrop = {
+            draggedItem: null,
+            init() {
+                const menuTableBody = $('menu-table-body');
+                
+                menuTableBody.addEventListener('dragstart', this.handleDragStart.bind(this));
+                menuTableBody.addEventListener('dragover', this.handleDragOver.bind(this));
+                menuTableBody.addEventListener('dragleave', this.handleDragLeave.bind(this));
+                menuTableBody.addEventListener('dragend', this.handleDragEnd.bind(this));
+                menuTableBody.addEventListener('drop', this.handleDrop.bind(this));
+            },
+            handleDragStart(e) {
+                this.draggedItem = e.target.closest('tr');
+                if (!this.draggedItem) return;
+                
+                // Needs a slight delay for the browser to capture the drag image
+                setTimeout(() => {
+                    if (this.draggedItem) this.draggedItem.classList.add('dragging');
+                }, 0);
+                
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', this.draggedItem.dataset.itemId);
+            },
+            handleDragOver(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const targetRow = e.target.closest('tr.menu-item-row');
+                
+                $$('.drag-over-indicator').forEach(el => el.remove());
+
+                if (targetRow && targetRow !== this.draggedItem) {
+                    const indicator = document.createElement('tr');
+                    indicator.classList.add('drag-over-indicator');
+                    indicator.innerHTML = `<td colspan="9"><div></div></td>`;
+                    
+                    const rect = targetRow.getBoundingClientRect();
+                    const offsetY = e.clientY - rect.top;
+                    
+                    if (offsetY < rect.height / 2) {
+                        targetRow.before(indicator); // Insert before
+                    } else {
+                        targetRow.after(indicator); // Insert after
+                    }
+                }
+            },
+            handleDragLeave(e) {
+                // Only remove if leaving the entire table body
+                if (e.currentTarget.contains(e.relatedTarget)) return;
+                $$('.drag-over-indicator').forEach(el => el.remove());
+            },
+            handleDragEnd() {
+                if (this.draggedItem) {
+                    this.draggedItem.classList.remove('dragging');
+                }
+                $$('.drag-over-indicator').forEach(el => el.remove());
+                this.draggedItem = null;
+            },
+            async handleDrop(e) {
+                e.preventDefault();
+                if (!this.draggedItem) return this.handleDragEnd();
+                
+                const targetRow = e.target.closest('tr.menu-item-row');
+                $$('.drag-over-indicator').forEach(el => el.remove());
+
+                // Manually move the dragged item in the DOM
+                if (targetRow && targetRow !== this.draggedItem) {
+                    const rect = targetRow.getBoundingClientRect();
+                    const offsetY = e.clientY - rect.top;
+                    if (offsetY < rect.height / 2) {
+                        targetRow.before(this.draggedItem);
+                    } else {
+                        targetRow.after(this.draggedItem);
+                    }
+                } else if (!targetRow && e.target.closest('tbody')) {
+                    // Dropped in empty space, move to end
+                    $('menu-table-body').appendChild(this.draggedItem);
+                }
+                
+                this.draggedItem.classList.remove('dragging');
+                this.draggedItem = null;
+
+                // Get all rows in the new DOM order and update their sequence_id
+                const rows = $('menu-table-body').querySelectorAll('tr.menu-item-row');
+                const updatePromises = [];
+                
+                rows.forEach((row, index) => {
+                    const itemId = row.dataset.itemId;
+                    const newSequenceId = index + 1; // 1-based indexing
+                    
+                    // Update local state first for responsiveness
+                    const itemInState = state.menu.find(i => i.id == itemId); // Use == for type coercion
+                    if (itemInState) itemInState.sequence_id = newSequenceId;
+                    
+                    // Add to promise list
+                    updatePromises.push(
+                        supabase.from('products').update({ sequence_id: newSequenceId }).eq('id', itemId)
+                    );
+                });
+
+                try {
+                    renderError("Saving new sequence...", true);
+                    const results = await Promise.all(updatePromises);
+                    const firstError = results.find(res => res.error);
+                    if (firstError) throw firstError.error;
+                    
+                    // Re-render from the (now sorted) local state
+                    render.menu(); 
+                    renderError("New order saved!", true);
+
+                } catch (error) {
+                    renderError(`Error saving sequence: ${error.message}`);
+                    await loadInitialData(); // Hard reload from DB on error
+                }
+            }
+        };
+
         // --- ACTIONS & EVENT HANDLERS ---
         const actions = {
             async updateOrderStatus(orderId, status) {
@@ -952,22 +1094,17 @@
                 }
             },
 
-            // --- NEW: Toggle Global Ordering for Gulabi Thali ---
             async toggleGulabiOrdering(isEnabled) {
                 const newValue = isEnabled ? 'true' : 'false';
                 try {
-                    // Check if the setting exists
                     const { data: existing, error: fetchError } = await supabase.from('app_settings').select('key').eq('key', 'gulabi_ordering_enabled').single();
                     if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
                     
                     let error;
                     if (existing) {
-                        // Update existing setting
                         const { error: updateError } = await supabase.from('app_settings').update({ value: newValue }).eq('key', 'gulabi_ordering_enabled');
                         error = updateError;
                     } else {
-                        // Insert new setting
-                        // FIX: Use double quotes for the outer JS string to avoid conflict with inner single quotes
                         const { error: insertError } = await supabase.from('app_settings').insert({ key: 'gulabi_ordering_enabled', value: newValue, description: "Set to 'true' or 'false' to globally enable/disable Gulabi Thali ordering in the customer app." });
                         error = insertError;
                     }
@@ -980,7 +1117,7 @@
                     
                 } catch (e) {
                     renderError(`Error setting Gulabi Thali ordering status: ${e.message}`);
-                    render.menu(); // Revert toggle on UI
+                    render.menu(); 
                 }
             },
 
@@ -988,7 +1125,7 @@
                 try {
                     const { error } = await supabase.from('products').update({ is_available: isAvailable }).eq('id', itemId);
                     if (error) throw error;
-                    const item = state.menu.find(i => i.id === itemId);
+                    const item = state.menu.find(i => i.id == itemId);
                     if (item) item.is_available = isAvailable;
                 } catch (e) {
                     renderError(`Error updating item: ${e.message}`);
@@ -1000,7 +1137,7 @@
                 try {
                     const { error } = await supabase.from('products').update({ is_dine_in_orderable: isOrderable }).eq('id', itemId);
                     if (error) throw error;
-                    const item = state.menu.find(i => i.id === itemId);
+                    const item = state.menu.find(i => i.id == itemId);
                     if (item) item.is_dine_in_orderable = isOrderable;
                 } catch (e) {
                     renderError(`Error updating item orderable status: ${e.message}`);
@@ -1010,26 +1147,19 @@
 
             // --- MODAL: MENU ITEM (UPDATED) ---
             showMenuModal(itemId = null) {
-                const item = itemId ? state.menu.find(i => i.id === itemId) : {};
+                const item = itemId ? state.menu.find(i => i.id == itemId) : {};
                 const isNew = !itemId;
                 const isGulabi = item?.brand === 'Gulabi Thali';
                 
+                // UPDATED: Removed Sequence ID field
                 const modalHTML = `
                     <h2 class="text-2xl font-bold mb-6">${isNew ? 'Add New Item' : 'Edit Menu Item'}</h2>
                     <form id="menu-form" class="space-y-4">
                         <input type="hidden" name="id" value="${item?.id || ''}">
                         
-                        <div class="grid grid-cols-3 gap-4">
-                            <!-- NEW: Sequence ID -->
-                            <div class="col-span-1">
-                                <label class="form-label">Sequence</label>
-                                <input type="number" name="sequence_id" class="form-input" value="${item?.sequence_id || 99}" required>
-                            </div>
-                            <!-- NEW: Emoji -->
-                            <div class="col-span-2">
-                                <label class="form-label">Emoji</label>
-                                <input type="text" name="emoji" class="form-input" value="${item?.emoji || ''}" placeholder="e.g., ☕️">
-                            </div>
+                        <div>
+                            <label class="form-label">Emoji</label>
+                            <input type="text" name="emoji" class="form-input" value="${item?.emoji || ''}" placeholder="e.g., ☕️">
                         </div>
 
                         <div>
@@ -1090,8 +1220,8 @@
                 
                 // Process form data
                 itemData.price = parseFloat(itemData.price);
-                itemData.sequence_id = parseInt(itemData.sequence_id, 10) || 99; // NEW
-                itemData.emoji = itemData.emoji || null; // NEW, set to null if empty
+                // itemData.sequence_id = parseInt(itemData.sequence_id, 10) || 99; // REMOVED
+                itemData.emoji = itemData.emoji || null; 
                 itemData.is_dine_in_orderable = formData.get('is_dine_in_orderable') === 'on';
                 
                 if (itemData.brand !== 'Gulabi Thali') {
@@ -1105,6 +1235,11 @@
                         error = updateError;
                     } else { // Insert
                         delete itemData.id;
+                        // NEW: Get max sequence_id and add 1 for new items
+                        const { data: maxSeqData, error: maxSeqError } = await supabase.from('products').select('sequence_id').order('sequence_id', { ascending: false }).limit(1).single();
+                        if (maxSeqError) console.warn("Could not get max sequence, defaulting to 99.");
+                        itemData.sequence_id = (maxSeqData?.sequence_id || 98) + 1;
+
                         const { error: insertError } = await supabase.from('products').insert(itemData);
                         error = insertError;
                     }
@@ -1119,7 +1254,7 @@
             
             // --- MODAL: CUSTOMER ---
             showCustomerModal(customerId) {
-                const cust = state.customers.find(c => c.id === customerId);
+                const cust = state.customers.find(c => c.id == customerId);
                 const modalHTML = `
                     <h2 class="text-2xl font-bold mb-6">Edit Customer</h2>
                     <form id="customer-form" class="space-y-4">
@@ -1155,7 +1290,7 @@
                     const { data, error } = await supabase.from('customers').update(updateData).eq('id', customerId).select().single();
                     if (error) throw error;
                     
-                    const index = state.customers.findIndex(c => c.id === customerId);
+                    const index = state.customers.findIndex(c => c.id == customerId);
                     state.customers[index] = data;
                     render.customers();
                     closeModal();
@@ -1166,7 +1301,7 @@
 
             // --- MODAL: TABLE ---
             showTableModal(tableId = null) {
-                const table = tableId ? state.tables.find(t => t.id === tableId) : {};
+                const table = tableId ? state.tables.find(t => t.id == tableId) : {};
                 const isNew = !tableId;
                 const modalHTML = `
                     <h2 class="text-2xl font-bold mb-6">${isNew ? 'Add New Table' : 'Edit Table'}</h2>
@@ -1278,7 +1413,7 @@
                         const { error } = await supabase.from('customers').delete().eq('id', customerId);
                         if (error) throw error;
                         
-                        state.customers = state.customers.filter(c => c.id !== customerId);
+                        state.customers = state.customers.filter(c => c.id != customerId);
                         render.customers();
                     } catch (e) {
                          renderError(`Error deleting customer: ${e.message}.`);
@@ -1292,7 +1427,7 @@
                         const { error } = await supabase.from('orders').delete().eq('id', orderId);
                         if (error) throw error;
                         
-                        state.pastOrders = state.pastOrders.filter(o => o.id !== orderId);
+                        state.pastOrders = state.pastOrders.filter(o => o.id != orderId);
                         render.history();
                     } catch (e) {
                          renderError(`Error deleting order: ${e.message}.`);
