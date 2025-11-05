@@ -172,11 +172,19 @@
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
         .toggle-input:checked + .toggle-slider {
-            background-color: #22c55e; /* bg-green-600 */
+            background-color: var(--accent-green); /* bg-green-600 */
         }
         .toggle-input:checked + .toggle-slider:before {
             transform: translateX(20px); /* peer-checked:after:translate-x-full */
         }
+
+        .toggle-slider-pink {
+            background-color: var(--brand-pink);
+        }
+        .toggle-slider-pink.checked {
+            background-color: var(--accent-green);
+        }
+
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -303,6 +311,20 @@
 
                 <!-- Menu Management -->
                 <div id="menu-tab" class="tab-content space-y-6">
+                    
+                    <!-- NEW: App Settings Toggle -->
+                    <h2 class="text-2xl font-bold text-gray-800">App Settings</h2>
+                    <div class="card p-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-gray-800">Gulabi Thali Ordering Status</h3>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="gulabi-ordering-toggle" class="toggle-input" onchange="actions.toggleGulabiOrdering(this.checked)">
+                                <span class="toggle-slider toggle-slider-pink" id="gulabi-ordering-slider"></span>
+                            </label>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">When **On**, customers viewing the Gulabi Thali menu can place orders. When **Off**, it is **View Only**.</p>
+                    </div>
+
                     <div class="flex justify-between items-center">
                         <h2 class="text-2xl font-bold text-gray-800">Menu Management</h2>
                         <button id="add-item-btn" class="btn btn-primary">Add New Item</button>
@@ -436,6 +458,7 @@
             tables: [],
             orderSubscription: null,
             callSubscription: null,
+            appSettings: {} // NEW: To store app settings
         };
 
         // --- DOM SELECTORS ---
@@ -533,12 +556,13 @@
         // --- DATA LOADING ---
         async function loadInitialData() {
             try {
-                const [ordersRes, callsRes, menuRes, customersRes, tablesRes] = await Promise.all([
+                const [ordersRes, callsRes, menuRes, customersRes, tablesRes, settingsRes] = await Promise.all([ // Added settingsRes
                     supabase.from('orders').select('*, tables(table_number), customers(name), order_items(product_name, quantity)').order('created_at', { ascending: false }),
                     supabase.from('staff_calls').select('*').eq('status', 'pending').order('created_at', { ascending: true }),
                     supabase.from('products').select('*').order('name', { ascending: true }),
                     supabase.from('customers').select('*').order('name', { ascending: true }),
-                    supabase.from('tables').select('*').order('table_number', { ascending: true })
+                    supabase.from('tables').select('*').order('table_number', { ascending: true }),
+                    supabase.from('app_settings').select('key, value') // Fetch app settings
                 ]);
 
                 if (ordersRes.error) throw ordersRes.error;
@@ -546,6 +570,7 @@
                 if (menuRes.error) throw menuRes.error;
                 if (customersRes.error) throw customersRes.error;
                 if (tablesRes.error) throw tablesRes.error;
+                if (settingsRes.error) throw settingsRes.error; // Check for settings error
 
                 state.liveOrders = ordersRes.data.filter(o => o.status === 'received' || o.status === 'preparing');
                 state.pastOrders = ordersRes.data.filter(o => o.status === 'delivered' || o.status === 'cancelled');
@@ -554,6 +579,9 @@
                 state.menu = menuRes.data;
                 state.customers = customersRes.data;
                 state.tables = tablesRes.data;
+                
+                // Process app settings into a key/value object
+                state.appSettings = settingsRes.data.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {});
 
                 render.all();
 
@@ -784,6 +812,17 @@
             },
 
             menu() {
+                // Update App Settings Toggle
+                const toggle = $('gulabi-ordering-toggle');
+                const isEnabled = state.appSettings.gulabi_ordering_enabled === 'true';
+                if (toggle) {
+                    toggle.checked = isEnabled;
+                }
+                const slider = $('gulabi-ordering-slider');
+                if (slider) {
+                    slider.classList.toggle('checked', isEnabled);
+                }
+
                 const menuBody = $('menu-table-body');
                 menuBody.innerHTML = state.menu.map(item => `
                     <tr class="border-b border-gray-100">
@@ -889,6 +928,37 @@
                     if (error) throw error;
                 } catch (e) {
                     renderError(`Error resolving call: ${e.message}`);
+                }
+            },
+
+            // --- NEW: Toggle Global Ordering for Gulabi Thali ---
+            async toggleGulabiOrdering(isEnabled) {
+                const newValue = isEnabled ? 'true' : 'false';
+                try {
+                    // Check if the setting exists
+                    const { data: existing, error: fetchError } = await supabase.from('app_settings').select('key').eq('key', 'gulabi_ordering_enabled').single();
+                    if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+                    
+                    let error;
+                    if (existing) {
+                        // Update existing setting
+                        const { error: updateError } = await supabase.from('app_settings').update({ value: newValue }).eq('key', 'gulabi_ordering_enabled');
+                        error = updateError;
+                    } else {
+                        // Insert new setting
+                        const { error: insertError } = await supabase.from('app_settings').insert({ key: 'gulabi_ordering_enabled', value: newValue });
+                        error = insertError;
+                    }
+
+                    if (error) throw error;
+                    
+                    state.appSettings.gulabi_ordering_enabled = newValue;
+                    render.menu();
+                    renderError(`Gulabi Thali ordering successfully set to: ${isEnabled ? 'ON' : 'OFF'}`, true);
+                    
+                } catch (e) {
+                    renderError(`Error setting Gulabi Thali ordering status: ${e.message}`);
+                    render.menu(); // Revert toggle on UI
                 }
             },
 
@@ -1239,4 +1309,3 @@
     </script>
 </body>
 </html>
-
