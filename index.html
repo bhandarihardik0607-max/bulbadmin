@@ -486,19 +486,25 @@
         const $ = (id) => document.getElementById(id);
         const $$ = (sel) => document.querySelectorAll(sel);
 
-        // --- ERROR HANDLING ---
-        function renderError(message, autoHide = true) {
-            console.error(message);
+        // --- TOAST NOTIFICATION ---
+        // UPDATED: Renamed from renderError to renderToast, added 'type'
+        function renderToast(message, autoHide = true, type = 'error') {
+            if (type === 'error') {
+                console.error(message); // Log as error
+            } else {
+                console.log(message); // Log as info
+            }
+            
             const toast = $('error-toast');
             const msgEl = $('error-message');
             msgEl.textContent = message;
             toast.classList.remove('hidden');
 
-            // Change color based on message
-            if (message.toLowerCase().includes('saved') || message.toLowerCase().includes('saving')) {
+            // Change color based on type
+            if (type === 'info') {
                 toast.classList.remove('bg-red-600');
                 toast.classList.add('bg-blue-600');
-            } else {
+            } else { // default to error
                 toast.classList.remove('bg-blue-600');
                 toast.classList.add('bg-red-600');
             }
@@ -506,7 +512,7 @@
             if (autoHide) {
                 setTimeout(() => {
                     toast.classList.add('hidden');
-                }, 3000); // Shortened duration for success messages
+                }, 3000); 
             }
         }
 
@@ -523,7 +529,7 @@
                 auth.checkSession();
             } catch (e) {
                 console.error("CRITICAL: SUPABASE initialization failed.", e);
-                renderError(`CRITICAL: App failed to start. ${e.message}`, false);
+                renderToast(`CRITICAL: App failed to start. ${e.message}`, false, 'error');
             }
         });
 
@@ -548,14 +554,14 @@
                         this.showLogin();
                     }
                 } catch (e) {
-                    renderError(`Auth Error: ${e.message}`);
+                    renderToast(`Auth Error: ${e.message}`);
                     this.showLogin();
                 }
             },
             async login(email, password) {
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) {
-                    renderError(error.message);
+                    renderToast(error.message);
                 } else {
                     state.user = data.user;
                     this.showApp();
@@ -619,7 +625,7 @@
                 render.all();
 
             } catch (error) {
-                renderError(`Error Loading Data: ${error.message}\nThis is likely an RLS (Row Level Security) issue.\nYour RLS policies are probably blocking this admin account from viewing all data. You must update your policies in the Supabase dashboard to grant full access to this logged-in user.`);
+                renderToast(`Error Loading Data: ${error.message}\nThis is likely an RLS (Row Level Security) issue.\nYour RLS policies are probably blocking this admin account from viewing all data. You must update your policies in the Supabase dashboard to grant full access to this logged-in user.`);
                 console.error("Detailed Load Error:", error);
             }
         }
@@ -709,7 +715,7 @@
             } catch (e) {
                 console.error("Failed to fetch order details:", e);
                 if (e && e.message && e.message.includes("Cannot read properties of null (reading 'classList')")) {
-                    renderError("Dashboard render error: " + e.message);
+                    renderToast("Dashboard render error: " + e.message);
                 }
             }
         }
@@ -1058,17 +1064,17 @@
                 });
 
                 try {
-                    renderError("Saving new sequence...", true);
+                    renderToast("Saving new sequence...", true, 'info'); // UPDATED
                     const results = await Promise.all(updatePromises);
                     const firstError = results.find(res => res.error);
                     if (firstError) throw firstError.error;
                     
                     // Re-render from the (now sorted) local state
                     render.menu(); 
-                    renderError("New order saved!", true);
+                    renderToast("New order saved!", true, 'info'); // UPDATED
 
                 } catch (error) {
-                    renderError(`Error saving sequence: ${error.message}`);
+                    renderToast(`Error saving sequence: ${error.message}`); // UPDATED
                     await loadInitialData(); // Hard reload from DB on error
                 }
             }
@@ -1081,7 +1087,7 @@
                     const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
                     if (error) throw error;
                 } catch (e) {
-                    renderError(`Error updating order: ${e.message}`);
+                    renderToast(`Error updating order: ${e.message}`);
                 }
             },
 
@@ -1090,7 +1096,7 @@
                     const { error } = await supabase.from('staff_calls').update({ status: 'resolved' }).eq('id', callId);
                     if (error) throw error;
                 } catch (e) {
-                    renderError(`Error resolving call: ${e.message}`);
+                    renderToast(`Error resolving call: ${e.message}`);
                 }
             },
 
@@ -1113,10 +1119,10 @@
                     
                     state.appSettings.gulabi_ordering_enabled = newValue;
                     render.menu();
-                    renderError(`Gulabi Thali ordering successfully set to: ${isEnabled ? 'ON' : 'OFF'}`, true);
+                    renderToast(`Gulabi Thali ordering successfully set to: ${isEnabled ? 'ON' : 'OFF'}`, true, 'info'); // UPDATED
                     
                 } catch (e) {
-                    renderError(`Error setting Gulabi Thali ordering status: ${e.message}`);
+                    renderToast(`Error setting Gulabi Thali ordering status: ${e.message}`);
                     render.menu(); 
                 }
             },
@@ -1128,7 +1134,7 @@
                     const item = state.menu.find(i => i.id == itemId);
                     if (item) item.is_available = isAvailable;
                 } catch (e) {
-                    renderError(`Error updating item: ${e.message}`);
+                    renderToast(`Error updating item: ${e.message}`);
                     render.menu();
                 }
             },
@@ -1140,7 +1146,7 @@
                     const item = state.menu.find(i => i.id == itemId);
                     if (item) item.is_dine_in_orderable = isOrderable;
                 } catch (e) {
-                    renderError(`Error updating item orderable status: ${e.message}`);
+                    renderToast(`Error updating item orderable status: ${e.message}`);
                     render.menu();
                 }
             },
@@ -1248,7 +1254,7 @@
                     await loadInitialData(); // Reload all data
                     closeModal();
                 } catch (e) {
-                    renderError(`Error saving item: ${e.message}`);
+                    renderToast(`Error saving item: ${e.message}`);
                 }
             },
             
@@ -1295,7 +1301,7 @@
                     render.customers();
                     closeModal();
                 } catch (e) {
-                    renderError(`Error updating customer: ${e.message}`);
+                    renderToast(`Error updating customer: ${e.message}`);
                 }
             },
 
@@ -1348,7 +1354,7 @@
                     await loadInitialData(); // Reload all data
                     closeModal();
                 } catch (e) {
-                    renderError(`Error saving table: ${e.message}`);
+                    renderToast(`Error saving table: ${e.message}`);
                 }
             },
 
@@ -1381,7 +1387,7 @@
                 const adjustment = parseInt(formData.get('adjustment'));
 
                 if (isNaN(adjustment)) {
-                    return renderError("Invalid number for points.");
+                    return renderToast("Invalid number for points.");
                 }
 
                 try {
@@ -1397,7 +1403,7 @@
                     closeModal();
 
                 } catch (e) {
-                    renderError(`Error adjusting points: ${e.message}`);
+                    renderToast(`Error adjusting points: ${e.message}`);
                 }
             },
 
@@ -1416,7 +1422,7 @@
                         state.customers = state.customers.filter(c => c.id != customerId);
                         render.customers();
                     } catch (e) {
-                         renderError(`Error deleting customer: ${e.message}.`);
+                         renderToast(`Error deleting customer: ${e.message}.`);
                     }
                 }
             },
@@ -1430,7 +1436,7 @@
                         state.pastOrders = state.pastOrders.filter(o => o.id != orderId);
                         render.history();
                     } catch (e) {
-                         renderError(`Error deleting order: ${e.message}.`);
+                         renderToast(`Error deleting order: ${e.message}.`);
                     }
                 }
             }
